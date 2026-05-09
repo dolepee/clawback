@@ -1,0 +1,50 @@
+{
+  "spike": "S2 Skills hello world",
+  "status": "PASS",
+  "date": "2026-05-10",
+  "path": "fallback (direct Mantle RPC)",
+  "byreal_finding": "Byreal is a Solana CLMM DEX. byreal-cli cannot read Mantle pools. Original spec premise wrong, fallback path activated per SPIKES.md.",
+  "live_run": {
+    "rpc": "https://rpc.mantle.xyz",
+    "block": "95119467",
+    "observedTimestamp": 1778369246,
+    "skillId": "merchant_moe_lb_mantle_v1",
+    "pair": "MNT/mETH",
+    "observedPrice": "3708.55685788",
+    "source": "merchant_moe_liquidity_book",
+    "components": {
+      "mntPriceUsdt": "0.68627005",
+      "methPriceUsdt": "2545.07149572"
+    },
+    "pools": {
+      "wmnt_usdt": {
+        "address": "0x365722f12ceb2063286a268b03c654df81b7c00f",
+        "tokenX": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+        "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+        "symbolX": "WMNT",
+        "symbolY": "USDT",
+        "activeId": 8377391,
+        "binStep": 25
+      },
+      "meth_usdt": {
+        "address": "0x3f0047606dcad6177c13742f1854fc8c999cd2b6",
+        "tokenX": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
+        "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+        "symbolX": "mETH",
+        "symbolY": "USDT",
+        "activeId": 8368809,
+        "binStep": 10
+      }
+    },
+    "skillsOutputHash_for_this_observation": "0x41f40ed6f9013852c480f219164cf2d1d15db72055950ae8b6a8d798e062e0be"
+  },
+  "pass_criteria_met": [
+    "skill returns deterministic JSON",
+    "hash reproducible for a given observation",
+    "output makes sense for MNT vs mETH context"
+  ],
+  "next_steps": [
+    "agent/src/skills.ts runSkill() is the live implementation",
+    "S5 will commit skillsOutputHash on chain at claim commit time"
+  ]
+}

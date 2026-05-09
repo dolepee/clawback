@@ -35,22 +35,34 @@ Five spikes must pass before full build proceeds. Each spike is a small, time bo
 
 ---
 
-## S2: Byreal Skills hello world
+## S2: Skills hello world
 
-**Goal:** Run a single Mantle Skill locally that returns price quote data for MNT vs mETH.
+**Goal:** Return deterministic price quote data for MNT vs mETH that can be hashed into `skillsOutputHash` at claim commit.
 
-**Status:** Not started.
+**Status:** PASS via fallback path 2026-05-10. Live run on Mantle mainnet RPC. Receipts in `docs/SPIKE_2_RECEIPTS.json`.
 
-**Steps:**
-1. Clone https://github.com/byreal-git/byreal-agent-skills
-2. Install per repo instructions.
-3. Run a built in skill that reads pool reserves or quotes a swap on Fluxion or Merchant Moe.
-4. Capture the JSON output shape, hash it with keccak256, that becomes the `skillsOutputHash` field on a claim.
-5. Write a Node script that wraps the call and prints `{ skillId, output, hash }`.
+**Critical research finding (2026-05-10):**
 
-**Pass criteria:** One skill invocation returns deterministic JSON. Hash is reproducible. Output makes sense for an MNT vs mETH context.
+* **Byreal is a Solana CLMM DEX, not Mantle.** Verified at https://github.com/byreal-git/byreal-agent-skills package.json keywords: solana, clmm, dex. Description: "AI-native CLI for Byreal CLMM DEX on Solana". Built-in skills reference Solana wallet setup, SOL/USDC swaps, etc.
+* **byreal-cli cannot read Mantle pools.** Original spec premise was wrong. Fallback path locked.
 
-**Fail handling:** If the Skills CLI is not installable or maintained, document the gap and fall back to a direct Mantle RPC reading of pool reserves with the same JSON shape. Skills CLI integration becomes stretch.
+**v1 decision (locked):**
+
+1. Skip byreal-cli entirely. Document Byreal-is-Solana finding.
+2. Use direct Mantle RPC reads of Merchant Moe Liquidity Book pools.
+3. `skillId = "merchant_moe_lb_mantle_v1"`. Reads WMNT/USDT pool + mETH/USDT pool, derives MNT/mETH ratio.
+4. Implementation lives in `agent/src/skills.ts` runSkill(). Hash is keccak256 of canonical-sorted JSON.
+
+**Live observation captured 2026-05-10 (block 95119467):**
+
+* MNT/USDT = 0.68627005 (Merchant Moe pool 0x365722f1...)
+* mETH/USDT = 2545.07149572 (Merchant Moe pool 0x3f004760...)
+* Derived MNT/mETH = 3708.55685788
+* skillsOutputHash = `0x41f40ed6f9013852c480f219164cf2d1d15db72055950ae8b6a8d798e062e0be`
+
+**Pass criteria met:** deterministic JSON, reproducible hash, MNT vs mETH context valid.
+
+**Risk:** Pool TVL is moderate ($1.2M WMNT/USDT, $32K mETH/USDT). For demo, observation is point-in-time so flash manipulation is not in scope. For mainnet production, use TWAP over n blocks. Documented as v1 limitation.
 
 ---
 
