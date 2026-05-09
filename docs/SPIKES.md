@@ -4,20 +4,34 @@ Five spikes must pass before full build proceeds. Each spike is a small, time bo
 
 ## S1: Q402 hello world
 
-**Goal:** Sign once via EIP 712 against ClawbackEscrow stub, submit a 0.01 USDC payment, observe the on chain receipt and allowance decrement.
+**Goal:** Sign once via EIP 712, facilitator submits a 0.01 USDC payment to ClawbackEscrow, observe on chain receipt and PaymentAccepted event.
 
-**Status:** Not started.
+**Status:** ADAPTER PATH LOCKED 2026-05-10. Building custom Q402Adapter.sol over ERC-3009 transferWithAuthorization. SDK fallback per spec.
+
+**Research findings (2026-05-10):**
+
+* **Q402 SDK upstream** at https://github.com/quackai-labs/Q402. TypeScript monorepo (core, facilitator, middleware-express, middleware-hono). Last push 2026-03-08, 3 stars.
+* **Q402 SDK supports BSC mainnet and BSC testnet only.** `packages/core/src/types/network.ts` SupportedNetworks enum has only `BSC_MAINNET (56)` and `BSC_TESTNET (97)`. No Mantle entry. Adding Mantle requires forking the package or writing our own client.
+* **Q402 wire shape** is HTTP 402 with `accepts[]` array. Each entry has `scheme: "evm/eip7702-delegated-payment"`, `networkId`, `token`, `amount`, `to`, `implementationContract`, EIP-712 `witness` (domain + types + message: owner, token, amount, to, deadline, paymentId, nonce), and `authorization` (chainId, address, nonce). Client signs witness + 7702 authorization, sends as `X-PAYMENT` HTTP header. Facilitator submits type 0x04 set-code transaction with sponsored gas.
+* **Mantle EIP-7702 status.** Mantle's own docs confirm SetCodeTx will be supported via the Everest upgrade, replacing native MetaTX. Activation timing on Mantle Sepolia and mainnet is unclear from docs and search. Treated as unverified for v1.
+
+**v1 decision (locked):**
+
+1. **Build Q402Adapter.sol** as a thin EIP-712 sign once contract in our repo. Wire shape mirrors Q402 (witness EIP-712, paymentId, nonce, deadline). Lets us claim Q402 compatibility while not depending on upstream BSC-only SDK.
+2. **Settlement primitive: ERC-3009 transferWithAuthorization** on USDC. User signs one ERC-3009 authorization per payment. Facilitator calls Q402Adapter which calls USDC.transferWithAuthorization then ClawbackEscrow.acceptPayment. Gas paid by facilitator. No prior approve needed.
+3. **EIP-7702 stretch.** If Mantle Sepolia accepts type 0x04 transactions during ramp testing, layer in EIP-7702 single-auth-multi-payment as a stretch goal. v1 ships without it.
+4. **No Q402 SDK dependency.** Skip @x402-bnb/core. Write our own viem-based client for sign + submit.
 
 **Steps:**
-1. Locate Q402 SDK or docs. Starting point: https://quackai.ai/q402
-2. Follow the quickstart for a simple sign once flow.
-3. Deploy the ClawbackEscrow stub to Mantle testnet with an `acceptPayment` function that just emits `PaymentAccepted` and decrements an internal allowance.
-4. Run the Q402 client, sign once, observe the testnet tx and event log.
-5. Capture: SDK shape, EIP 712 domain, allowance decrement semantics, gas paid by who.
+1. Q402Adapter.sol with EIP-712 witness verification, ERC-3009 USDC pull, ClawbackEscrow.acceptPayment call. DONE on adapter path.
+2. ClawbackEscrow.acceptPayment locked to Q402Adapter as authorized caller. DONE.
+3. Foundry test: mock USDC with ERC-3009, sign witness, facilitator submits, verify PaymentAccepted event and USDC balance change.
+4. TS spike script `agent/src/spikes/s1-q402.ts` that signs witness against deployed Q402Adapter on Mantle Sepolia and submits via facilitator.
+5. Capture tx hash, EIP-712 domain hex, gas cost, in `docs/SPIKE_1_RECEIPTS.json`.
 
-**Pass criteria:** One signed authorization, two payments executed against it without further popups, both events visible on Mantle testnet.
+**Pass criteria:** One signed witness, one payment executed by facilitator on Mantle Sepolia, PaymentAccepted event visible on explorer, USDC moves from payer to ClawbackEscrow, payer pays zero gas.
 
-**Fail handling:** If the SDK is unstable or undocumented, fall back to a thin Q402 adapter contract that wraps the EIP 712 sign once flow manually. Document the fallback in the spec.
+**Fail handling:** If Mantle Sepolia rejects type 0 transactions from facilitator (extremely unlikely) or USDC on Mantle Sepolia lacks ERC-3009 (verify this first), fall back to plain `permit` (EIP-2612) or a synthetic test USDC stub for the demo, document which is mocked.
 
 ---
 

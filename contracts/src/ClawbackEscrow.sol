@@ -22,6 +22,8 @@ contract ClawbackEscrow {
     address public reputationLedger;
     address public settlementAdapter;
     address public paymentToken;
+    address public q402Adapter;
+    address public owner;
 
     event PaymentAccepted(uint256 indexed claimId, address indexed payer, uint256 amount);
     event BondLocked(uint256 indexed agentId, uint256 indexed claimId, uint256 amount);
@@ -36,8 +38,20 @@ contract ClawbackEscrow {
     error AlreadyClaimed();
     error NoRefundOwed();
 
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function setQ402Adapter(address adapter) external {
+        if (msg.sender != owner) revert UnauthorizedCaller();
+        q402Adapter = adapter;
+    }
+
     function acceptPayment(uint256 claimId, address payer, uint256 amount) external {
-        revert("TODO: callable only by Q402 settlement layer");
+        if (msg.sender != q402Adapter) revert UnauthorizedCaller();
+        paidAmount[payer][claimId] += amount;
+        accounting[claimId].totalPaid += amount;
+        emit PaymentAccepted(claimId, payer, amount);
     }
 
     function lockBond(uint256 agentId, uint256 claimId, uint256 amount) external {
