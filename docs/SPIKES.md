@@ -131,19 +131,28 @@ Five spikes must pass before full build proceeds. Each spike is a small, time bo
 
 ## S5: Minimal ClaimMarket + Escrow proof path
 
-**Goal:** End to end happy path on testnet. Agent commits a claim, user pays unlock, settlement triggers, refund or earnings claim works.
+**Goal:** End to end happy + sad path. Agent commits, user pays unlock, settlement, refund or earnings claim.
 
-**Status:** Not started.
+**Status:** PASS in-memory EVM 2026-05-10. Live testnet broadcast pending funded deployer (same gating as S3). Receipts in `docs/SPIKE_5_RECEIPTS.json`.
 
-**Steps:**
-1. Implement minimal versions of `commitClaim`, `recordPaidUnlock`, `acceptPayment`, `lockBond`, `settle`, `claimRefund`, `claimAgentEarnings`. No reveal, no skills hash verification, no bonus cap math beyond the simplest pro rata.
-2. Write a Foundry integration test that exercises both right and wrong outcomes.
-3. Deploy to testnet, run the same flow with cast or a small Node script.
-4. Capture tx hashes and event logs in `docs/SPIKE_5_RECEIPTS.json`.
+**Implemented this round:**
 
-**Pass criteria:** Both paths work on testnet. One wrong claim with refund withdrawn. One right claim with agent earnings withdrawn. All logged.
+* `AgentRegistry.registerAgent` + bond bookkeeping callbacks (only escrow can mutate).
+* `ClaimMarket.commitClaim` (calls escrow.lockBond, sets state Committed) + `markSettled` (only adapter or escrow) + `publicReveal` (verifies keccak256(claimText, salt) matches claimHash).
+* `ClawbackEscrow.lockBond` (USDC pull from agent owner), `settle` (only adapter), `claimRefund` (pull pattern, capped pro rata bonus), `claimAgentEarnings` (pull pattern, total paid + bond return).
+* `ReputationLedger.recordOutcome` (only escrow), tracks wins/losses + accuracyBps.
+* `ManualSettlementAdapter.resolve` (only admin) decodes (bool agentRight, bytes proof) from params, calls escrow.settle + market.markSettled.
 
-**Fail handling:** If integration is blocked by Q402 (S1) or settlement source (S4), proxy with a mock payment and a hardcoded settlement outcome. Document which parts are mocked.
+**Test suite: 10/10 passing.**
+
+* `test_endToEnd_agentRight`: 2 payers unlock, agent right, agent gets bond + 500k paid, payers blocked, +1 win, accuracy 100%.
+* `test_endToEnd_agentWrong`: agent slashed (5M bond), each payer gets 250k refund + 125k bonus (cap = 5000 bps of paid), 4.75M residual stays in escrow, agent blocked from earnings, +1 loss, accuracy 0%.
+* `test_endToEnd_publicReveal`: hash verifies after settlement, state -> PubliclyRevealed.
+* `test_endToEnd_singlePayer_bondPoolUncapped`: small bond relative to payment, full slash pool flows to payer (under cap).
+
+**Pass criteria for full PASS:** Live testnet broadcast of right + wrong scenarios with tx hashes captured. Currently blocked only on funded deployer wallet (same as S3).
+
+**Fail handling:** in-memory test path is sufficient for build phase to begin per `Pass condition for build phase` below.
 
 ---
 

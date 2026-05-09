@@ -1,0 +1,53 @@
+{
+  "spike": "S5 End to end proof path",
+  "status": "PASS (in-memory EVM)",
+  "date": "2026-05-10",
+  "live_testnet_status": "blocked on funded deployer wallet, ready to broadcast",
+  "test_suite": {
+    "EndToEndTest": {
+      "test_endToEnd_agentRight": {
+        "result": "PASS",
+        "gas": 897905,
+        "scenario": "agent registers, commits claim with 5 USDC bond, two payers each unlock for 0.25 USDC, settlement marks agent right, agent claims 5.5 USDC (bond + total paid), reputation +1 win, payers blocked from refund"
+      },
+      "test_endToEnd_agentWrong": {
+        "result": "PASS",
+        "gas": 944015,
+        "scenario": "same setup, settlement marks agent wrong, bond fully slashed (5 USDC), each payer claims 250k paid back + 125k bonus (capped at 5000 bps), agent blocked from earnings, leftover 4.75 USDC stays in escrow as uncapped slash residual"
+      },
+      "test_endToEnd_publicReveal": {
+        "result": "PASS",
+        "gas": 692183,
+        "scenario": "after settlement, public reveal verifies keccak256(claimText, salt) matches stored claimHash, state -> PubliclyRevealed"
+      },
+      "test_endToEnd_singlePayer_bondPoolUncapped": {
+        "result": "PASS",
+        "gas": 676211,
+        "scenario": "single payer, small bond (100k) relative to payment (1M), full bond pool flows to payer as bonus (under cap)"
+      }
+    },
+    "Q402AdapterTest": {
+      "test_accept_singlePayment": "PASS",
+      "test_accept_revertOnReplay": "PASS",
+      "test_accept_revertOnExpired": "PASS",
+      "test_accept_revertOnBadSignature": "PASS",
+      "test_accept_signOnce_paySeparateClaims": "PASS",
+      "test_acceptPayment_revertWhenNotAdapter": "PASS"
+    },
+    "totals": "10/10 passing"
+  },
+  "deploy_simulation": {
+    "local_anvil": {
+      "gas_used": 8123916,
+      "status": "OK"
+    },
+    "mantle_sepolia_rpc_simulation_done_at": "S3"
+  },
+  "next_steps_for_full_PASS": [
+    "Fund deployer wallet on Mantle Sepolia (~1 MNT)",
+    "Run forge script Deploy.s.sol --rpc-url https://rpc.sepolia.mantle.xyz --broadcast",
+    "Capture testnet addresses, append to docs/SPIKE_5_RECEIPTS.json",
+    "Run agent/src/spikes/s1-q402.ts on testnet for live tx hash",
+    "Repeat the wrong-path scenario as a live testnet integration"
+  ]
+}

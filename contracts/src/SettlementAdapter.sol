@@ -7,6 +7,14 @@ interface ISettlementAdapter {
         returns (bool agentRight, bytes memory proof);
 }
 
+interface IClawbackEscrowSettle {
+    function settle(uint256 claimId, bool agentRight, bytes calldata settlementProof) external;
+}
+
+interface IClaimMarketSettle {
+    function markSettled(uint256 claimId, bool agentRight) external;
+}
+
 contract ManualSettlementAdapter is ISettlementAdapter {
     address public admin;
     address public clawbackEscrow;
@@ -24,7 +32,6 @@ contract ManualSettlementAdapter is ISettlementAdapter {
     event ManualSettlement(uint256 indexed claimId, bool agentRight, bytes proof);
 
     error NotAdmin();
-    error AlreadySettled();
 
     constructor(address _admin, address _clawbackEscrow, address _claimMarket) {
         admin = _admin;
@@ -36,6 +43,10 @@ contract ManualSettlementAdapter is ISettlementAdapter {
         external
         returns (bool agentRight, bytes memory proof)
     {
-        revert("TODO: admin only, parse params, write proof, call ClawbackEscrow.settle, call ClaimMarket settle hook");
+        if (msg.sender != admin) revert NotAdmin();
+        (agentRight, proof) = abi.decode(params, (bool, bytes));
+        IClawbackEscrowSettle(clawbackEscrow).settle(claimId, agentRight, proof);
+        IClaimMarketSettle(claimMarket).markSettled(claimId, agentRight);
+        emit ManualSettlement(claimId, agentRight, proof);
     }
 }

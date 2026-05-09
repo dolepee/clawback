@@ -30,7 +30,11 @@ contract Deploy is Script {
         ReputationLedger ledger = new ReputationLedger();
         ManualSettlementAdapter adapter = new ManualSettlementAdapter(deployer, address(escrow), address(market));
         Q402Adapter q402 = new Q402Adapter(usdc, address(escrow));
-        escrow.setQ402Adapter(address(q402));
+
+        registry.setEscrow(address(escrow));
+        ledger.setEscrow(address(escrow));
+        escrow.configure(address(market), address(ledger), address(adapter), address(registry), usdc, address(q402));
+        market.configure(address(registry), address(escrow), address(adapter), address(q402));
 
         vm.stopBroadcast();
 
