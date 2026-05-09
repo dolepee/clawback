@@ -68,20 +68,24 @@ Five spikes must pass before full build proceeds. Each spike is a small, time bo
 
 ## S3: Mantle testnet contract deploy
 
-**Goal:** Deploy the five contract stubs to Mantle testnet via Foundry, verify on the explorer.
+**Goal:** Deploy the contract stubs to Mantle Sepolia via Foundry, verify on explorer.
 
-**Status:** Not started.
+**Status:** SIMULATION PASS 2026-05-10. Live broadcast pending funded testnet wallet.
 
-**Steps:**
-1. Find Mantle testnet RPC URL and chain ID (Sepolia testnet for Mantle).
-2. Get testnet MNT from the faucet.
-3. Write a Foundry deploy script `script/Deploy.s.sol` that deploys all five contracts and wires the `claimMarket`, `clawbackEscrow`, `settlementAdapter` addresses across them.
-4. Run `forge script` with `--broadcast`.
-5. Verify each contract on the testnet explorer.
+**Verified during simulation:**
 
-**Pass criteria:** Five contracts deployed, addresses recorded in `docs/0G_MAINNET_PROOF.json` style file, all visible on explorer.
+* Mantle Sepolia chainId 5003 confirmed via eth_chainId (0x138b).
+* RPC https://rpc.sepolia.mantle.xyz live, head block ~38.6M as of 2026-05-10.
+* `forge script script/Deploy.s.sol --rpc-url https://rpc.sepolia.mantle.xyz` simulates clean.
+* Estimated total gas for full bundle: 5,702,345 at 100 gwei = ~0.57 MNT.
+* All 8 contracts ready: MockUSDC (auto when USDC_ADDRESS empty), AgentRegistry, ClaimMarket, ClawbackEscrow, ReputationLedger, ManualSettlementAdapter, Q402Adapter, plus wiring (escrow.setQ402Adapter).
+* Foundry test suite: 6/6 passing.
 
-**Fail handling:** If Mantle testnet is congested or RPC unstable, fall back to local Anvil with chain id forked from Mantle. Document the workaround.
+**Live broadcast steps documented in `docs/DEPLOY.md`.** One command after funding: `forge script script/Deploy.s.sol --rpc-url https://rpc.sepolia.mantle.xyz --broadcast`.
+
+**Pass criteria for full PASS:** Contracts deployed, addresses recorded in `docs/SPIKE_3_DEPLOY.json`, all visible on https://sepolia.mantlescan.xyz. Currently blocked only on funding the deployer wallet.
+
+**Fail handling:** If Mantle Sepolia congests or rejects deploy, fall back to Anvil fork (`anvil --fork-url https://rpc.sepolia.mantle.xyz`). All Foundry tests already pass against in-memory EVM at chain 31337.
 
 ---
 

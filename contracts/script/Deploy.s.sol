@@ -8,14 +8,21 @@ import {ClawbackEscrow} from "../src/ClawbackEscrow.sol";
 import {ReputationLedger} from "../src/ReputationLedger.sol";
 import {ManualSettlementAdapter} from "../src/SettlementAdapter.sol";
 import {Q402Adapter} from "../src/Q402Adapter.sol";
+import {MockUSDC} from "../src/MockUSDC.sol";
 
 contract Deploy is Script {
     function run() external {
         uint256 deployerKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         address deployer = vm.addr(deployerKey);
-        address usdc = vm.envAddress("USDC_ADDRESS");
+        address usdc = vm.envOr("USDC_ADDRESS", address(0));
 
         vm.startBroadcast(deployerKey);
+
+        if (usdc == address(0)) {
+            MockUSDC mockUsdc = new MockUSDC();
+            usdc = address(mockUsdc);
+            console2.log("MockUSDC deployed:    ", usdc);
+        }
 
         AgentRegistry registry = new AgentRegistry();
         ClaimMarket market = new ClaimMarket();
