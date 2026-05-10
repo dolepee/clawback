@@ -45,17 +45,25 @@ Add Mantle Sepolia to your wallet UI for inspection:
 
 ## 2. Faucet the deployer + agents
 
-Each wallet that broadcasts a tx needs gas. Get test MNT from either faucet:
+Each wallet that broadcasts a tx needs MNT. Live Mantle Sepolia base fee is 50 gwei (verified 2026-05-10), so the full bundle (11.3M gas) costs **0.567 MNT** at minimum.
 
-* https://faucet.sepolia.mantle.xyz (official, ~0.5 MNT per drip, requires connect)
-* https://faucet.quicknode.com/mantle/sepolia (alternative, drip varies)
+**Faucets (stack at least three):**
 
-**Targets (verified against live Sepolia sim 2026-05-10):**
+| Faucet | Drip size | Auth | Notes |
+|---|---|---|---|
+| https://faucet.sepolia.mantle.xyz | 0.1 MNT | wallet connect | rate limited per address per day |
+| https://faucet.quicknode.com/mantle/sepolia | 0.1 to 0.5 MNT | X / GitHub login | larger drip if you log in |
+| https://thirdweb.com/mantle-sepolia-testnet | 0.05 to 0.1 MNT | GitHub | small but reliable |
+| Mantle Discord (`#faucet` channel, https://discord.gg/mantlenetwork) | up to 1 MNT | Discord verify | slowest but biggest, ask politely with your address |
 
-* Deployer: `>= 1.2 MNT` (full deploy ~11.3M gas at 100 gwei = 1.133 MNT, plus a few mints). The Mantle faucet drips ~0.5 MNT, so plan on 3 drips for the deployer.
+Stacking the official + QuickNode + thirdweb usually clears 0.6 to 1 MNT for the deployer in one sitting.
+
+**Targets:**
+
+* Deployer: `>= 0.6 MNT` (full deploy 0.567 MNT + a few mints).
 * CatScout, LobsterRogue: `>= 0.1 MNT` each (register + commit + future reveal).
 * Facilitator: `>= 0.1 MNT` (submits Q402 witnesses).
-* Payer: zero gas needed for Q402 path. Sign-only, no on-chain tx from this wallet.
+* Payer: zero gas needed. Q402 path is sign-only off chain.
 
 Verify balances:
 
