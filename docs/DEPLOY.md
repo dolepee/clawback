@@ -8,7 +8,7 @@
 * A funded Mantle Sepolia EOA. Faucets:
   - https://faucet.sepolia.mantle.xyz
   - https://faucet.quicknode.com/mantle/sepolia
-* `~0.6 MNT` minimum for the full bundle (5,702,345 gas at 100 gwei estimated 2026-05-10).
+* `~1.14 MNT` minimum for the full bundle (11,331,591 gas at 100 gwei, verified against live Sepolia sim 2026-05-10).
 
 **One-shot deploy (auto-deploys MockUSDC since no real USDC on Mantle Sepolia):**
 

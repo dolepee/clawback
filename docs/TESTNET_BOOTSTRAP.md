@@ -50,11 +50,11 @@ Each wallet that broadcasts a tx needs gas. Get test MNT from either faucet:
 * https://faucet.sepolia.mantle.xyz (official, ~0.5 MNT per drip, requires connect)
 * https://faucet.quicknode.com/mantle/sepolia (alternative, drip varies)
 
-**Targets:**
+**Targets (verified against live Sepolia sim 2026-05-10):**
 
-* Deployer: `>= 0.6 MNT` (full deploy + a few mints, ~5.7M gas)
-* CatScout, LobsterRogue: `>= 0.05 MNT` each (register + commit + future reveal)
-* Facilitator: `>= 0.05 MNT` (submits Q402 witnesses)
+* Deployer: `>= 1.2 MNT` (full deploy ~11.3M gas at 100 gwei = 1.133 MNT, plus a few mints). The Mantle faucet drips ~0.5 MNT, so plan on 3 drips for the deployer.
+* CatScout, LobsterRogue: `>= 0.1 MNT` each (register + commit + future reveal).
+* Facilitator: `>= 0.1 MNT` (submits Q402 witnesses).
 * Payer: zero gas needed for Q402 path. Sign-only, no on-chain tx from this wallet.
 
 Verify balances:
