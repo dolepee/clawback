@@ -10,7 +10,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { runSkill, hashSkillsOutput } from "./skills.js";
 import { buildClaim, hashClaimText } from "./claim.js";
-import { fetchPythPriceE8 } from "./pyth.js";
+import { fetchPythPriceE8, fetchPythUpdateBundle } from "./pyth.js";
 
 export type MarketKind = "outperform" | "threshold";
 
@@ -93,7 +93,7 @@ function requireEnv(key: string): string {
   return v;
 }
 
-export async function runPersona(personaKey: string, action: string): Promise<void> {
+export async function runPersona(personaKey: string, action: string, extra: string[] = []): Promise<void> {
   const persona = PERSONAS[personaKey];
   if (!persona) throw new Error(`unknown persona: ${personaKey}. valid: ${Object.keys(PERSONAS).join(", ")}`);
 
@@ -102,8 +102,13 @@ export async function runPersona(personaKey: string, action: string): Promise<vo
       return register(persona);
     case "post":
       return post(persona);
+    case "settle": {
+      const claimIdStr = extra[0];
+      if (!claimIdStr) throw new Error(`settle action requires a claimId argument`);
+      return settleViaPyth(persona, BigInt(claimIdStr));
+    }
     default:
-      throw new Error(`unknown action: ${action}. supported: register, post`);
+      throw new Error(`unknown action: ${action}. supported: register, post, settle <claimId>`);
   }
 }
 
@@ -181,14 +186,18 @@ async function post(persona: Persona): Promise<void> {
     thresholdPriceUsd: persona.thresholdPriceUsd,
     minOutperformBps: persona.minOutperformBps,
   });
+  const expirySecondsOverride = process.env.EXPIRY_SECONDS_OVERRIDE ? Number(process.env.EXPIRY_SECONDS_OVERRIDE) : null;
+  const expirySeconds = expirySecondsOverride ?? persona.expirySeconds;
+  const publicReleaseExtra = expirySecondsOverride ? Math.max(60, expirySecondsOverride * 2) : persona.publicReleaseExtraSeconds;
+  if (expirySecondsOverride) console.log(`[${persona.name}] EXPIRY_SECONDS_OVERRIDE=${expirySecondsOverride} active (short demo claim)`);
   const claim = buildClaim({
     agentId: agentId,
     marketId,
     claimText,
     bondAmount: persona.bondAmount,
     unlockPrice: persona.unlockPrice,
-    expiry: Math.floor(Date.now() / 1000) + persona.expirySeconds,
-    publicReleaseAt: Math.floor(Date.now() / 1000) + persona.expirySeconds + persona.publicReleaseExtraSeconds,
+    expiry: Math.floor(Date.now() / 1000) + expirySeconds,
+    publicReleaseAt: Math.floor(Date.now() / 1000) + expirySeconds + publicReleaseExtra,
     skillsOutputHash: skillsHash,
   });
   const claimHash = hashClaimText(claim.claimText, claim.salt);
@@ -262,6 +271,104 @@ async function post(persona: Persona): Promise<void> {
   console.log(`  skillsOutputHash:  ${skillsHash}`);
   console.log(`  reveal salt:       ${claim.salt}  (KEEP THIS, needed for publicReveal)`);
   console.log(`\n  explorer: https://sepolia.mantlescan.xyz/tx/${txHash}`);
+}
+
+const PYTH_ADAPTER_ABI = parseAbi([
+  "function resolve(uint256 claimId, bytes params) payable returns (bool agentRight, bytes proof)",
+  "event PythSettlement(uint256 indexed claimId, bool agentRight, int64 mntPrice, int64 ethPrice, uint256 publishTime)",
+]);
+
+const PYTH_ABI = parseAbi([
+  "function getUpdateFee(bytes[] updateData) view returns (uint256)",
+]);
+
+const MARKET_READ_ABI = [
+  {
+    type: "function",
+    name: "getClaim",
+    stateMutability: "view",
+    inputs: [{ name: "claimId", type: "uint256" }],
+    outputs: [
+      {
+        type: "tuple",
+        components: [
+          { name: "agentId", type: "uint256" },
+          { name: "claimHash", type: "bytes32" },
+          { name: "skillsOutputHash", type: "bytes32" },
+          { name: "bondAmount", type: "uint256" },
+          { name: "unlockPrice", type: "uint256" },
+          { name: "expiry", type: "uint64" },
+          { name: "publicReleaseAt", type: "uint64" },
+          { name: "marketId", type: "uint8" },
+          { name: "state", type: "uint8" },
+          { name: "revealedClaimText", type: "string" },
+          { name: "predictionParams", type: "bytes" },
+        ],
+      },
+    ],
+  },
+] as const;
+
+async function settleViaPyth(persona: Persona, claimId: bigint): Promise<void> {
+  const { account, market, publicClient, walletClient } = await loadCtx(persona);
+  const adapter = requireEnv("PYTH_SETTLEMENT_ADAPTER") as `0x${string}`;
+  const pyth = requireEnv("PYTH_CONTRACT") as `0x${string}`;
+  const mntFeed = requireEnv("PYTH_MNT_USD_FEED_ID") as `0x${string}`;
+  const ethFeed = requireEnv("PYTH_ETH_USD_FEED_ID") as `0x${string}`;
+
+  console.log(`[${persona.name}] settling claimId=${claimId} via PythSettlementAdapter ${adapter}`);
+
+  const c = await publicClient.readContract({
+    address: market,
+    abi: MARKET_READ_ABI,
+    functionName: "getClaim",
+    args: [claimId],
+  });
+  console.log(`[${persona.name}] claim agentId=${c.agentId} marketId=${c.marketId} state=${c.state} expiry=${c.expiry}`);
+  const now = Math.floor(Date.now() / 1000);
+  if (now < Number(c.expiry)) throw new Error(`claim not expired yet (expiry=${c.expiry}, now=${now}, waitSec=${Number(c.expiry) - now})`);
+  if (c.state !== 0) throw new Error(`claim already resolved or revealed (state=${c.state})`);
+
+  const feedIds: `0x${string}`[] = c.marketId === 0 ? [mntFeed, ethFeed] : [mntFeed];
+  console.log(`[${persona.name}] fetching Pyth update bundle for ${feedIds.length} feed(s)...`);
+  const bundle = await fetchPythUpdateBundle(feedIds);
+  for (const s of bundle.snapshots) {
+    console.log(`[${persona.name}]   ${s.id.slice(0, 14)}... priceE8=${s.priceE8} publishTime=${s.publishTime} (age=${now - s.publishTime}s)`);
+  }
+
+  const fee = await publicClient.readContract({
+    address: pyth,
+    abi: PYTH_ABI,
+    functionName: "getUpdateFee",
+    args: [bundle.updateData],
+  });
+  console.log(`[${persona.name}] Pyth update fee: ${fee} wei MNT`);
+
+  const params = encodeAbiParameters([{ type: "bytes[]" }], [bundle.updateData]);
+  console.log(`[${persona.name}] resolving on chain (msg.value=${fee})...`);
+  const txHash = await walletClient.writeContract({
+    address: adapter,
+    abi: PYTH_ADAPTER_ABI,
+    functionName: "resolve",
+    args: [claimId, params],
+    value: fee,
+  });
+  console.log(`[${persona.name}] resolve tx: ${txHash}`);
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+  console.log(`[${persona.name}] resolve confirmed, status=${receipt.status}, gas=${receipt.gasUsed}, block=${receipt.blockNumber}`);
+
+  const settled = await publicClient.readContract({
+    address: market,
+    abi: MARKET_READ_ABI,
+    functionName: "getClaim",
+    args: [claimId],
+  });
+  console.log(`\n[${persona.name}] SETTLEMENT COMPLETE`);
+  console.log(`  claimId:    ${claimId}`);
+  console.log(`  new state:  ${settled.state} (1=Settled)`);
+  console.log(`  marketId:   ${settled.marketId}`);
+  console.log(`\n  explorer: https://sepolia.mantlescan.xyz/tx/${txHash}`);
+  void account;
 }
 
 async function derivePredictionParams(persona: Persona): Promise<{

@@ -27,6 +27,30 @@ export async function fetchPythPriceE8(feedId: `0x${string}`): Promise<PythPrice
   };
 }
 
+export interface PythUpdateBundle {
+  updateData: `0x${string}`[];
+  snapshots: PythPriceSnapshot[];
+}
+
+export async function fetchPythUpdateBundle(feedIds: `0x${string}`[]): Promise<PythUpdateBundle> {
+  const params = feedIds.map((id) => `ids[]=${id.replace(/^0x/, "")}`).join("&");
+  const url = `${HERMES_BASE}/v2/updates/price/latest?${params}&encoding=hex`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Pyth Hermes ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as HermesResponse & { binary: { encoding: string; data: string[] } };
+  const updateData = data.binary.data.map((h) => (h.startsWith("0x") ? h : `0x${h}`) as `0x${string}`);
+  const snapshots: PythPriceSnapshot[] = feedIds.map((id) => {
+    const parsed = data.parsed.find((p) => `0x${p.id.toLowerCase()}` === id.toLowerCase());
+    if (!parsed) throw new Error(`feed ${id} not returned`);
+    return {
+      id,
+      priceE8: toE8(BigInt(parsed.price.price), parsed.price.expo),
+      publishTime: parsed.price.publish_time,
+    };
+  });
+  return { updateData, snapshots };
+}
+
 function toE8(raw: bigint, expo: number): bigint {
   if (expo === -8) return raw;
   if (expo < -8) return raw / 10n ** BigInt(-8 - expo);
