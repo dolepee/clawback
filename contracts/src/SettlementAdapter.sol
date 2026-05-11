@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 interface ISettlementAdapter {
     function resolve(uint256 claimId, bytes calldata params)
         external
+        payable
         returns (bool agentRight, bytes memory proof);
 }
 
@@ -41,6 +42,7 @@ contract ManualSettlementAdapter is ISettlementAdapter {
 
     function resolve(uint256 claimId, bytes calldata params)
         external
+        payable
         returns (bool agentRight, bytes memory proof)
     {
         if (msg.sender != admin) revert NotAdmin();

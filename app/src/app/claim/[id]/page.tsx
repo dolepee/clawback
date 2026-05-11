@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { loadClaimDetail } from "@/lib/data";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
-import { factionLabel, formatTimestamp, formatUsdc, relativeTime, shortHex } from "@/lib/format";
+import { decodePredictionParams, factionLabel, formatTimestamp, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
 
 export const revalidate = 15;
 
@@ -53,6 +53,8 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
   const { claim, agent, accounting } = detail;
   const accent = agent.faction === 0 ? "cat" : "lobster";
   const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;
+  const prediction = decodePredictionParams(claim.marketId, claim.predictionParams);
+  const question = predictionQuestion(prediction, claim.expiry);
   const isRevealed = claim.state === CLAIM_STATE.PUBLICLY_REVEALED;
   const isSettled = claim.state === CLAIM_STATE.SETTLED || accounting.settled;
 
@@ -69,6 +71,21 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <OutcomeBanner state={claim.state} agentRight={accounting.agentRight} settled={isSettled} />
+
+      <section className="border border-neutral-800 rounded-lg p-5 mb-4">
+        <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-3">Binary question</h2>
+        <div className="text-neutral-100 leading-snug">{question}</div>
+        {prediction.kind === "outperform" && (
+          <div className="mt-3 text-xs text-neutral-500">
+            Settled trustlessly by Pyth at expiry. Adapter compares Pyth MNT/USD and ETH/USD returns since commit.
+          </div>
+        )}
+        {prediction.kind === "threshold" && (
+          <div className="mt-3 text-xs text-neutral-500">
+            Settled trustlessly by Pyth at expiry. Adapter reads Pyth MNT/USD and checks the {prediction.direction} bound.
+          </div>
+        )}
+      </section>
 
       <section className="border border-neutral-800 rounded-lg p-5 mb-4">
         <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-4">Claim text</h2>

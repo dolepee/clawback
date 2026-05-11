@@ -37,9 +37,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a className="hover:text-neutral-300" href={`${EXPLORER}/address/${ADDRESSES.reputationLedger}`} target="_blank" rel="noreferrer">
               ReputationLedger {shortHex(ADDRESSES.reputationLedger)}
             </a>
+            <a className="hover:text-neutral-300" href={`${EXPLORER}/address/${ADDRESSES.pythSettlementAdapter}`} target="_blank" rel="noreferrer">
+              PythAdapter {shortHex(ADDRESSES.pythSettlementAdapter)}
+            </a>
           </div>
           <div className="max-w-5xl mx-auto mt-3 text-neutral-600">
             AI on chain function: <span className="font-mono text-neutral-400">ClaimMarket.commitClaim</span>
+            <span className="mx-2 text-neutral-700">·</span>
+            Settled trustlessly by <span className="font-mono text-neutral-400">PythSettlementAdapter</span>
           </div>
         </footer>
       </body>

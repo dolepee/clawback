@@ -39,10 +39,13 @@ contract ClawbackEscrow {
     address public claimMarket;
     address public reputationLedger;
     address public settlementAdapter;
+    mapping(address => bool) public isSettlementAdapter;
     address public agentRegistry;
     address public paymentToken;
     address public q402Adapter;
     address public owner;
+
+    event SettlementAdapterSet(address indexed adapter, bool allowed);
 
     event PaymentAccepted(uint256 indexed claimId, address indexed payer, uint256 amount);
     event BondLocked(uint256 indexed agentId, uint256 indexed claimId, uint256 amount);
@@ -75,9 +78,17 @@ contract ClawbackEscrow {
         claimMarket = _claimMarket;
         reputationLedger = _reputationLedger;
         settlementAdapter = _settlementAdapter;
+        isSettlementAdapter[_settlementAdapter] = true;
         agentRegistry = _agentRegistry;
         paymentToken = _paymentToken;
         q402Adapter = _q402Adapter;
+        emit SettlementAdapterSet(_settlementAdapter, true);
+    }
+
+    function setSettlementAdapter(address adapter, bool allowed) external {
+        if (msg.sender != owner) revert UnauthorizedCaller();
+        isSettlementAdapter[adapter] = allowed;
+        emit SettlementAdapterSet(adapter, allowed);
     }
 
     function setQ402Adapter(address adapter) external {
@@ -103,7 +114,7 @@ contract ClawbackEscrow {
     }
 
     function settle(uint256 claimId, bool agentRight, bytes calldata settlementProof) external {
-        if (msg.sender != settlementAdapter) revert UnauthorizedCaller();
+        if (!isSettlementAdapter[msg.sender]) revert UnauthorizedCaller();
         ClaimAccounting storage a = accounting[claimId];
         if (a.settled) revert ClaimAlreadySettled();
         a.settled = true;

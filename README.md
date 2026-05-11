@@ -10,21 +10,22 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 7 contracts deployed and verified, 2 agents registered, 1 claim posted on chain.
+* **Status:** 8 contracts deployed and verified (v2 Pyth aware), 2 agents registered, 2 claims posted on chain with live Pyth price snapshots.
 
 | Contract | Address | Mantlescan |
 |---|---|---|
-| ClaimMarket | `0xb4726194AEDA8677d2504b1c3B38bbA653cEDaEd` | [verified](https://sepolia.mantlescan.xyz/address/0xb4726194AEDA8677d2504b1c3B38bbA653cEDaEd#code) |
-| ClawbackEscrow | `0x02e5A959253588D3ef5370fE7A8fdA990AD27B3e` | [verified](https://sepolia.mantlescan.xyz/address/0x02e5A959253588D3ef5370fE7A8fdA990AD27B3e#code) |
-| AgentRegistry | `0x734c3037AEb58E5B60338C74318224bb5Dd70DB8` | [verified](https://sepolia.mantlescan.xyz/address/0x734c3037AEb58E5B60338C74318224bb5Dd70DB8#code) |
-| ReputationLedger | `0xDbf0Ff11961F579549a2FfC5Da67A06566ad0Eb9` | [verified](https://sepolia.mantlescan.xyz/address/0xDbf0Ff11961F579549a2FfC5Da67A06566ad0Eb9#code) |
-| ManualSettlementAdapter | `0xAbA92B00871C8fE5975d297419109780D010444E` | [verified](https://sepolia.mantlescan.xyz/address/0xAbA92B00871C8fE5975d297419109780D010444E#code) |
-| Q402Adapter | `0xF8fE1d95f0C3F2aF70fB2663c5989CCeD38Ee83d` | [verified](https://sepolia.mantlescan.xyz/address/0xF8fE1d95f0C3F2aF70fB2663c5989CCeD38Ee83d#code) |
+| ClaimMarket | `0xCE7C1C25f0acb8011624f0686DD7A92074a2951E` | [verified](https://sepolia.mantlescan.xyz/address/0xCE7C1C25f0acb8011624f0686DD7A92074a2951E#code) |
+| ClawbackEscrow | `0x4316E36d533fB2A066491569457eE2010DCC951e` | [verified](https://sepolia.mantlescan.xyz/address/0x4316E36d533fB2A066491569457eE2010DCC951e#code) |
+| AgentRegistry | `0xCD501459545a4245EeF895DA052f915A46d57C61` | [verified](https://sepolia.mantlescan.xyz/address/0xCD501459545a4245EeF895DA052f915A46d57C61#code) |
+| ReputationLedger | `0x365766dC95915483234D6bD01662728CdC7750B4` | [verified](https://sepolia.mantlescan.xyz/address/0x365766dC95915483234D6bD01662728CdC7750B4#code) |
+| PythSettlementAdapter | `0x92893b655332428fcd4A09AEf7daEa78F8eaa1cC` | [verified](https://sepolia.mantlescan.xyz/address/0x92893b655332428fcd4A09AEf7daEa78F8eaa1cC#code) |
+| ManualSettlementAdapter | `0x4907cC08B4c7eb30Da666A20F757e49cc3b65080` | [verified](https://sepolia.mantlescan.xyz/address/0x4907cC08B4c7eb30Da666A20F757e49cc3b65080#code) |
+| Q402Adapter | `0xe09C4F01405f35665E991Ce565b5200ABBd9163B` | [verified](https://sepolia.mantlescan.xyz/address/0xe09C4F01405f35665E991Ce565b5200ABBd9163B#code) |
 | MockUSDC (mUSDC) | `0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd` | [verified](https://sepolia.mantlescan.xyz/address/0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd#code) |
 
 ## AI on chain function
 
-The AI agent produces a verifiable trading claim from live Mantle on chain market data, hashes the full reasoning trace into `skillsOutputHash`, hashes the bonded claim text into `claimHash`, and commits both on chain:
+The AI agent produces a verifiable trading claim from live Mantle on chain market data plus a live Pyth price snapshot, hashes the full reasoning trace into `skillsOutputHash`, hashes the bonded claim text into `claimHash`, encodes the binary settlement question into `predictionParams`, and commits all of it on chain:
 
 ```solidity
 function commitClaim(
@@ -35,11 +36,12 @@ function commitClaim(
     uint64 expiry,
     uint64 publicReleaseAt,
     uint8 marketId,
-    bytes32 skillsOutputHash
+    bytes32 skillsOutputHash,
+    bytes calldata predictionParams
 ) external returns (uint256 claimId);
 ```
 
-Contract: [`ClaimMarket.sol`](contracts/src/ClaimMarket.sol). The agent runtime that produces a real call lives in [`agent/src/personas.ts`](agent/src/personas.ts) and observes Merchant Moe Liquidity Book pools on Mantle mainnet for ground truth pricing.
+Contract: [`ClaimMarket.sol`](contracts/src/ClaimMarket.sol). The agent runtime that produces a real call lives in [`agent/src/personas.ts`](agent/src/personas.ts) and observes Merchant Moe Liquidity Book pools on Mantle mainnet plus Pyth Hermes for the commit time price snapshot. `predictionParams` is decoded at expiry by [`PythSettlementAdapter`](contracts/src/PythSettlementAdapter.sol) against a fresh Pyth pull oracle update, so settlement is trustless and reproducible.
 
 ## Tracks
 
@@ -53,11 +55,12 @@ Clawback fits Alpha & Data naturally because every claim is generated from live 
 
 ```
 agent commits claim                 →    payer unlocks via Q402             →    settlement after expiry
-ClaimMarket.commitClaim()                Q402Adapter.executePayment()              ManualSettlementAdapter.settle()
-(bond locked, hash sealed)               (1 sig, USDC pulled, claim text seen)     (oracle reads price, marks WRONG / RIGHT)
+ClaimMarket.commitClaim()                Q402Adapter.executePayment()              PythSettlementAdapter.resolve()
+(bond locked, hash sealed,               (1 sig, USDC pulled, claim text seen)     (fresh Pyth update, decode predictionParams,
+ Pyth snapshot encoded)                                                             mark WRONG / RIGHT trustlessly)
 
-                                                                            ┌─→  WRONG:  payer refunded + bonus from slashed bond
-                                                                            └─→  RIGHT:  agent earns payment + keeps bond
+                                                                            ┌→  WRONG:  payer refunded + bonus from slashed bond
+                                                                            └→  RIGHT:  agent earns payment + keeps bond
 ```
 
 The same flow is the headline of the demo: WRONG refund vs RIGHT payout.
@@ -85,7 +88,7 @@ See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the one shot Foundry deploy, [`docs/S
 ## Repo layout
 
 ```
-contracts/   Foundry project. Six contracts plus MockUSDC. 10/10 tests passing.
+contracts/   Foundry project. Seven contracts plus MockUSDC. 20/20 tests passing (incl. 9 PythSettlementAdapter tests).
 app/         Next.js 15 frontend. Server side reads from chain via viem. Cat vs Lobster faction split.
 agent/       CatScout and LobsterRogue personas. Live Merchant Moe price observation + commit.
 scripts/     Bootstrap and demo helpers.
@@ -96,7 +99,7 @@ docs/        Spec, spikes, deploy runbook, live deployment receipts.
 
 * **Chain:** Mantle (Sepolia for live deployment, mainnet for skill observation).
 * **Payment:** Custom `Q402Adapter` over ERC-3009 `transferWithAuthorization`. Sign once, facilitator submits, sponsored gas.
-* **Settlement:** `ManualSettlementAdapter` v1, Pyth oracle adapter on the roadmap.
+* **Settlement:** `PythSettlementAdapter` live on Mantle Sepolia (Pyth pull oracle, MNT/USD + ETH/USD feeds). `ManualSettlementAdapter` retained as whitelisted fallback for demo.
 * **Frontend:** Next.js 15 (App Router) + viem 2 + Tailwind. Deployed on Vercel.
 * **Agent:** TypeScript + viem. Observation is real on chain reads, not LLM guess work.
 

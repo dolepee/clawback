@@ -19,6 +19,7 @@ export type Claim = {
   marketId: number;
   state: number;
   revealedClaimText: string;
+  predictionParams: `0x${string}`;
 };
 
 export type Agent = {
@@ -55,33 +56,22 @@ async function readClaim(id: bigint): Promise<Claim> {
   const result = (await publicClient.readContract({
     address: ADDRESSES.claimMarket,
     abi: claimMarketAbi,
-    functionName: "claims",
+    functionName: "getClaim",
     args: [id],
-  })) as unknown as [
-    bigint,
-    `0x${string}`,
-    `0x${string}`,
-    bigint,
-    bigint,
-    bigint,
-    bigint,
-    number,
-    number,
-    string,
-  ];
-  return {
-    id,
-    agentId: result[0],
-    claimHash: result[1],
-    skillsOutputHash: result[2],
-    bondAmount: result[3],
-    unlockPrice: result[4],
-    expiry: result[5],
-    publicReleaseAt: result[6],
-    marketId: result[7],
-    state: result[8],
-    revealedClaimText: result[9],
+  })) as {
+    agentId: bigint;
+    claimHash: `0x${string}`;
+    skillsOutputHash: `0x${string}`;
+    bondAmount: bigint;
+    unlockPrice: bigint;
+    expiry: bigint;
+    publicReleaseAt: bigint;
+    marketId: number;
+    state: number;
+    revealedClaimText: string;
+    predictionParams: `0x${string}`;
   };
+  return { id, ...result };
 }
 
 async function readAgent(id: bigint): Promise<Agent> {

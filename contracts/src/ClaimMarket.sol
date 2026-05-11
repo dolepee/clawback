@@ -24,6 +24,7 @@ contract ClaimMarket {
         MarketId marketId;
         ClaimState state;
         string revealedClaimText;
+        bytes predictionParams;
     }
 
     uint256 public nextClaimId = 1;
@@ -33,8 +34,11 @@ contract ClaimMarket {
     address public agentRegistry;
     address public escrow;
     address public settlementAdapter;
+    mapping(address => bool) public isSettlementAdapter;
     address public q402Adapter;
     address public owner;
+
+    event SettlementAdapterSet(address indexed adapter, bool allowed);
 
     event ClaimCommitted(
         uint256 indexed claimId,
@@ -45,7 +49,8 @@ contract ClaimMarket {
         uint256 unlockPrice,
         uint64 expiry,
         uint64 publicReleaseAt,
-        MarketId marketId
+        MarketId marketId,
+        bytes predictionParams
     );
     event PaidUnlockRecorded(uint256 indexed claimId, address indexed payer);
     event ClaimSettled(uint256 indexed claimId, bool agentRight);
@@ -70,7 +75,15 @@ contract ClaimMarket {
         agentRegistry = _agentRegistry;
         escrow = _escrow;
         settlementAdapter = _settlementAdapter;
+        isSettlementAdapter[_settlementAdapter] = true;
         q402Adapter = _q402Adapter;
+        emit SettlementAdapterSet(_settlementAdapter, true);
+    }
+
+    function setSettlementAdapter(address adapter, bool allowed) external {
+        if (msg.sender != owner) revert UnauthorizedCaller();
+        isSettlementAdapter[adapter] = allowed;
+        emit SettlementAdapterSet(adapter, allowed);
     }
 
     function commitClaim(
@@ -81,7 +94,8 @@ contract ClaimMarket {
         uint64 expiry,
         uint64 publicReleaseAt,
         MarketId marketId,
-        bytes32 skillsOutputHash
+        bytes32 skillsOutputHash,
+        bytes calldata predictionParams
     ) external returns (uint256 claimId) {
         if (IAgentRegistry(agentRegistry).ownerOf(agentId) != msg.sender) revert NotAgentOwner();
         if (expiry <= block.timestamp) revert InvalidExpiry();
@@ -100,12 +114,13 @@ contract ClaimMarket {
             publicReleaseAt: publicReleaseAt,
             marketId: marketId,
             state: ClaimState.Committed,
-            revealedClaimText: ""
+            revealedClaimText: "",
+            predictionParams: predictionParams
         });
 
         IClawbackEscrow(escrow).lockBond(agentId, claimId, bondAmount);
 
-        emit ClaimCommitted(claimId, agentId, claimHash, skillsOutputHash, bondAmount, unlockPrice, expiry, publicReleaseAt, marketId);
+        emit ClaimCommitted(claimId, agentId, claimHash, skillsOutputHash, bondAmount, unlockPrice, expiry, publicReleaseAt, marketId, predictionParams);
     }
 
     function recordPaidUnlock(uint256 claimId, address payer) external {
@@ -115,7 +130,7 @@ contract ClaimMarket {
     }
 
     function markSettled(uint256 claimId, bool agentRight) external {
-        if (msg.sender != escrow && msg.sender != settlementAdapter) revert UnauthorizedCaller();
+        if (msg.sender != escrow && !isSettlementAdapter[msg.sender]) revert UnauthorizedCaller();
         Claim storage c = claims[claimId];
         if (c.state != ClaimState.Committed) revert AlreadySettled();
         c.state = ClaimState.Settled;

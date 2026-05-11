@@ -75,6 +75,8 @@ contract EndToEndTest is Test {
         bytes32 claimHash = keccak256(abi.encodePacked("MNT outperforms mETH next 6h", uint256(0xC0FFEE)));
         bytes32 skillsHash = keccak256("merchant_moe_lb_observation_v1");
 
+        bytes memory predictionParams = abi.encode(int64(50), uint64(70_000_000), uint64(360_000_000_000));
+
         vm.prank(agentOwner);
         claimId = market.commitClaim(
             agentId,
@@ -84,7 +86,8 @@ contract EndToEndTest is Test {
             uint64(block.timestamp + 6 hours),
             uint64(block.timestamp + 24 hours),
             ClaimMarket.MarketId.MNT_OUTPERFORMS_METH,
-            skillsHash
+            skillsHash,
+            predictionParams
         );
     }
 
@@ -214,5 +217,15 @@ contract EndToEndTest is Test {
         ClaimMarket.Claim memory c = market.getClaim(claimId);
         assertEq(uint8(c.state), uint8(ClaimMarket.ClaimState.PubliclyRevealed));
         assertEq(c.revealedClaimText, "MNT outperforms mETH next 6h");
+    }
+
+    function test_predictionParams_roundTrip() public {
+        (, uint256 claimId) = _commitClaim(5_000_000, 250_000);
+        ClaimMarket.Claim memory c = market.getClaim(claimId);
+        (int64 minOutperformBps, uint64 commitMntPriceE8, uint64 commitEthPriceE8) =
+            abi.decode(c.predictionParams, (int64, uint64, uint64));
+        assertEq(minOutperformBps, int64(50), "minOutperformBps");
+        assertEq(commitMntPriceE8, uint64(70_000_000), "commitMntPriceE8");
+        assertEq(commitEthPriceE8, uint64(360_000_000_000), "commitEthPriceE8");
     }
 }

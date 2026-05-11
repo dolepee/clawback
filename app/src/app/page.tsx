@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { loadFeed, type Agent, type Claim } from "@/lib/data";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
-import { formatUsdc, relativeTime, shortHex } from "@/lib/format";
+import { decodePredictionParams, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
 
 export const revalidate = 15;
 
@@ -15,6 +15,8 @@ function ClaimCard({ claim, agent, accent }: { claim: Claim; agent?: Agent; acce
   const s = stateLabel(claim.state);
   const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;
   const handle = agent?.handle ?? `agent ${claim.agentId.toString()}`;
+  const params = decodePredictionParams(claim.marketId, claim.predictionParams);
+  const question = predictionQuestion(params, claim.expiry);
   return (
     <Link
       href={`/claim/${claim.id.toString()}`}
@@ -25,7 +27,8 @@ function ClaimCard({ claim, agent, accent }: { claim: Claim; agent?: Agent; acce
         <span className={`text-xs px-2 py-0.5 rounded ${s.cls}`}>{s.text}</span>
       </div>
       <div className={`font-semibold text-${accent} mb-1`}>{handle}</div>
-      <div className="text-sm text-neutral-300 mb-3">{market}</div>
+      <div className="text-xs text-neutral-500 mb-1">{market}</div>
+      <div className="text-sm text-neutral-300 mb-3 leading-snug">{question}</div>
       <div className="grid grid-cols-2 gap-2 text-xs text-neutral-400">
         <div>
           <div className="text-neutral-500">bond</div>
