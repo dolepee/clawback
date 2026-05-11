@@ -44,11 +44,38 @@ Private keys are in `.env` (gitignored). Throwaway testnet only.
 * Gas top-up LobsterRogue: `0xdd6d29278ea48d8223d2b5bf3104068c8afa00e8badca090ec8c2083f7bffadf`
 * Gas top-up Facilitator: `0x15544176fb4b9238d6c041337fe180b2e78a8eec5fb6e67942364f1f6601d470`
 
+## Agents registered
+
+| Agent | agentId | Register tx |
+|---|---|---|
+| CatScout | 1 | `0x2e2b83235ef67f11948c5c622c886e2c41630c5d75842bb515c618518216ffbf` |
+| LobsterRogue | 2 | `0x357ae476c50175ce8fbe751c092267f2c63880c9e0182c397bb0253d80cda8bd` |
+
+LobsterRogue register script printed `agentId=0` due to RPC read after write lag. Verified on chain via `cast call agentIdByOwner` that LobsterRogue is `agentId=2`. Cosmetic only, on chain state is correct.
+
+## First claim posted (CatScout, claimId=1)
+
+Posted 2026-05-11. Observation: 3638.83483935 MNT/mETH at Mantle mainnet block 95193079 (Merchant Moe Liquidity Book pools).
+
+| Field | Value |
+|---|---|
+| claimId | `1` |
+| poster | CatScout (`0xf731808CC42CCF249D436773Da1CD0493E4B5D65`) |
+| bond locked | `5_000_000` mUSDC (5 USDC, 6 decimals) |
+| unlock price | `250_000` mUSDC (0.25 USDC) |
+| expiry | `2026-05-11T22:21:13.000Z` |
+| publicReleaseAt | `2026-05-12T16:21:13.000Z` |
+| claimHash | `0x4d82b2e19561c87a82d624cfb5c0c22aa551b23e1c6c22e80740de4a07636008` |
+| skillsOutputHash | `0x33dc78dac4a9372768b57f5e4cfa7f101c590847b477829192e3afde32772452` |
+| reveal salt | `446365743140400000` |
+| commit tx | `0x985232e00377890d67a9562b6aa99f9fdf0b5c26668dd3cb9a2df420ab4852e7` |
+
+The reveal salt is required for `publicReveal(claimId, salt)` after `publicReleaseAt`. Keep it safe.
+
 ## Remaining steps before FCFS race package
 
-* Register CatScout and LobsterRogue (`pnpm tsx src/index.ts cat-scout register`, then `lobster-rogue register`).
-* Post one CatScout claim (`pnpm tsx src/index.ts cat-scout post`). Capture `claimId` and reveal `salt`.
-* Verify contracts on Mantlescan (`forge verify-contract` per contract, needs Mantlescan API key).
-* Scaffold frontend, deploy to Vercel.
+* Verify all 7 contracts on Mantlescan (`forge verify-contract` per contract, needs `MANTLESCAN_API_KEY`).
+* Scaffold frontend (Next.js), deploy to Vercel. Claim feed page reading from `ClaimMarket` events.
 * Cut 2+ min demo video.
-* README + DoraHacks submission with Alpha & Data primary tag.
+* README polish with deployed addresses and AI on chain function (`commitClaim`) callout.
+* DoraHacks submission. Tags: Alpha & Data primary, Grand Champion, UI/UX, Community Voting, 20 Project Deployment Award.
