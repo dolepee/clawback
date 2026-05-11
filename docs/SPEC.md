@@ -8,10 +8,10 @@ Performance guaranteed AI agent calls on Mantle. Agents publish price resolvable
 * **Submit:** June 15, 2026 (DoraHacks)
 * **Demo Day:** July 2 to 3, 2026
 * **Winners announced:** July 10, 2026
-* **Primary track:** Agentic Wallets & Economy
-* **Secondary fits:** Consumer & Viral DApps, AI Alpha & Data, UI/UX
-* **Build window:** May 18 to June 14, 2026 (28 days solo)
-* **Sponsors that must be load bearing:** Q402 by QuackAI, Byreal Skills CLI, Mantle chain
+* **Primary track:** Alpha & Data Track Path B (AI driven trading strategy). Track shifted from Agentic Wallets & Economy on 2026-05-10 after DoraHacks requirements clarified that Agentic Economy needs load bearing Byreal / RealClaw integration. Byreal evaluation gate runs 2026-05-18 to 2026-05-22.
+* **Other tags:** Grand Champion, UI/UX, Community Voting, 20 Project Deployment Award (FCFS race posture).
+* **Build window:** May 18 to June 14, 2026 (28 days solo). Spike work landed early (2026-05-10), so the schedule compressed in favor of FCFS Deployment Award.
+* **Sponsors that must be load bearing:** Q402 by QuackAI, Mantle chain. Byreal Skills CLI is conditional, gated on the May 18 to 22 evaluation.
 
 ## 2. The one sentence
 
@@ -319,13 +319,13 @@ These are explicitly **not** in v1:
 
 ### Submission portal
 * [ ] DoraHacks project page filled
-* [ ] Sponsor prize boxes ticked: Mantle Grand Champion, Agentic Wallets & Economy track, UI/UX, Community Voting
-* [ ] Q402 and Byreal Skills called out explicitly in writeup
+* [ ] Sponsor prize boxes ticked: Alpha & Data Track Path B primary, Mantle Grand Champion, UI/UX, Community Voting, 20 Project Deployment Award. Agentic Economy only if Byreal gate passes.
+* [ ] Q402 called out explicitly in writeup. Byreal mentioned only if load bearing integration shipped.
 * [ ] Live URL working
 * [ ] GitHub repo public
 
 ### Marketing
-* [ ] Demo video on YouTube, 60 seconds
+* [ ] Demo video on YouTube, 2+ minutes (Deployment Award requirement, not 60 seconds)
 * [ ] X launch thread, 5 to 7 tweets, leads with the wrong call refund moment
 * [ ] Open Graph receipt cards verified on Twitter card validator
 * [ ] One screenshot ready for Community Voting share moment
@@ -362,9 +362,9 @@ Mapping to the eight failure modes from prior losses:
 
 1. **Named primitive not category:** Clawback. Not "agent platform." Not "prediction market."
 2. **Demo binary moment:** WRONG card flip to refund. RIGHT card flip to payout. Single binary, no third state.
-3. **Multi component sponsor stack:** Mantle chain + Q402 escrow + Byreal Skills agent + DEX TWAP fallback. Three sponsor primitives load bearing.
+3. **Multi component sponsor stack:** Mantle chain + Q402 escrow + Mantle on chain market data (Merchant Moe Liquidity Book pools observed for ground truth pricing). Byreal Skills agent is conditional on the May 18 to 22 gate.
 4. **Agent as protagonist:** CatScout and LobsterRogue have public reputations. Agents earn or lose based on their own claims. They are the subjects, not the tools.
-5. **Track rubric obsession:** Agentic Wallets & Economy. Agents earn, bond, refund, build reputation. Direct fit, no straddle.
+5. **Track rubric obsession:** Alpha & Data Track Path B single primary track. Claims are AI driven trading strategy commitments generated from live on chain data, bonded, verifiably settled. Direct fit, no straddle.
 6. **No fake volume:** Five seeded claims, real on chain settlement, honest about being a hackathon submission.
 7. **Distribution craft:** X account posts every claim and settlement. Receipt cards designed for share. UI copy stress tested.
 8. **One sentence test:** "AI calls that pay you back when they are wrong." Passes.
