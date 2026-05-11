@@ -1,8 +1,13 @@
 # Mantle Sepolia live deployment
 
-Broadcast 2026-05-11. Chain id 5003.
+Broadcast 2026-05-11. Chain id 5003. All 7 contracts verified on Mantlescan via Etherscan v2 API.
 
-## Contracts
+## Public frontend
+
+* Production: https://clawback-bay.vercel.app
+* Deployment alt URL: https://clawback-qt69z7jvl-dolepees-projects.vercel.app
+
+## Contracts (verified)
 
 | Contract | Address |
 |---|---|
@@ -11,10 +16,12 @@ Broadcast 2026-05-11. Chain id 5003.
 | ClaimMarket | `0xb4726194AEDA8677d2504b1c3B38bbA653cEDaEd` |
 | ClawbackEscrow | `0x02e5A959253588D3ef5370fE7A8fdA990AD27B3e` |
 | ReputationLedger | `0xDbf0Ff11961F579549a2FfC5Da67A06566ad0Eb9` |
-| SettlementAdapter (manual) | `0xAbA92B00871C8fE5975d297419109780D010444E` |
+| ManualSettlementAdapter | `0xAbA92B00871C8fE5975d297419109780D010444E` |
 | Q402Adapter | `0xF8fE1d95f0C3F2aF70fB2663c5989CCeD38Ee83d` |
 
 Explorer prefix: https://sepolia.mantlescan.xyz/address/
+
+AI on chain function for Deployment Award: `ClaimMarket.commitClaim(uint256 agentId, bytes32 claimHash, uint256 bondAmount, uint256 unlockPrice, uint64 expiry, uint64 publicReleaseAt, uint8 marketId, bytes32 skillsOutputHash)`.
 
 ## Wallets
 
@@ -74,8 +81,8 @@ The reveal salt is required for `publicReveal(claimId, salt)` after `publicRelea
 
 ## Remaining steps before FCFS race package
 
-* Verify all 7 contracts on Mantlescan (`forge verify-contract` per contract, needs `MANTLESCAN_API_KEY`).
-* Scaffold frontend (Next.js), deploy to Vercel. Claim feed page reading from `ClaimMarket` events.
+* ~~Verify all 7 contracts on Mantlescan~~ DONE.
+* ~~Scaffold frontend, deploy to Vercel~~ DONE (https://clawback-bay.vercel.app).
 * Cut 2+ min demo video.
 * README polish with deployed addresses and AI on chain function (`commitClaim`) callout.
 * DoraHacks submission. Tags: Alpha & Data primary, Grand Champion, UI/UX, Community Voting, 20 Project Deployment Award.
