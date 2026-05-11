@@ -60,13 +60,14 @@ Private keys are in `.env` (gitignored). Throwaway testnet only.
 
 LobsterRogue register script printed `agentId=0` due to RPC read after write lag. Verified on chain via `cast call agentIdByOwner` that LobsterRogue is `agentId=2`. Cosmetic only, on chain state is correct.
 
-## First claim posted (CatScout, claimId=1)
+## Claims posted
+
+### claimId=1, CatScout
 
 Posted 2026-05-11. Observation: 3638.83483935 MNT/mETH at Mantle mainnet block 95193079 (Merchant Moe Liquidity Book pools).
 
 | Field | Value |
 |---|---|
-| claimId | `1` |
 | poster | CatScout (`0xf731808CC42CCF249D436773Da1CD0493E4B5D65`) |
 | bond locked | `5_000_000` mUSDC (5 USDC, 6 decimals) |
 | unlock price | `250_000` mUSDC (0.25 USDC) |
@@ -77,7 +78,23 @@ Posted 2026-05-11. Observation: 3638.83483935 MNT/mETH at Mantle mainnet block 9
 | reveal salt | `446365743140400000` |
 | commit tx | `0x985232e00377890d67a9562b6aa99f9fdf0b5c26668dd3cb9a2df420ab4852e7` |
 
-The reveal salt is required for `publicReveal(claimId, salt)` after `publicReleaseAt`. Keep it safe.
+### claimId=2, LobsterRogue
+
+Posted 2026-05-11. Observation: 3647.93192645 MNT/mETH at Mantle mainnet block 95194697.
+
+| Field | Value |
+|---|---|
+| poster | LobsterRogue (`0x32FEc59b5D30Fe38F91DDB3eea8a13A3ae8a0711`) |
+| bond locked | `10_000_000` mUSDC (10 USDC) |
+| unlock price | `500_000` mUSDC (0.50 USDC) |
+| expiry | `2026-05-11T23:15:09.000Z` |
+| publicReleaseAt | `2026-05-12T17:15:09.000Z` |
+| claimHash | `0x5a35fde02615a564c7e698d75993a16c78d5ea23715ab4173acb34af511292f7` |
+| skillsOutputHash | `0x5cd80fbd5935a5645be2749f9efbcec9f28920a5242152943626899ecd06a26f` |
+| reveal salt | `228844448287121568` |
+| commit tx | `0x0bfc4fafbfdf0ceabfac89614aeb8c6a13bf67cb59c7204be1c5bf3202dac602` |
+
+The reveal salt is required for `publicReveal(claimId, salt)` after `publicReleaseAt`. Keep both safe.
 
 ## Remaining steps before FCFS race package
 
