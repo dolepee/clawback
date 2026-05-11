@@ -38,7 +38,7 @@ contract Deploy is Script {
         ClawbackEscrow escrow = new ClawbackEscrow();
         ReputationLedger ledger = new ReputationLedger();
         ManualSettlementAdapter manual = new ManualSettlementAdapter(deployer, address(escrow), address(market));
-        Q402Adapter q402 = new Q402Adapter(usdc, address(escrow));
+        Q402Adapter q402 = new Q402Adapter(usdc, address(escrow), address(market));
 
         registry.setEscrow(address(escrow));
         ledger.setEscrow(address(escrow));

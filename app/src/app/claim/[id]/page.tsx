@@ -4,6 +4,7 @@ import { loadClaimDetail } from "@/lib/data";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { decodePredictionParams, factionLabel, formatTimestamp, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
+import ClaimActions from "@/components/ClaimActions";
 
 export const revalidate = 15;
 
@@ -71,6 +72,17 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <OutcomeBanner state={claim.state} agentRight={accounting.agentRight} settled={isSettled} />
+
+      <ClaimActions
+        claimId={claim.id}
+        agentId={claim.agentId}
+        agentOwner={agent.owner}
+        unlockPrice={claim.unlockPrice}
+        state={claim.state}
+        settled={isSettled}
+        agentRight={accounting.agentRight}
+        expirySec={claim.expiry}
+      />
 
       <section className="border border-neutral-800 rounded-lg p-5 mb-4">
         <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-3">Binary question</h2>

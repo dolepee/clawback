@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { shortHex } from "@/lib/format";
+import { WalletButton } from "@/components/WalletButton";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="text-xs px-2 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-400">
               Mantle Sepolia
             </span>
+            <WalletButton />
           </nav>
         </header>
         <main className="px-6 py-8 flex-1">{children}</main>

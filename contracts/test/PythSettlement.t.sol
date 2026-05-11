@@ -73,7 +73,7 @@ contract PythSettlementTest is Test {
             ETH_USD,
             120
         );
-        q402 = new Q402Adapter(address(usdc), address(escrow));
+        q402 = new Q402Adapter(address(usdc), address(escrow), address(market));
 
         registry.setEscrow(address(escrow));
         ledger.setEscrow(address(escrow));

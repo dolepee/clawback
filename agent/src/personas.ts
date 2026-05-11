@@ -3,6 +3,7 @@ import {
   createWalletClient,
   defineChain,
   encodeAbiParameters,
+  encodeFunctionData,
   http,
   parseAbi,
   type Hex,
@@ -69,6 +70,7 @@ const REGISTRY_ABI = parseAbi([
 const MARKET_ABI = parseAbi([
   "function commitClaim(uint256 agentId, bytes32 claimHash, uint256 bondAmount, uint256 unlockPrice, uint64 expiry, uint64 publicReleaseAt, uint8 marketId, bytes32 skillsOutputHash, bytes predictionParams) returns (uint256)",
   "function nextClaimId() view returns (uint256)",
+  "function paidUnlock(uint256, address) view returns (bool)",
   "event ClaimCommitted(uint256 indexed claimId, uint256 indexed agentId, bytes32 claimHash, bytes32 skillsOutputHash, uint256 bondAmount, uint256 unlockPrice, uint64 expiry, uint64 publicReleaseAt, uint8 marketId, bytes predictionParams)",
 ]);
 
@@ -76,6 +78,22 @@ const ERC20_ABI = parseAbi([
   "function approve(address spender, uint256 amount) returns (bool)",
   "function allowance(address owner, address spender) view returns (uint256)",
   "function balanceOf(address) view returns (uint256)",
+]);
+
+const Q402_ABI = parseAbi([
+  "struct Witness { address owner; uint256 claimId; uint256 amount; uint256 deadline; bytes32 paymentId; uint256 nonce; }",
+  "function accept(Witness calldata w, bytes calldata sig) external",
+  "function nonceUsed(address, uint256) view returns (bool)",
+]);
+
+const ESCROW_ABI = parseAbi([
+  "function claimRefund(uint256 claimId) external",
+  "function claimAgentEarnings(uint256 agentId, uint256 claimId) external",
+  "function claimableRefund(address user, uint256 claimId) view returns (uint256 paidBack, uint256 bonus)",
+  "function paidAmount(address, uint256) view returns (uint256)",
+  "function earningsClaimed(uint256) view returns (bool)",
+  "function refundClaimed(uint256, address) view returns (bool)",
+  "function accounting(uint256) view returns (uint256 totalPaid, uint256 bondAtStake, uint256 slashedBondPool, uint256 agentId, bool settled, bool agentRight, bytes settlementProof)",
 ]);
 
 const MANTLE_SEPOLIA_RPC = process.env.MANTLE_SEPOLIA_RPC_URL ?? "https://rpc.sepolia.mantle.xyz";
@@ -94,8 +112,20 @@ function requireEnv(key: string): string {
 }
 
 export async function runPersona(personaKey: string, action: string, extra: string[] = []): Promise<void> {
+  if (personaKey === "payer") {
+    const claimIdStr = extra[0];
+    if (!claimIdStr) throw new Error(`${action} requires a claimId argument`);
+    const claimId = BigInt(claimIdStr);
+    if (action === "unlock") {
+      const amtArg = extra[1];
+      return unlockAsPayer(claimId, amtArg ? BigInt(amtArg) : undefined);
+    }
+    if (action === "refund") return refundAsPayer(claimId);
+    throw new Error(`unknown payer action: ${action}. supported: unlock <claimId> [amount], refund <claimId>`);
+  }
+
   const persona = PERSONAS[personaKey];
-  if (!persona) throw new Error(`unknown persona: ${personaKey}. valid: ${Object.keys(PERSONAS).join(", ")}`);
+  if (!persona) throw new Error(`unknown persona: ${personaKey}. valid: ${Object.keys(PERSONAS).join(", ")}, payer`);
 
   switch (action) {
     case "register":
@@ -107,8 +137,13 @@ export async function runPersona(personaKey: string, action: string, extra: stri
       if (!claimIdStr) throw new Error(`settle action requires a claimId argument`);
       return settleViaPyth(persona, BigInt(claimIdStr));
     }
+    case "claim-earnings": {
+      const claimIdStr = extra[0];
+      if (!claimIdStr) throw new Error(`claim-earnings action requires a claimId argument`);
+      return claimAgentEarnings(persona, BigInt(claimIdStr));
+    }
     default:
-      throw new Error(`unknown action: ${action}. supported: register, post, settle <claimId>`);
+      throw new Error(`unknown action: ${action}. supported: register, post, settle <claimId>, claim-earnings <claimId>`);
   }
 }
 
@@ -369,6 +404,163 @@ async function settleViaPyth(persona: Persona, claimId: bigint): Promise<void> {
   console.log(`  marketId:   ${settled.marketId}`);
   console.log(`\n  explorer: https://sepolia.mantlescan.xyz/tx/${txHash}`);
   void account;
+}
+
+async function claimAgentEarnings(persona: Persona, claimId: bigint): Promise<void> {
+  const { account, registry, escrow, publicClient, walletClient } = await loadCtx(persona);
+
+  const agentId = await publicClient.readContract({
+    address: registry,
+    abi: REGISTRY_ABI,
+    functionName: "agentIdByOwner",
+    args: [account.address],
+  });
+  if (agentId === 0n) throw new Error(`[${persona.name}] not registered`);
+
+  const acct = await publicClient.readContract({ address: escrow, abi: ESCROW_ABI, functionName: "accounting", args: [claimId] });
+  const [totalPaid, bondAtStake, , acctAgentId, settled, agentRight] = acct;
+  console.log(`[${persona.name}] accounting(${claimId}): totalPaid=${totalPaid} bond=${bondAtStake} agentId=${acctAgentId} settled=${settled} agentRight=${agentRight}`);
+  if (!settled) throw new Error(`claim not settled yet`);
+  if (!agentRight) throw new Error(`agent was wrong on this claim, no earnings owed`);
+  if (acctAgentId !== agentId) throw new Error(`claim belongs to agentId=${acctAgentId}, you are agentId=${agentId}`);
+
+  const alreadyClaimed = await publicClient.readContract({
+    address: escrow,
+    abi: ESCROW_ABI,
+    functionName: "earningsClaimed",
+    args: [claimId],
+  });
+  if (alreadyClaimed) throw new Error(`earnings already claimed`);
+
+  const payout = totalPaid + bondAtStake;
+  console.log(`[${persona.name}] claiming earnings: ${payout} USDC (totalPaid ${totalPaid} + bond ${bondAtStake})`);
+
+  const txHash = await walletClient.writeContract({
+    address: escrow,
+    abi: ESCROW_ABI,
+    functionName: "claimAgentEarnings",
+    args: [agentId, claimId],
+  });
+  console.log(`[${persona.name}] claim-earnings tx: ${txHash}`);
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+  console.log(`[${persona.name}] earnings claimed, status=${receipt.status}, gas=${receipt.gasUsed}`);
+  console.log(`\n  explorer: https://sepolia.mantlescan.xyz/tx/${txHash}`);
+}
+
+async function loadPayerCtx() {
+  const payerKey = requireEnv("PAYER_PRIVATE_KEY") as Hex;
+  const facilitatorKey = requireEnv("FACILITATOR_PRIVATE_KEY") as Hex;
+  const adapter = requireEnv("Q402_ADAPTER") as `0x${string}`;
+  const escrow = requireEnv("CLAWBACK_ESCROW") as `0x${string}`;
+  const usdc = requireEnv("USDC_ADDRESS") as `0x${string}`;
+  const market = requireEnv("CLAIM_MARKET") as `0x${string}`;
+
+  const payer = privateKeyToAccount(payerKey);
+  const facilitator = privateKeyToAccount(facilitatorKey);
+  const publicClient = createPublicClient({ chain: mantleSepolia, transport: http(MANTLE_SEPOLIA_RPC) });
+  const payerWallet = createWalletClient({ account: payer, chain: mantleSepolia, transport: http(MANTLE_SEPOLIA_RPC) });
+  const facilitatorWallet = createWalletClient({ account: facilitator, chain: mantleSepolia, transport: http(MANTLE_SEPOLIA_RPC) });
+
+  return { payer, facilitator, adapter, escrow, usdc, market, publicClient, payerWallet, facilitatorWallet };
+}
+
+async function unlockAsPayer(claimId: bigint, amountOverride?: bigint): Promise<void> {
+  const { payer, facilitator, adapter, escrow, usdc, market, publicClient, payerWallet, facilitatorWallet } = await loadPayerCtx();
+
+  const claim = await publicClient.readContract({ address: market, abi: MARKET_READ_ABI, functionName: "getClaim", args: [claimId] });
+  console.log(`[payer ${payer.address}] claim ${claimId}: unlockPrice=${claim.unlockPrice} state=${claim.state} expiry=${claim.expiry}`);
+  if (claim.state !== 0) throw new Error(`claim not unlockable (state=${claim.state}, must be 0=Committed)`);
+  const now = Math.floor(Date.now() / 1000);
+  if (now >= Number(claim.expiry)) throw new Error(`claim expired (now=${now}, expiry=${claim.expiry})`);
+
+  const amount = amountOverride ?? claim.unlockPrice;
+  if (amount !== claim.unlockPrice) {
+    console.log(`[payer] WARNING amount ${amount} != unlockPrice ${claim.unlockPrice}, tx will revert`);
+  }
+
+  const [bal, allowance] = await Promise.all([
+    publicClient.readContract({ address: usdc, abi: ERC20_ABI, functionName: "balanceOf", args: [payer.address] }),
+    publicClient.readContract({ address: usdc, abi: ERC20_ABI, functionName: "allowance", args: [payer.address, adapter] }),
+  ]);
+  console.log(`[payer] USDC balance=${bal}, allowance->adapter=${allowance}`);
+  if (bal < amount) throw new Error(`payer USDC ${bal} < ${amount}`);
+  if (allowance < amount) {
+    console.log(`[payer] approving Q402 adapter for max...`);
+    const aHash = await payerWallet.writeContract({
+      address: usdc,
+      abi: ERC20_ABI,
+      functionName: "approve",
+      args: [adapter, 2n ** 256n - 1n],
+    });
+    await publicClient.waitForTransactionReceipt({ hash: aHash });
+    console.log(`[payer] approve tx: ${aHash}`);
+  }
+
+  const nonce = BigInt(Date.now());
+  const deadline = BigInt(now + 600);
+  const paymentId = (`0x${nonce.toString(16).padStart(64, "0")}`) as Hex;
+  const witness = { owner: payer.address, claimId, amount, deadline, paymentId, nonce };
+
+  const sig = await payer.signTypedData({
+    domain: { name: "Clawback Q402", version: "1", chainId: 5003, verifyingContract: adapter },
+    types: {
+      Witness: [
+        { name: "owner", type: "address" },
+        { name: "claimId", type: "uint256" },
+        { name: "amount", type: "uint256" },
+        { name: "deadline", type: "uint256" },
+        { name: "paymentId", type: "bytes32" },
+        { name: "nonce", type: "uint256" },
+      ],
+    },
+    primaryType: "Witness",
+    message: witness,
+  });
+  console.log(`[payer] signed witness off-chain (sig ${sig.slice(0, 10)}...${sig.slice(-8)})`);
+
+  const data = encodeFunctionData({ abi: Q402_ABI, functionName: "accept", args: [witness, sig] });
+  console.log(`[facilitator ${facilitator.address}] submitting accept...`);
+  const txHash = await facilitatorWallet.sendTransaction({ to: adapter, data });
+  console.log(`[facilitator] tx: ${txHash}`);
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+  console.log(`[facilitator] status=${receipt.status}, gas=${receipt.gasUsed}, block=${receipt.blockNumber}`);
+
+  const [paid, unlocked] = await Promise.all([
+    publicClient.readContract({ address: escrow, abi: ESCROW_ABI, functionName: "paidAmount", args: [payer.address, claimId] }),
+    publicClient.readContract({ address: market, abi: MARKET_ABI, functionName: "paidUnlock", args: [claimId, payer.address] }),
+  ]);
+  console.log(`\nUNLOCK COMPLETE`);
+  console.log(`  claimId:    ${claimId}`);
+  console.log(`  amount:     ${amount}`);
+  console.log(`  paidAmount: ${paid} (escrow)`);
+  console.log(`  paidUnlock: ${unlocked} (market)`);
+  console.log(`\n  explorer: https://sepolia.mantlescan.xyz/tx/${txHash}`);
+}
+
+async function refundAsPayer(claimId: bigint): Promise<void> {
+  const { payer, escrow, publicClient, payerWallet } = await loadPayerCtx();
+
+  const [claimable, alreadyClaimed, paid] = await Promise.all([
+    publicClient.readContract({ address: escrow, abi: ESCROW_ABI, functionName: "claimableRefund", args: [payer.address, claimId] }),
+    publicClient.readContract({ address: escrow, abi: ESCROW_ABI, functionName: "refundClaimed", args: [claimId, payer.address] }),
+    publicClient.readContract({ address: escrow, abi: ESCROW_ABI, functionName: "paidAmount", args: [payer.address, claimId] }),
+  ]);
+  const [paidBack, bonus] = claimable;
+  console.log(`[payer ${payer.address}] claim ${claimId}: paidAmount=${paid} claimable: paidBack=${paidBack} bonus=${bonus} alreadyClaimed=${alreadyClaimed}`);
+  if (alreadyClaimed) throw new Error(`already refunded`);
+  if (paidBack === 0n && bonus === 0n) throw new Error(`nothing to refund (claim may not be settled, agent may have been right, or you never paid)`);
+
+  const txHash = await payerWallet.writeContract({
+    address: escrow,
+    abi: ESCROW_ABI,
+    functionName: "claimRefund",
+    args: [claimId],
+  });
+  console.log(`[payer] claimRefund tx: ${txHash}`);
+  const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+  console.log(`[payer] refund settled, status=${receipt.status}, gas=${receipt.gasUsed}`);
+  console.log(`\n  refunded:  ${paidBack} USDC base + ${bonus} bonus = ${paidBack + bonus} total`);
+  console.log(`  explorer: https://sepolia.mantlescan.xyz/tx/${txHash}`);
 }
 
 async function derivePredictionParams(persona: Persona): Promise<{

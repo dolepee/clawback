@@ -65,6 +65,9 @@ contract ClaimMarket {
     error AlreadyRevealed();
     error HashMismatch();
     error UnauthorizedCaller();
+    error ClaimNotUnlockable();
+    error ClaimExpiredForUnlock();
+    error WrongUnlockAmount(uint256 expected, uint256 provided);
 
     constructor() {
         owner = msg.sender;
@@ -123,8 +126,12 @@ contract ClaimMarket {
         emit ClaimCommitted(claimId, agentId, claimHash, skillsOutputHash, bondAmount, unlockPrice, expiry, publicReleaseAt, marketId, predictionParams);
     }
 
-    function recordPaidUnlock(uint256 claimId, address payer) external {
-        if (msg.sender != q402Adapter && msg.sender != escrow) revert UnauthorizedCaller();
+    function recordPaidUnlock(uint256 claimId, address payer, uint256 amount) external {
+        if (msg.sender != q402Adapter) revert UnauthorizedCaller();
+        Claim storage c = claims[claimId];
+        if (c.state != ClaimState.Committed) revert ClaimNotUnlockable();
+        if (block.timestamp >= c.expiry) revert ClaimExpiredForUnlock();
+        if (amount != c.unlockPrice) revert WrongUnlockAmount(c.unlockPrice, amount);
         paidUnlock[claimId][payer] = true;
         emit PaidUnlockRecorded(claimId, payer);
     }

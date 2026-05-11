@@ -22,6 +22,10 @@ interface IClawbackEscrow {
     function acceptPayment(uint256 claimId, address payer, uint256 amount) external;
 }
 
+interface IClaimMarket {
+    function recordPaidUnlock(uint256 claimId, address payer, uint256 amount) external;
+}
+
 /// @notice Thin Q402-compatible adapter. Verifies an EIP-712 Witness signed by the payer,
 ///         pulls USDC (assumes prior approve or permit), forwards to ClawbackEscrow.
 ///         Wire shape mirrors quackai-labs/Q402: scheme "evm/eip712-witness-payment".
@@ -36,6 +40,7 @@ contract Q402Adapter {
 
     IERC20 public immutable usdc;
     IClawbackEscrow public immutable escrow;
+    IClaimMarket public immutable claimMarket;
     bytes32 public immutable domainSeparator;
 
     mapping(address => mapping(uint256 => bool)) public nonceUsed;
@@ -56,9 +61,10 @@ contract Q402Adapter {
     error WitnessBadSignature();
     error UsdcPullFailed();
 
-    constructor(address _usdc, address _escrow) {
+    constructor(address _usdc, address _escrow, address _claimMarket) {
         usdc = IERC20(_usdc);
         escrow = IClawbackEscrow(_escrow);
+        claimMarket = IClaimMarket(_claimMarket);
         domainSeparator = keccak256(
             abi.encode(
                 EIP712_DOMAIN_TYPEHASH,
@@ -72,6 +78,7 @@ contract Q402Adapter {
 
     function accept(Witness calldata w, bytes calldata sig) external {
         _consumeWitness(w, sig);
+        claimMarket.recordPaidUnlock(w.claimId, w.owner, w.amount);
         if (!usdc.transferFrom(w.owner, address(escrow), w.amount)) revert UsdcPullFailed();
         escrow.acceptPayment(w.claimId, w.owner, w.amount);
         emit PaymentSettled(w.claimId, w.owner, w.amount, w.paymentId);
@@ -88,6 +95,7 @@ contract Q402Adapter {
     ) external {
         IERC20Permit(address(usdc)).permit(w.owner, address(this), permitValue, permitDeadline, v, r, s);
         _consumeWitness(w, sig);
+        claimMarket.recordPaidUnlock(w.claimId, w.owner, w.amount);
         if (!usdc.transferFrom(w.owner, address(escrow), w.amount)) revert UsdcPullFailed();
         escrow.acceptPayment(w.claimId, w.owner, w.amount);
         emit PaymentSettled(w.claimId, w.owner, w.amount, w.paymentId);

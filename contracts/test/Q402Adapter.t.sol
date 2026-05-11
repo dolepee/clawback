@@ -5,6 +5,14 @@ import {Test} from "forge-std/Test.sol";
 import {Q402Adapter} from "../src/Q402Adapter.sol";
 import {ClawbackEscrow} from "../src/ClawbackEscrow.sol";
 
+contract MockClaimMarket {
+    event PaidUnlockRecorded(uint256 indexed claimId, address indexed payer, uint256 amount);
+
+    function recordPaidUnlock(uint256 claimId, address payer, uint256 amount) external {
+        emit PaidUnlockRecorded(claimId, payer, amount);
+    }
+}
+
 contract MockUSDC {
     string public name = "Mock USDC";
     string public symbol = "mUSDC";
@@ -38,6 +46,7 @@ contract Q402AdapterTest is Test {
     Q402Adapter internal q402;
     ClawbackEscrow internal escrow;
     MockUSDC internal usdc;
+    MockClaimMarket internal market;
 
     uint256 internal payerKey = 0xA11CE;
     address internal payer;
@@ -52,7 +61,8 @@ contract Q402AdapterTest is Test {
 
         escrow = new ClawbackEscrow();
         usdc = new MockUSDC();
-        q402 = new Q402Adapter(address(usdc), address(escrow));
+        market = new MockClaimMarket();
+        q402 = new Q402Adapter(address(usdc), address(escrow), address(market));
         escrow.setQ402Adapter(address(q402));
 
         usdc.mint(payer, 100_000_000);

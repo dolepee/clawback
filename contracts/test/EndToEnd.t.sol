@@ -47,7 +47,7 @@ contract EndToEndTest is Test {
         escrow = new ClawbackEscrow();
         ledger = new ReputationLedger();
         settlement = new ManualSettlementAdapter(admin, address(escrow), address(market));
-        q402 = new Q402Adapter(address(usdc), address(escrow));
+        q402 = new Q402Adapter(address(usdc), address(escrow), address(market));
 
         registry.setEscrow(address(escrow));
         ledger.setEscrow(address(escrow));
@@ -217,6 +217,63 @@ contract EndToEndTest is Test {
         ClaimMarket.Claim memory c = market.getClaim(claimId);
         assertEq(uint8(c.state), uint8(ClaimMarket.ClaimState.PubliclyRevealed));
         assertEq(c.revealedClaimText, "MNT outperforms mETH next 6h");
+    }
+
+    function _signWitness(uint256 payerKey, address payer, uint256 claimId, uint256 amount, uint256 nonce)
+        internal
+        view
+        returns (Q402Adapter.Witness memory w, bytes memory sig)
+    {
+        w = Q402Adapter.Witness({
+            owner: payer,
+            claimId: claimId,
+            amount: amount,
+            deadline: block.timestamp + 600,
+            paymentId: bytes32(nonce),
+            nonce: nonce
+        });
+        bytes32 structHash = keccak256(
+            abi.encode(WITNESS_TYPEHASH, w.owner, w.claimId, w.amount, w.deadline, w.paymentId, w.nonce)
+        );
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", q402.domainSeparator(), structHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(payerKey, digest);
+        sig = abi.encodePacked(r, s, v);
+    }
+
+    function test_paidUnlock_recorded_on_market() public {
+        (, uint256 claimId) = _commitClaim(5_000_000, 250_000);
+        assertFalse(market.paidUnlock(claimId, alice));
+        _signAndPay(alicePk, alice, claimId, 250_000, 7);
+        assertTrue(market.paidUnlock(claimId, alice), "Q402 should mark paidUnlock on market");
+    }
+
+    function test_unlock_revert_wrongAmount() public {
+        (, uint256 claimId) = _commitClaim(5_000_000, 250_000);
+        (Q402Adapter.Witness memory w, bytes memory sig) = _signWitness(alicePk, alice, claimId, 100_000, 21);
+        vm.prank(facilitator);
+        vm.expectRevert(abi.encodeWithSelector(ClaimMarket.WrongUnlockAmount.selector, 250_000, 100_000));
+        q402.accept(w, sig);
+        assertEq(usdc.balanceOf(address(escrow)), 5_000_000, "USDC must not move on revert");
+    }
+
+    function test_unlock_revert_afterExpiry() public {
+        (, uint256 claimId) = _commitClaim(5_000_000, 250_000);
+        vm.warp(block.timestamp + 6 hours + 1);
+        (Q402Adapter.Witness memory w, bytes memory sig) = _signWitness(alicePk, alice, claimId, 250_000, 22);
+        vm.prank(facilitator);
+        vm.expectRevert(ClaimMarket.ClaimExpiredForUnlock.selector);
+        q402.accept(w, sig);
+    }
+
+    function test_unlock_revert_afterSettlement() public {
+        (, uint256 claimId) = _commitClaim(5_000_000, 250_000);
+        bytes memory proof = abi.encode(true, "");
+        vm.prank(admin);
+        settlement.resolve(claimId, proof);
+        (Q402Adapter.Witness memory w, bytes memory sig) = _signWitness(alicePk, alice, claimId, 250_000, 23);
+        vm.prank(facilitator);
+        vm.expectRevert(ClaimMarket.ClaimNotUnlockable.selector);
+        q402.accept(w, sig);
     }
 
     function test_predictionParams_roundTrip() public {

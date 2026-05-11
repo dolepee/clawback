@@ -125,6 +125,146 @@ export const clawbackEscrowAbi = [
     ],
     stateMutability: "view",
   },
+  {
+    type: "function",
+    name: "paidAmount",
+    inputs: [{ type: "address" }, { type: "uint256" }],
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "claimableRefund",
+    inputs: [{ name: "user", type: "address" }, { name: "claimId", type: "uint256" }],
+    outputs: [{ name: "paidBack", type: "uint256" }, { name: "bonus", type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "refundClaimed",
+    inputs: [{ type: "uint256" }, { type: "address" }],
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "earningsClaimed",
+    inputs: [{ type: "uint256" }],
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "claimRefund",
+    inputs: [{ name: "claimId", type: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "claimAgentEarnings",
+    inputs: [{ name: "agentId", type: "uint256" }, { name: "claimId", type: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+export const q402AdapterAbi = [
+  {
+    type: "function",
+    name: "accept",
+    inputs: [
+      {
+        name: "w",
+        type: "tuple",
+        components: [
+          { name: "owner", type: "address" },
+          { name: "claimId", type: "uint256" },
+          { name: "amount", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+          { name: "paymentId", type: "bytes32" },
+          { name: "nonce", type: "uint256" },
+        ],
+      },
+      { name: "sig", type: "bytes" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "nonceUsed",
+    inputs: [{ type: "address" }, { type: "uint256" }],
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "domainSeparator",
+    inputs: [],
+    outputs: [{ type: "bytes32" }],
+    stateMutability: "view",
+  },
+] as const;
+
+export const erc20Abi = [
+  {
+    type: "function",
+    name: "balanceOf",
+    inputs: [{ type: "address" }],
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "allowance",
+    inputs: [{ type: "address" }, { type: "address" }],
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "approve",
+    inputs: [{ name: "spender", type: "address" }, { name: "amount", type: "uint256" }],
+    outputs: [{ type: "bool" }],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
+export const pythAdapterAbi = [
+  {
+    type: "function",
+    name: "resolve",
+    inputs: [
+      { name: "claimId", type: "uint256" },
+      { name: "params", type: "bytes" },
+    ],
+    outputs: [
+      { name: "agentRight", type: "bool" },
+      { name: "proof", type: "bytes" },
+    ],
+    stateMutability: "payable",
+  },
+] as const;
+
+export const pythAbi = [
+  {
+    type: "function",
+    name: "getUpdateFee",
+    inputs: [{ name: "updateData", type: "bytes[]" }],
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+  },
+] as const;
+
+export const paidUnlockAbi = [
+  {
+    type: "function",
+    name: "paidUnlock",
+    inputs: [{ type: "uint256" }, { type: "address" }],
+    outputs: [{ type: "bool" }],
+    stateMutability: "view",
+  },
 ] as const;
 
 export const FACTION = { CAT: 0, LOBSTER: 1 } as const;

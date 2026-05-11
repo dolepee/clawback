@@ -1,5 +1,7 @@
 # Clawback
 
+[![CI](https://github.com/dolepee/clawback/actions/workflows/ci.yml/badge.svg)](https://github.com/dolepee/clawback/actions/workflows/ci.yml)
+
 **AI calls that pay you back when they are wrong.**
 
 Performance guaranteed AI agent calls on Mantle. Agents publish price resolvable claims with a bonded commitment. Users pay via Q402 to unlock the call privately before public release. If the agent is wrong, escrow refunds the user from the slashed bond plus a bonus. If right, the agent keeps the payment.
@@ -10,17 +12,17 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 8 contracts deployed and verified (v2 Pyth aware), 2 agents registered, 2 claims posted on chain with live Pyth price snapshots.
+* **Status:** 8 contracts deployed and verified (Q402 validating + Pyth aware), 2 agents registered, claims posted on chain with live Pyth price snapshots, Q402 unlock confirmed end to end on chain.
 
 | Contract | Address | Mantlescan |
 |---|---|---|
-| ClaimMarket | `0xCE7C1C25f0acb8011624f0686DD7A92074a2951E` | [verified](https://sepolia.mantlescan.xyz/address/0xCE7C1C25f0acb8011624f0686DD7A92074a2951E#code) |
-| ClawbackEscrow | `0x4316E36d533fB2A066491569457eE2010DCC951e` | [verified](https://sepolia.mantlescan.xyz/address/0x4316E36d533fB2A066491569457eE2010DCC951e#code) |
-| AgentRegistry | `0xCD501459545a4245EeF895DA052f915A46d57C61` | [verified](https://sepolia.mantlescan.xyz/address/0xCD501459545a4245EeF895DA052f915A46d57C61#code) |
-| ReputationLedger | `0x365766dC95915483234D6bD01662728CdC7750B4` | [verified](https://sepolia.mantlescan.xyz/address/0x365766dC95915483234D6bD01662728CdC7750B4#code) |
-| PythSettlementAdapter | `0x92893b655332428fcd4A09AEf7daEa78F8eaa1cC` | [verified](https://sepolia.mantlescan.xyz/address/0x92893b655332428fcd4A09AEf7daEa78F8eaa1cC#code) |
-| ManualSettlementAdapter | `0x4907cC08B4c7eb30Da666A20F757e49cc3b65080` | [verified](https://sepolia.mantlescan.xyz/address/0x4907cC08B4c7eb30Da666A20F757e49cc3b65080#code) |
-| Q402Adapter | `0xe09C4F01405f35665E991Ce565b5200ABBd9163B` | [verified](https://sepolia.mantlescan.xyz/address/0xe09C4F01405f35665E991Ce565b5200ABBd9163B#code) |
+| ClaimMarket | `0x8C076c7452E526526De877F86BBb4BA37E027af9` | [verified](https://sepolia.mantlescan.xyz/address/0x8C076c7452E526526De877F86BBb4BA37E027af9#code) |
+| ClawbackEscrow | `0xEa02e04E9550eA556235B46d10b554b876C16d2a` | [verified](https://sepolia.mantlescan.xyz/address/0xEa02e04E9550eA556235B46d10b554b876C16d2a#code) |
+| AgentRegistry | `0x0b7B93C0E6591bD415BEDE8B8DCD57171f4A7851` | [verified](https://sepolia.mantlescan.xyz/address/0x0b7B93C0E6591bD415BEDE8B8DCD57171f4A7851#code) |
+| ReputationLedger | `0x02aE8215844DC8AA962e44Fd07e537F05241f8E6` | [verified](https://sepolia.mantlescan.xyz/address/0x02aE8215844DC8AA962e44Fd07e537F05241f8E6#code) |
+| PythSettlementAdapter | `0x78a138EB1EaB4fAcB0fe982F685AB2B29a8562d3` | [verified](https://sepolia.mantlescan.xyz/address/0x78a138EB1EaB4fAcB0fe982F685AB2B29a8562d3#code) |
+| ManualSettlementAdapter | `0x19E3597340b57950D7893b1805c54c81d341C540` | [verified](https://sepolia.mantlescan.xyz/address/0x19E3597340b57950D7893b1805c54c81d341C540#code) |
+| Q402Adapter | `0x3Eba0528a19295d0A48EFD4c38DC4100462761aB` | [verified](https://sepolia.mantlescan.xyz/address/0x3Eba0528a19295d0A48EFD4c38DC4100462761aB#code) |
 | MockUSDC (mUSDC) | `0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd` | [verified](https://sepolia.mantlescan.xyz/address/0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd#code) |
 
 ## AI on chain function
@@ -47,7 +49,6 @@ Contract: [`ClaimMarket.sol`](contracts/src/ClaimMarket.sol). The agent runtime 
 
 * **Primary:** Alpha & Data Track Path B (AI driven trading strategy).
 * **Other tags:** Grand Champion, UI/UX, Community Voting, 20 Project Deployment Award.
-* **Conditional:** Agentic Economy (Byreal / RealClaw integration, evaluated 2026-05-18 to 2026-05-22 against a load bearing bar).
 
 Clawback fits Alpha & Data naturally because every claim is generated from live Mantle on chain market data, bonded with USDC, and verifiably settled by an on chain price oracle.
 
@@ -88,7 +89,7 @@ See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the one shot Foundry deploy, [`docs/S
 ## Repo layout
 
 ```
-contracts/   Foundry project. Seven contracts plus MockUSDC. 20/20 tests passing (incl. 9 PythSettlementAdapter tests).
+contracts/   Foundry project. Seven contracts plus MockUSDC. 24/24 tests passing (incl. 9 PythSettlementAdapter tests, 6 Q402Adapter validation tests).
 app/         Next.js 15 frontend. Server side reads from chain via viem. Cat vs Lobster faction split.
 agent/       CatScout and LobsterRogue personas. Live Merchant Moe price observation + commit.
 scripts/     Bootstrap and demo helpers.
@@ -98,7 +99,7 @@ docs/        Spec, spikes, deploy runbook, live deployment receipts.
 ## Stack
 
 * **Chain:** Mantle (Sepolia for live deployment, mainnet for skill observation).
-* **Payment:** Custom `Q402Adapter` over ERC-3009 `transferWithAuthorization`. Sign once, facilitator submits, sponsored gas.
+* **Payment:** Custom `Q402Adapter` over EIP-712 witness signatures + USDC `transferFrom`. Payer signs once off chain, facilitator submits on chain (sponsored gas), adapter validates against `ClaimMarket` (state, expiry, unlock price) and pulls USDC to escrow in a single tx.
 * **Settlement:** `PythSettlementAdapter` live on Mantle Sepolia (Pyth pull oracle, MNT/USD + ETH/USD feeds). `ManualSettlementAdapter` retained as whitelisted fallback for demo.
 * **Frontend:** Next.js 15 (App Router) + viem 2 + Tailwind. Deployed on Vercel.
 * **Agent:** TypeScript + viem. Observation is real on chain reads, not LLM guess work.

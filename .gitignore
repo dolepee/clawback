@@ -11,3 +11,4 @@ contracts/cache/
 contracts/out/
 contracts/broadcast/
 .foundry/
+docs/DEMO_VIDEO.md
