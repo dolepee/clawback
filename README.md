@@ -1,10 +1,20 @@
-# Clawback
-
 [![CI](https://github.com/dolepee/clawback/actions/workflows/ci.yml/badge.svg)](https://github.com/dolepee/clawback/actions/workflows/ci.yml)
+
+# Clawback
 
 **AI calls that pay you back when they are wrong.**
 
-Performance guaranteed AI agent calls on Mantle. Agents publish price resolvable claims with a bonded commitment. Users pay via Q402 to unlock the call privately before public release. If the agent is wrong, escrow refunds the user from the slashed bond plus a bonus. If right, the agent keeps the payment.
+Clawback turns AI alpha into a paid performance market on Mantle. CatScout and LobsterRogue publish price calls, lock USDC behind each claim, and let users pay through Q402 to see the call before public release. Pyth settles the outcome at expiry. If the agent is right, the agent earns the payment and gets its bond back. If the agent is wrong, the payer receives the unlock payment back plus a bonus from the slashed bond.
+
+Example: CatScout can bond 5 USDC on a claim that MNT stays above 0.50 USDC. A payer unlocks the call for 0.25 USDC. Pyth settles the claim at expiry. The result becomes a public RIGHT or WRONG receipt on Mantle.
+
+The product loop is simple:
+
+1. Agent reads live Mantle market data.
+2. Agent commits a sealed price call on Mantle with `claimHash` and `skillsOutputHash`.
+3. User pays through Q402 to unlock the call privately.
+4. Pyth resolves the claim at expiry.
+5. RIGHT pays the agent. WRONG refunds the payer and slashes the agent bond.
 
 Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awakening Phase 2. Submission deadline 2026-06-15.
 
@@ -12,7 +22,20 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 8 contracts deployed and verified (Q402 validating + Pyth aware), 2 agents registered, claims posted on chain with live Pyth price snapshots, Q402 unlock confirmed end to end on chain.
+* **Status:** 8 contracts deployed and verified, 2 agents registered, 3 claims posted, Q402 unlocks confirmed, Pyth settlements confirmed, payer refunds confirmed, agent earnings confirmed.
+
+## Live receipts
+
+| Moment | Transaction |
+|---|---|
+| Fresh LobsterRogue claim committed | [`0x4d4c74f63d6fb2b1adbce713d18227cb6cbb3331cafc122f52d7ffd810531672`](https://sepolia.mantlescan.xyz/tx/0x4d4c74f63d6fb2b1adbce713d18227cb6cbb3331cafc122f52d7ffd810531672) |
+| Payer unlocked LobsterRogue claim through Q402 | [`0x7e299b394230272f01eda2e232656cadbc87ba4372f1a9ec598b11ea72236768`](https://sepolia.mantlescan.xyz/tx/0x7e299b394230272f01eda2e232656cadbc87ba4372f1a9ec598b11ea72236768) |
+| Pyth settled LobsterRogue WRONG | [`0xe716ac9e97eb3a40641b6dd9839b3931d4fe1b580f1433c9808abc2aa1ddb22c`](https://sepolia.mantlescan.xyz/tx/0xe716ac9e97eb3a40641b6dd9839b3931d4fe1b580f1433c9808abc2aa1ddb22c) |
+| Payer claimed refund plus bonus | [`0x3898e4e7f78334029df2c1ec8aa06ffd24204d290507606f17e07a40058cc542`](https://sepolia.mantlescan.xyz/tx/0x3898e4e7f78334029df2c1ec8aa06ffd24204d290507606f17e07a40058cc542) |
+| CatScout claim settled RIGHT | [`0xbc7ab08f2a56bcf04b9ef27b83da2ebaf0a295329463c222dd5fab1bfd8c4879`](https://sepolia.mantlescan.xyz/tx/0xbc7ab08f2a56bcf04b9ef27b83da2ebaf0a295329463c222dd5fab1bfd8c4879) |
+| CatScout claimed earnings | [`0xf51cafa1091dfe45f67048f3ce249b981e9b00c9743d1a3d2c11bb894e9e65f1`](https://sepolia.mantlescan.xyz/tx/0xf51cafa1091dfe45f67048f3ce249b981e9b00c9743d1a3d2c11bb894e9e65f1) |
+
+## Verified contracts
 
 | Contract | Address | Mantlescan |
 |---|---|---|
@@ -99,7 +122,7 @@ docs/        Spec, spikes, deploy runbook, live deployment receipts.
 ## Stack
 
 * **Chain:** Mantle (Sepolia for live deployment, mainnet for skill observation).
-* **Payment:** Custom `Q402Adapter` over EIP-712 witness signatures + USDC `transferFrom`. Payer signs once off chain, facilitator submits on chain (sponsored gas), adapter validates against `ClaimMarket` (state, expiry, unlock price) and pulls USDC to escrow in a single tx.
+* **Payment:** Custom `Q402Adapter` over EIP 712 witness signatures + USDC `transferFrom`. Payer signs once off chain, facilitator submits on chain with sponsored gas, adapter validates against `ClaimMarket` for state, expiry, and unlock price, then pulls USDC to escrow in a single tx.
 * **Settlement:** `PythSettlementAdapter` live on Mantle Sepolia (Pyth pull oracle, MNT/USD + ETH/USD feeds). `ManualSettlementAdapter` retained as whitelisted fallback for demo.
 * **Frontend:** Next.js 15 (App Router) + viem 2 + Tailwind. Deployed on Vercel.
 * **Agent:** TypeScript + viem. Observation is real on chain reads, not LLM guess work.
