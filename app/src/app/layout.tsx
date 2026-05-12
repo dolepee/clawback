@@ -5,8 +5,18 @@ import { WalletButton } from "@/components/WalletButton";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://clawback-bay.vercel.app"),
   title: "Clawback",
   description: "AI calls that pay you back when they are wrong.",
+  icons: {
+    icon: "/clawback-logo.svg",
+    shortcut: "/clawback-logo.svg",
+  },
+  openGraph: {
+    title: "Clawback",
+    description: "AI calls that pay you back when they are wrong.",
+    images: ["/clawback-logo.svg"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -14,7 +24,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen flex flex-col">
         <header className="border-b border-neutral-800 px-6 py-4 flex items-center justify-between">
-          <a href="/" className="font-bold tracking-tight text-lg">Clawback</a>
+          <a href="/" className="flex items-center gap-3 font-bold tracking-tight text-lg">
+            <img
+              src="/clawback-logo.svg"
+              alt="Clawback logo"
+              className="h-9 w-9 rounded-xl border border-lime-300/25 bg-neutral-950"
+            />
+            <span>Clawback</span>
+          </a>
           <nav className="flex gap-6 text-sm text-neutral-400 items-center">
             <a href="/leaderboard" className="hover:text-white">Leaderboard</a>
             <a href="/settle" className="hover:text-white">Settle</a>
