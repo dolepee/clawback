@@ -8,6 +8,11 @@
     "start": "tsx src/index.ts",
     "build": "tsc",
     "post-claim": "tsx src/index.ts post",
+    "cron:preflight": "tsx src/cron/preflight.ts",
+    "cron:commit": "tsx src/cron/commit.ts",
+    "cron:unlock": "tsx src/cron/unlock.ts",
+    "cron:settle": "tsx src/cron/settle.ts",
+    "cron:collect": "tsx src/cron/collect.ts",
     "spike:s1": "tsx src/spikes/s1-q402.ts"
   },
   "dependencies": {

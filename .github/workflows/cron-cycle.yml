@@ -1,0 +1,57 @@
+name: Cron Cycle
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    env:
+      MANTLE_SEPOLIA_RPC_URL: ${{ secrets.MANTLE_SEPOLIA_RPC_URL }}
+      CAT_AGENT_PRIVATE_KEY: ${{ secrets.CAT_AGENT_PRIVATE_KEY }}
+      LOBSTER_AGENT_PRIVATE_KEY: ${{ secrets.LOBSTER_AGENT_PRIVATE_KEY }}
+      PAYER_PRIVATE_KEY: ${{ secrets.PAYER_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: agent/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+
+      - name: balance preflight
+        run: pnpm tsx src/cron/preflight.ts
+
+      - name: commit catscout
+        run: pnpm tsx src/cron/commit.ts cat-scout
+
+      - name: commit lobster
+        run: pnpm tsx src/cron/commit.ts lobster-rogue
+
+      - name: unlock new claims
+        run: pnpm tsx src/cron/unlock.ts
+
+      - name: commit provenance
+        working-directory: .
+        run: |
+          git config user.name "clawback-cron"
+          git config user.email "cron@clawback.local"
+          git add agent/cron-runs/
+          if git diff --staged --quiet; then
+            echo "no provenance changes"
+          else
+            git commit -m "cron provenance $(date -u +%Y-%m-%d)"
+            git push
+          fi

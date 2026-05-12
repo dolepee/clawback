@@ -1,0 +1,36 @@
+name: Cron Resolve
+
+on:
+  schedule:
+    - cron: "0 19-23 * * *"
+  workflow_dispatch:
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    env:
+      MANTLE_SEPOLIA_RPC_URL: ${{ secrets.MANTLE_SEPOLIA_RPC_URL }}
+      SETTLER_PRIVATE_KEY: ${{ secrets.SETTLER_PRIVATE_KEY }}
+      PAYER_PRIVATE_KEY: ${{ secrets.PAYER_PRIVATE_KEY }}
+      CAT_AGENT_PRIVATE_KEY: ${{ secrets.CAT_AGENT_PRIVATE_KEY }}
+      LOBSTER_AGENT_PRIVATE_KEY: ${{ secrets.LOBSTER_AGENT_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: agent/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+
+      - name: settle expired claims
+        run: pnpm tsx src/cron/settle.ts
+
+      - name: collect refunds and earnings
+        run: pnpm tsx src/cron/collect.ts
