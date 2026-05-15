@@ -69,7 +69,7 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
       {identity ? (
         <section className="border border-neutral-800 rounded-lg p-5 mb-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm uppercase tracking-wider text-neutral-500">ERC-8004 identity NFT</h2>
+            <h2 className="text-sm uppercase tracking-wider text-neutral-500">ERC-8004 inspired identity NFT</h2>
             <span className="text-[10px] uppercase tracking-wider text-neutral-500 border border-neutral-700 rounded px-2 py-0.5">soulbound</span>
           </div>
           <dl className="grid grid-cols-[140px,1fr] gap-y-2 text-sm">

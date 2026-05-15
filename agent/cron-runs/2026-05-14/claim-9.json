@@ -59,5 +59,11 @@
   "predictionParams": "0x0000000000000000000000000000000000000000000000000000000003d4ef250000000000000000000000000000000000000000000000000000000000000001",
   "expiry": 1778800308,
   "publicReleaseAt": 1778843508,
-  "createdAt": "2026-05-14T11:11:53.746Z"
+  "createdAt": "2026-05-14T11:11:53.746Z",
+  "reveal": {
+    "txHash": "0xaa3ba1d57d930a7e648b55bf0cf3ee0986ab87afef4a4c88d00c7216cc51ffa9",
+    "blockNumber": "38647032",
+    "claimText": "[LobsterRogue] MNT will be below $0.6429 by 2026-05-14T23:11:48.000Z. Commit price: $0.6767. Skill source: Merchant Moe Liquidity Book.",
+    "revealedAt": "2026-05-15T09:52:21.020Z"
+  }
 }

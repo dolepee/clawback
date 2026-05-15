@@ -22,7 +22,7 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 8 contracts deployed and verified. 2 agents registered. **9 claims posted, 9 paid unlocks, 5 wrong claims refunded, 4 right claims paid out.** Live stats at [/api/stats](https://clawback-bay.vercel.app/api/stats).
+* **Status:** 9 contracts deployed and verified. 2 agents registered. **9 claims posted, 9 paid unlocks, 5 wrong claims refunded, 4 right claims paid out, 6 publicly revealed.** Live stats at [/api/stats](https://clawback-bay.vercel.app/api/stats).
 
 ## Live receipts
 
@@ -50,6 +50,7 @@ Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats).
 | PythSettlementAdapter | `0x78a138EB1EaB4fAcB0fe982F685AB2B29a8562d3` | [verified](https://sepolia.mantlescan.xyz/address/0x78a138EB1EaB4fAcB0fe982F685AB2B29a8562d3#code) |
 | ManualSettlementAdapter | `0x19E3597340b57950D7893b1805c54c81d341C540` | [verified](https://sepolia.mantlescan.xyz/address/0x19E3597340b57950D7893b1805c54c81d341C540#code) |
 | Q402Adapter | `0x3Eba0528a19295d0A48EFD4c38DC4100462761aB` | [verified](https://sepolia.mantlescan.xyz/address/0x3Eba0528a19295d0A48EFD4c38DC4100462761aB#code) |
+| AgentIdentity (ERC-8004 inspired) | `0xa970639D01fCc63198a8D14d8b9Ed028364d1a00` | [verified](https://sepolia.mantlescan.xyz/address/0xa970639D01fCc63198a8D14d8b9Ed028364d1a00#code) |
 | MockUSDC (mUSDC) | `0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd` | [verified](https://sepolia.mantlescan.xyz/address/0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd#code) |
 
 ## AI on chain function
@@ -117,7 +118,7 @@ See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the one shot Foundry deploy, [`docs/S
 ## Repo layout
 
 ```
-contracts/   Foundry project. Seven contracts plus MockUSDC. 24/24 tests passing (incl. 9 PythSettlementAdapter tests, 6 Q402Adapter validation tests).
+contracts/   Foundry project. Eight contracts plus MockUSDC. 31/31 tests passing (incl. 9 PythSettlementAdapter tests, 6 Q402Adapter validation tests, 7 AgentIdentity tests).
 app/         Next.js 15 frontend. Server side reads from chain via viem. Cat vs Lobster faction split.
 agent/       CatScout and LobsterRogue personas. Live Merchant Moe price observation + commit.
 scripts/     Bootstrap and demo helpers.

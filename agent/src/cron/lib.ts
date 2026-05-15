@@ -634,6 +634,26 @@ async function loadPrivateClaimRecord(claimId: bigint): Promise<PrivateClaimReco
   return null;
 }
 
+async function findPublicCommitPath(claimId: bigint): Promise<string | null> {
+  const root = join(process.cwd(), "cron-runs");
+  let days: string[];
+  try {
+    days = await readdir(root);
+  } catch {
+    return null;
+  }
+  for (const day of days) {
+    const path = join(root, day, `claim-${claimId}.json`);
+    try {
+      await readFile(path, "utf8");
+      return path;
+    } catch {
+      // try next day
+    }
+  }
+  return null;
+}
+
 export async function revealClaims(): Promise<void> {
   const client = publicClient();
   const addrs = addresses();
@@ -671,20 +691,29 @@ export async function revealClaims(): Promise<void> {
     console.log(`tx=${txHash}`);
     console.log(`block=${receipt.blockNumber}`);
 
-    const day = new Date().toISOString().slice(0, 10);
-    const dir = join(process.cwd(), "cron-runs", day);
-    await mkdir(dir, { recursive: true });
-    await writeFile(
-      join(dir, `claim-${claimId}-revealed.json`),
-      `${JSON.stringify({
-        kind: "claim_revealed",
-        claimId: claimId.toString(),
-        txHash,
-        blockNumber: receipt.blockNumber.toString(),
-        claimText: record.claimText,
-        revealedAt: new Date().toISOString(),
-      }, null, 2)}\n`,
-    );
+    const reveal = {
+      txHash,
+      blockNumber: receipt.blockNumber.toString(),
+      claimText: record.claimText,
+      revealedAt: new Date().toISOString(),
+    };
+    const commitPath = await findPublicCommitPath(claimId);
+    if (commitPath) {
+      const existing = JSON.parse(await readFile(commitPath, "utf8")) as Record<string, unknown>;
+      existing.reveal = reveal;
+      await writeFile(commitPath, `${JSON.stringify(existing, null, 2)}\n`);
+      console.log(`provenance=${commitPath} reveal=merged`);
+    } else {
+      const day = new Date().toISOString().slice(0, 10);
+      const dir = join(process.cwd(), "cron-runs", day);
+      await mkdir(dir, { recursive: true });
+      const path = join(dir, `claim-${claimId}.json`);
+      await writeFile(
+        path,
+        `${JSON.stringify({ kind: "claim_revealed_only", claimId: claimId.toString(), ...reveal }, null, 2)}\n`,
+      );
+      console.log(`provenance=${path} reveal=standalone`);
+    }
   }
 
   if (completed === 0) console.log("CLAWBACK_CLAIM_REVEALED none");
