@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { encodeFunctionData, type Hex } from "viem";
+import { type Hex } from "viem";
 import { useWallet, publicClient } from "@/lib/wallet";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
-import { clawbackEscrowAbi, erc20Abi, paidUnlockAbi, q402AdapterAbi } from "@/lib/abi";
+import { clawbackEscrowAbi, erc20Abi, paidUnlockAbi } from "@/lib/abi";
 
 type Props = {
   claimId: bigint;
@@ -173,15 +173,25 @@ export default function ClaimActions(props: Props) {
         message: witness,
       });
 
-      const data = encodeFunctionData({ abi: q402AdapterAbi, functionName: "accept", args: [witness, sig] });
-      const hash = await wc.sendTransaction({
-        chain: null,
-        account,
-        to: ADDRESSES.q402Adapter as `0x${string}`,
-        data,
+      const res = await fetch("/api/unlock", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          claimId: claimId.toString(),
+          owner: witness.owner,
+          amount: witness.amount.toString(),
+          deadline: witness.deadline.toString(),
+          paymentId: witness.paymentId,
+          nonce: witness.nonce.toString(),
+          signature: sig,
+        }),
       });
-      setUnlockHash(hash);
-      await publicClient.waitForTransactionReceipt({ hash });
+      const out = (await res.json()) as { ok?: boolean; txHash?: Hex; error?: string };
+      if (!res.ok || !out.ok || !out.txHash) {
+        throw new Error(out.error ?? `unlock relay failed (${res.status})`);
+      }
+      setUnlockHash(out.txHash);
+      await publicClient.waitForTransactionReceipt({ hash: out.txHash });
       setUnlockStatus("done");
     } catch (e) {
       setUnlockError((e as Error).message);
@@ -246,7 +256,7 @@ export default function ClaimActions(props: Props) {
             {unlocked && <span className="text-xs text-emerald-400">unlocked</span>}
           </div>
           <div className="text-xs text-neutral-500 mb-2">
-            Pay {(Number(unlockPrice) / 1e6).toFixed(2)} USDC via Q402 (one signature, ClaimMarket validates state + expiry + price).
+            Pay {(Number(unlockPrice) / 1e6).toFixed(2)} USDC via Q402. You sign once. The facilitator submits the on chain accept, so you pay zero MNT gas. First time only: one USDC approve tx (standard ERC-20).
           </div>
           <button
             disabled={!isCommittedAndLive || unlocked || unlockStatus === "pending"}

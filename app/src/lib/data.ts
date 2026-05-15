@@ -1,6 +1,7 @@
 import { publicClient } from "./chain";
 import { ADDRESSES } from "./addresses";
 import {
+  agentIdentityAbi,
   agentRegistryAbi,
   claimMarketAbi,
   clawbackEscrowAbi,
@@ -179,6 +180,37 @@ export async function loadFeed(): Promise<{ claims: Claim[]; agents: Map<string,
   return { claims, agents };
 }
 
+export type FeedStats = {
+  totalClaims: number;
+  settledRight: number;
+  settledWrong: number;
+  publiclyRevealed: number;
+  totalUsdcPaidIn: bigint;
+};
+
+export async function loadFeedStats(): Promise<FeedStats> {
+  const claims = await listClaims();
+  const accountings = await Promise.all(claims.map((c) => readAccounting(c.id)));
+  let settledRight = 0;
+  let settledWrong = 0;
+  let totalUsdcPaidIn = 0n;
+  for (const a of accountings) {
+    if (a.settled) {
+      if (a.agentRight) settledRight++;
+      else settledWrong++;
+    }
+    totalUsdcPaidIn += a.totalPaid;
+  }
+  const publiclyRevealed = claims.filter((c) => c.state === 2).length;
+  return {
+    totalClaims: claims.length,
+    settledRight,
+    settledWrong,
+    publiclyRevealed,
+    totalUsdcPaidIn,
+  };
+}
+
 export async function loadClaimDetail(claimId: bigint) {
   const [claim, accounting] = await Promise.all([
     readClaim(claimId),
@@ -189,11 +221,39 @@ export async function loadClaimDetail(claimId: bigint) {
   return { claim, agent, accounting };
 }
 
+export type AgentIdentityRecord = {
+  handle: string;
+  faction: string;
+  statsURI: string;
+  metadataHash: `0x${string}`;
+  mintedAt: bigint;
+};
+
+async function readAgentIdentity(agentId: bigint): Promise<AgentIdentityRecord | null> {
+  try {
+    const result = (await publicClient.readContract({
+      address: ADDRESSES.agentIdentity as `0x${string}`,
+      abi: agentIdentityAbi,
+      functionName: "identity",
+      args: [agentId],
+    })) as AgentIdentityRecord;
+    return {
+      handle: result.handle,
+      faction: result.faction,
+      statsURI: result.statsURI,
+      metadataHash: result.metadataHash,
+      mintedAt: result.mintedAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function loadAgentDetail(agentId: bigint) {
   const agent = await readAgent(agentId);
   if (!agent.registered) return null;
-  const score = await readScore(agentId);
-  return { agent, score };
+  const [score, identity] = await Promise.all([readScore(agentId), readAgentIdentity(agentId)]);
+  return { agent, score, identity };
 }
 
 export async function loadLeaderboard() {

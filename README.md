@@ -4,17 +4,17 @@
 
 **AI calls that pay you back when they are wrong.**
 
-Clawback turns AI alpha into a paid performance market on Mantle. CatScout and LobsterRogue publish price calls, lock USDC behind each claim, and let users pay through Q402 to see the call before public release. Pyth settles the outcome at expiry. If the agent is right, the agent earns the payment and gets its bond back. If the agent is wrong, the payer receives the unlock payment back plus a bonus from the slashed bond.
+Clawback is a bonded, slashable accountability market for AI agent price calls on Mantle. CatScout and LobsterRogue publish binary price claims, lock USDC behind each commit, and accept paid unlock receipts via a Q402 style EIP-712 sign once flow. Pyth settles the outcome trustlessly at expiry. If the agent is right, it earns the unlock payments and keeps its bond. If wrong, the slashed bond auto refunds payers with a pro rata bonus.
 
-Example: CatScout can bond 5 USDC on a claim that MNT stays above 0.50 USDC. A payer unlocks the call for 0.25 USDC. Pyth settles the claim at expiry. The result becomes a public RIGHT or WRONG receipt on Mantle.
+Example: CatScout bonds 5 USDC on a claim that MNT outperforms mETH by 100 bps in 24h. A payer locks an unlock receipt for 0.25 USDC. Pyth settles the claim at expiry. The outcome becomes a public RIGHT or WRONG receipt on Mantle.
 
-The product loop is simple:
+The product loop:
 
-1. Agent reads live Mantle market data.
+1. Agent reads live Mantle market data (Merchant Moe Liquidity Book pools).
 2. Agent commits a sealed price call on Mantle with `claimHash` and `skillsOutputHash`.
-3. User pays through Q402 to unlock the call privately.
-4. Pyth resolves the claim at expiry.
-5. RIGHT pays the agent. WRONG refunds the payer and slashes the agent bond.
+3. Payer locks an unlock receipt via the Q402 adapter (EIP-712 sign once, off chain witness).
+4. Pyth pull oracle resolves the claim at expiry, on chain.
+5. RIGHT pays the agent. WRONG refunds the payer plus a bonus from the slashed bond.
 
 Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awakening Phase 2. Submission deadline 2026-06-15.
 
@@ -22,18 +22,22 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 8 contracts deployed and verified, 2 agents registered, 3 claims posted, Q402 unlocks confirmed, Pyth settlements confirmed, payer refunds confirmed, agent earnings confirmed.
+* **Status:** 8 contracts deployed and verified. 2 agents registered. **9 claims posted, 9 paid unlocks, 5 wrong claims refunded, 4 right claims paid out.** Live stats at [/api/stats](https://clawback-bay.vercel.app/api/stats).
 
 ## Live receipts
 
 | Moment | Transaction |
 |---|---|
-| Fresh LobsterRogue claim committed | [`0x4d4c74f63d6fb2b1adbce713d18227cb6cbb3331cafc122f52d7ffd810531672`](https://sepolia.mantlescan.xyz/tx/0x4d4c74f63d6fb2b1adbce713d18227cb6cbb3331cafc122f52d7ffd810531672) |
-| Payer unlocked LobsterRogue claim through Q402 | [`0x7e299b394230272f01eda2e232656cadbc87ba4372f1a9ec598b11ea72236768`](https://sepolia.mantlescan.xyz/tx/0x7e299b394230272f01eda2e232656cadbc87ba4372f1a9ec598b11ea72236768) |
-| Pyth settled LobsterRogue WRONG | [`0xe716ac9e97eb3a40641b6dd9839b3931d4fe1b580f1433c9808abc2aa1ddb22c`](https://sepolia.mantlescan.xyz/tx/0xe716ac9e97eb3a40641b6dd9839b3931d4fe1b580f1433c9808abc2aa1ddb22c) |
-| Payer claimed refund plus bonus | [`0x3898e4e7f78334029df2c1ec8aa06ffd24204d290507606f17e07a40058cc542`](https://sepolia.mantlescan.xyz/tx/0x3898e4e7f78334029df2c1ec8aa06ffd24204d290507606f17e07a40058cc542) |
-| CatScout claim settled RIGHT | [`0xbc7ab08f2a56bcf04b9ef27b83da2ebaf0a295329463c222dd5fab1bfd8c4879`](https://sepolia.mantlescan.xyz/tx/0xbc7ab08f2a56bcf04b9ef27b83da2ebaf0a295329463c222dd5fab1bfd8c4879) |
-| CatScout claimed earnings | [`0xf51cafa1091dfe45f67048f3ce249b981e9b00c9743d1a3d2c11bb894e9e65f1`](https://sepolia.mantlescan.xyz/tx/0xf51cafa1091dfe45f67048f3ce249b981e9b00c9743d1a3d2c11bb894e9e65f1) |
+| LobsterRogue claim 9 committed | [`0x65198b51`](https://sepolia.mantlescan.xyz/tx/0x65198b51f31ef98c1ad43c385f394884e7fd0ade6108417b3f50a43042e1f9bd) |
+| Pyth settled claim 9 WRONG | [`0xdcd1df2d`](https://sepolia.mantlescan.xyz/tx/0xdcd1df2d808df0d3fd94ca353f6458e0e50c95ef3dae77ff06653545a61d0cb8) |
+| Payer claimed refund + bonus (claim 9) | [`0x3ed232ad`](https://sepolia.mantlescan.xyz/tx/0x3ed232ad0821e35f4f0cb778a199b9a3c6a6f0ecef6601371d3af18c40bbfa35) |
+| CatScout claim 8 committed | [`0xcc08712a`](https://sepolia.mantlescan.xyz/tx/0xcc08712ac41cc31b1bb4abfb4759043007d06d65ce0e1b81ee0be3198271366e) |
+| Pyth settled claim 8 RIGHT | [`0xaa354437`](https://sepolia.mantlescan.xyz/tx/0xaa3544375ec63a84d4066ad7a39ead04ab187a76939c435762c138b43c47933a) |
+| CatScout claimed earnings (claim 8) | [`0x3fe1cfe5`](https://sepolia.mantlescan.xyz/tx/0x3fe1cfe5b8ccfb0bae4dd5e9fc72eb92281bcdb77ddc03281bcdd7e351fe49e7) |
+| LobsterRogue claim 2 (original WRONG seed) | [`0x4d4c74f6`](https://sepolia.mantlescan.xyz/tx/0x4d4c74f63d6fb2b1adbce713d18227cb6cbb3331cafc122f52d7ffd810531672) |
+| CatScout claim 3 (original RIGHT seed) | [`0x74ef101c`](https://sepolia.mantlescan.xyz/tx/0x74ef101c32a562fdf582018b71f5f04b23b714095fb0fcd75d449bc0b1674445) |
+
+Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats).
 
 ## Verified contracts
 
@@ -78,13 +82,14 @@ Clawback fits Alpha & Data naturally because every claim is generated from live 
 ## How a claim works
 
 ```
-agent commits claim                 →    payer unlocks via Q402             →    settlement after expiry
-ClaimMarket.commitClaim()                Q402Adapter.executePayment()              PythSettlementAdapter.resolve()
-(bond locked, hash sealed,               (1 sig, USDC pulled, claim text seen)     (fresh Pyth update, decode predictionParams,
- Pyth snapshot encoded)                                                             mark WRONG / RIGHT trustlessly)
+agent commits claim             →    payer unlocks via Q402 adapter    →    settlement at expiry
+ClaimMarket.commitClaim()            Q402Adapter.accept()                    PythSettlementAdapter.resolve()
+(bond locked, hash sealed,           (EIP-712 sign once, facilitator         (fresh Pyth pull oracle update,
+ Pyth snapshot encoded)               submits on chain, USDC pulled,         decode predictionParams,
+                                      ClaimMarket records authorized payer)  mark WRONG / RIGHT trustlessly)
 
-                                                                            ┌→  WRONG:  payer refunded + bonus from slashed bond
-                                                                            └→  RIGHT:  agent earns payment + keeps bond
+                                                                            ┌→  WRONG:  payer refunded + pro rata bonus from slashed bond
+                                                                            └→  RIGHT:  agent earns unlock payments + bond returned
 ```
 
 The same flow is the headline of the demo: WRONG refund vs RIGHT payout.

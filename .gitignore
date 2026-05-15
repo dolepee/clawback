@@ -12,3 +12,7 @@ contracts/out/
 contracts/broadcast/
 .foundry/
 docs/DEMO_VIDEO.md
+
+# Private cron artifacts: claimText + salt + private delivery payloads.
+# These must never reach a public commit before publicReleaseAt.
+agent/cron-private/

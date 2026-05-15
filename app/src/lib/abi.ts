@@ -267,6 +267,41 @@ export const paidUnlockAbi = [
   },
 ] as const;
 
+export const agentIdentityAbi = [
+  {
+    type: "function",
+    name: "ownerOf",
+    inputs: [{ type: "uint256" }],
+    outputs: [{ type: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "identity",
+    inputs: [{ type: "uint256", name: "agentId" }],
+    outputs: [
+      {
+        type: "tuple",
+        components: [
+          { name: "handle", type: "string" },
+          { name: "faction", type: "string" },
+          { name: "statsURI", type: "string" },
+          { name: "metadataHash", type: "bytes32" },
+          { name: "mintedAt", type: "uint64" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "tokenURI",
+    inputs: [{ type: "uint256" }],
+    outputs: [{ type: "string" }],
+    stateMutability: "view",
+  },
+] as const;
+
 export const FACTION = { CAT: 0, LOBSTER: 1 } as const;
 export const CLAIM_STATE = {
   COMMITTED: 0,

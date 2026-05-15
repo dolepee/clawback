@@ -1,0 +1,8 @@
+{
+  "kind": "claim_revealed",
+  "claimId": "6",
+  "txHash": "0xe35313818d731fc9deecdbd4ffe0e2d389803f7d9f3c4e2f12c48e88745ef87f",
+  "blockNumber": "38647013",
+  "claimText": "[CatScout] MNT will be above $0.6586 by 2026-05-13T23:28:16.000Z. Commit price: $0.6721. Skill source: Merchant Moe Liquidity Book.",
+  "revealedAt": "2026-05-15T09:51:45.301Z"
+}

@@ -18,6 +18,7 @@ Latest broadcast 2026-05-11 (**v3 Q402 validating + Pyth aware redeploy**). Chai
 | ManualSettlementAdapter | `0x19E3597340b57950D7893b1805c54c81d341C540` | `0x152e308bb3f6a2701aec71a6114a084fe2bc782a4eaa5e6ce64963546712db89` |
 | PythSettlementAdapter | `0x78a138EB1EaB4fAcB0fe982F685AB2B29a8562d3` | `0x5867f22564d036abb656d776971a2eccea03df8f05fc49dc04e5b90ee291bfb2` |
 | Q402Adapter | `0x3Eba0528a19295d0A48EFD4c38DC4100462761aB` | `0x0078a4c327609cd53aa32c86ea77ea21325a5bc62d4fe20439dcc2397e67b28f` |
+| AgentIdentity (ERC-8004) | `0xa970639D01fCc63198a8D14d8b9Ed028364d1a00` | `0x7154f1ff36d8fb90cb8291a621fd2b682b61f6af946e2224a732dccaefbc3108` |
 
 Explorer prefix: https://sepolia.mantlescan.xyz/address/
 
@@ -146,7 +147,15 @@ v1 was the manual-only deploy. Superseded by v2 once Pyth integration shipped.
 * ~~Verify all v3 contracts on Mantlescan~~ DONE.
 * ~~Re-register agents on v3~~ DONE.
 * ~~Q402 unlock end to end on v3~~ DONE.
-* Wire unlock + refund + claim-earnings buttons into the frontend.
-* Rebuild `/settle` page to list pending + settled claims with Pyth resolve action.
+* ~~Wire unlock + refund + claim-earnings buttons into the frontend~~ DONE.
+* ~~Rebuild `/settle` page to list pending + settled claims with Pyth resolve action~~ DONE.
+* ~~Stop public cron provenance leak (claimText + salt)~~ DONE 2026-05-15. Private artifacts at `agent/cron-private/` (gitignored).
+* ~~Facilitator backed `/api/unlock` route so the browser path is truly gasless~~ DONE 2026-05-14. `app/src/app/api/unlock/route.ts` submits `Q402Adapter.accept` from the facilitator key after the payer signs the EIP-712 witness in the browser.
+* ~~Auto `publicReveal` cron step so settled claims show full text after `publicReleaseAt`~~ DONE 2026-05-14. `agent/src/cron/reveal.ts` revealed claims 4-9 in a single batch (txs `0x8e11..`, `0x1734..`, `0xe353..`, `0x82e4..`, `0x288a..`, `0xaa3b..`).
+* ~~`AgentIdentity` ERC-8004 NFT contract + per agent NFT card on `/agent/[id]`~~ DONE 2026-05-14. Soulbound ERC-721 deployed and verified at `0xa970639D01fCc63198a8D14d8b9Ed028364d1a00`. Minted agentId 1 → CatScout (tx `0x302d250b`), agentId 2 → LobsterRogue (tx `0xf728f87a`). Rendered on `/agent/[id]`.
+* Live stats strip on `/` (9 claims, 5 refunds, 4 payouts, 6 publicly revealed).
+* `docs/JUDGE_REPLAY.md` end to end replay script.
 * Cut 2+ min demo video.
 * DoraHacks submission. Tags: Alpha & Data primary, Grand Champion, UI/UX, Community Voting, 20 Project Deployment Award.
+
+Live stats: 9 claims, 9 paid unlocks, 5 wrong refunds claimed, 4 right payouts claimed, 6 publicly revealed. Cat accuracy 80%, Lobster accuracy 0% (intentional persona seed).

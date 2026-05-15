@@ -13,6 +13,7 @@
     "cron:unlock": "tsx src/cron/unlock.ts",
     "cron:settle": "tsx src/cron/settle.ts",
     "cron:collect": "tsx src/cron/collect.ts",
+    "cron:reveal": "tsx src/cron/reveal.ts",
     "spike:s1": "tsx src/spikes/s1-q402.ts"
   },
   "dependencies": {

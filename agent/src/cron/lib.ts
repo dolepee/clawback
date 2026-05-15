@@ -1,6 +1,7 @@
 import {
   createPublicClient,
   createWalletClient,
+  decodeEventLog,
   defineChain,
   encodeAbiParameters,
   encodeFunctionData,
@@ -10,11 +11,12 @@ import {
   toHex,
   type Address,
   type Hex,
+  type Log,
   type PublicClient,
   type WalletClient,
 } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { buildClaim, hashClaimText } from "../claim.js";
 import { fetchPythPriceE8, fetchPythUpdateBundle } from "../pyth.js";
@@ -42,10 +44,12 @@ const AGENT_REGISTRY_ABI = parseAbi([
 ]);
 
 const CLAIM_MARKET_ABI = parseAbi([
+  "event ClaimCommitted(uint256 indexed claimId, uint256 indexed agentId, bytes32 claimHash, bytes32 skillsOutputHash, uint256 bondAmount, uint256 unlockPrice, uint64 expiry, uint64 publicReleaseAt, uint8 marketId, bytes predictionParams)",
   "function commitClaim(uint256 agentId, bytes32 claimHash, uint256 bondAmount, uint256 unlockPrice, uint64 expiry, uint64 publicReleaseAt, uint8 marketId, bytes32 skillsOutputHash, bytes predictionParams) returns (uint256)",
   "function nextClaimId() view returns (uint256)",
   "function getClaim(uint256 claimId) view returns ((uint256 agentId, bytes32 claimHash, bytes32 skillsOutputHash, uint256 bondAmount, uint256 unlockPrice, uint64 expiry, uint64 publicReleaseAt, uint8 marketId, uint8 state, string revealedClaimText, bytes predictionParams))",
   "function paidUnlock(uint256, address) view returns (bool)",
+  "function publicReveal(uint256 claimId, string claimText, uint256 salt)",
 ]);
 
 const ESCROW_ABI = parseAbi([
@@ -74,8 +78,27 @@ const PYTH_ABI = parseAbi(["function getUpdateFee(bytes[] updateData) view retur
 const PYTH_ADAPTER_ABI = parseAbi(["function resolve(uint256 claimId, bytes params) payable returns (bool agentRight, bytes proof)"]);
 
 const MARKET_ID_THRESHOLD = 1;
+
+function parseClaimIdFromReceipt(logs: Log[], market: Address): bigint {
+  for (const log of logs) {
+    if (log.address.toLowerCase() !== market.toLowerCase()) continue;
+    try {
+      const decoded = decodeEventLog({
+        abi: CLAIM_MARKET_ABI,
+        data: log.data,
+        topics: log.topics,
+        eventName: "ClaimCommitted",
+      });
+      return decoded.args.claimId as bigint;
+    } catch {
+      // not ClaimCommitted, keep scanning
+    }
+  }
+  throw new Error("ClaimCommitted event not found in receipt");
+}
 const CLAIM_STATE_COMMITTED = 0;
 const CLAIM_STATE_SETTLED = 1;
+const CLAIM_STATE_PUBLICLY_REVEALED = 2;
 const MAX_UINT = 2n ** 256n - 1n;
 
 export type PersonaKey = "cat-scout" | "lobster-rogue";
@@ -365,23 +388,16 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     chain: mantleSepolia,
   });
   const receipt = await client.waitForTransactionReceipt({ hash: txHash });
-  const next = await client.readContract({
-    address: addrs.claimMarket,
-    abi: CLAIM_MARKET_ABI,
-    functionName: "nextClaimId",
-  });
-  const claimId = next - 1n;
+  const claimId = parseClaimIdFromReceipt(receipt.logs, addrs.claimMarket);
 
-  await writeProvenance(claimId, persona, {
-    kind: "claim_commit",
+  const commonFields = {
+    kind: "claim_commit" as const,
     persona: persona.handle,
     agentId: agentId.toString(),
     claimId: claimId.toString(),
     txHash,
     blockNumber: receipt.blockNumber.toString(),
-    claimText,
     claimHash,
-    salt: claim.salt.toString(),
     marketId: MARKET_ID_THRESHOLD,
     thresholdPriceE8: thresholdPriceE8.toString(),
     thresholdPriceUsd: thresholdUsd.toFixed(8),
@@ -394,7 +410,10 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     expiry: claim.expiry,
     publicReleaseAt: claim.publicReleaseAt,
     createdAt: new Date().toISOString(),
-  });
+  };
+
+  await writeProvenance(claimId, persona, commonFields, { visibility: "public" });
+  await writeProvenance(claimId, persona, { ...commonFields, claimText, salt: claim.salt.toString() }, { visibility: "private" });
 
   console.log("CLAWBACK_CLAIM_COMMITTED");
   console.log(`persona=${persona.handle}`);
@@ -590,6 +609,87 @@ export async function collectClaims(): Promise<void> {
   if (completed === 0) console.log("CLAWBACK_COLLECTED none");
 }
 
+interface PrivateClaimRecord {
+  claimText?: string;
+  salt?: string;
+}
+
+async function loadPrivateClaimRecord(claimId: bigint): Promise<PrivateClaimRecord | null> {
+  const root = join(process.cwd(), "cron-private");
+  let days: string[];
+  try {
+    days = await readdir(root);
+  } catch {
+    return null;
+  }
+  for (const day of days) {
+    const path = join(root, day, `claim-${claimId}.json`);
+    try {
+      const raw = await readFile(path, "utf8");
+      return JSON.parse(raw) as PrivateClaimRecord;
+    } catch {
+      // try next day
+    }
+  }
+  return null;
+}
+
+export async function revealClaims(): Promise<void> {
+  const client = publicClient();
+  const addrs = addresses();
+  const settler = settlerAccount();
+  const wallet = walletClient(settler);
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  const limit = Number(process.env.CRON_REVEAL_LIMIT ?? 10);
+  let completed = 0;
+
+  for (const claimId of await claimIds(client)) {
+    if (completed >= limit) break;
+    const claim = await readClaim(claimId, client);
+    if (claim.state === CLAIM_STATE_PUBLICLY_REVEALED) continue;
+    const canReveal = claim.publicReleaseAt <= now || claim.state === CLAIM_STATE_SETTLED;
+    if (!canReveal) continue;
+
+    const record = await loadPrivateClaimRecord(claimId);
+    if (!record || !record.claimText || !record.salt) {
+      console.log(`CLAWBACK_REVEAL_SKIPPED claimId=${claimId} reason=no_private_artifact`);
+      continue;
+    }
+
+    const txHash = await wallet.writeContract({
+      address: addrs.claimMarket,
+      abi: CLAIM_MARKET_ABI,
+      functionName: "publicReveal",
+      args: [claimId, record.claimText, BigInt(record.salt)],
+      account: settler,
+      chain: mantleSepolia,
+    });
+    const receipt = await client.waitForTransactionReceipt({ hash: txHash });
+    completed++;
+    console.log("CLAWBACK_CLAIM_REVEALED");
+    console.log(`claimId=${claimId}`);
+    console.log(`tx=${txHash}`);
+    console.log(`block=${receipt.blockNumber}`);
+
+    const day = new Date().toISOString().slice(0, 10);
+    const dir = join(process.cwd(), "cron-runs", day);
+    await mkdir(dir, { recursive: true });
+    await writeFile(
+      join(dir, `claim-${claimId}-revealed.json`),
+      `${JSON.stringify({
+        kind: "claim_revealed",
+        claimId: claimId.toString(),
+        txHash,
+        blockNumber: receipt.blockNumber.toString(),
+        claimText: record.claimText,
+        revealedAt: new Date().toISOString(),
+      }, null, 2)}\n`,
+    );
+  }
+
+  if (completed === 0) console.log("CLAWBACK_CLAIM_REVEALED none");
+}
+
 export async function preflight(): Promise<void> {
   const client = publicClient();
   const addrs = addresses();
@@ -650,12 +750,18 @@ async function approveIfNeeded(
   console.log(`${label} approval tx=${txHash}`);
 }
 
-async function writeProvenance(claimId: bigint, persona: PersonaConfig, payload: unknown): Promise<void> {
+async function writeProvenance(
+  claimId: bigint,
+  persona: PersonaConfig,
+  payload: unknown,
+  opts: { visibility: "public" | "private" } = { visibility: "public" },
+): Promise<void> {
   const day = new Date().toISOString().slice(0, 10);
-  const dir = join(process.cwd(), "cron-runs", day);
+  const root = opts.visibility === "private" ? "cron-private" : "cron-runs";
+  const dir = join(process.cwd(), root, day);
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, `claim-${claimId}.json`), `${JSON.stringify(payload, null, 2)}\n`);
-  console.log(`provenance=cron-runs/${day}/claim-${claimId}.json persona=${persona.handle}`);
+  console.log(`provenance=${root}/${day}/claim-${claimId}.json persona=${persona.handle} visibility=${opts.visibility}`);
 }
 
 function stringifyBigints<T>(value: T): T {

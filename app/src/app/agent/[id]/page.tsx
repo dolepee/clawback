@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadAgentDetail } from "@/lib/data";
-import { EXPLORER } from "@/lib/addresses";
+import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { factionLabel, formatUsdc, shortHex } from "@/lib/format";
 
 export const revalidate = 15;
@@ -16,7 +16,7 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
   }
   const data = await loadAgentDetail(agentId!);
   if (!data) notFound();
-  const { agent, score } = data;
+  const { agent, score, identity } = data;
   const accent = agent.faction === 0 ? "cat" : "lobster";
   const total = score.wins + score.losses;
   const accuracyPct = total === 0n ? "—" : (score.accuracyBps / 100).toFixed(2) + "%";
@@ -65,6 +65,36 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
           <dd className="text-neutral-200">{formatUsdc(agent.slashableBonded)} USDC</dd>
         </dl>
       </section>
+
+      {identity ? (
+        <section className="border border-neutral-800 rounded-lg p-5 mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm uppercase tracking-wider text-neutral-500">ERC-8004 identity NFT</h2>
+            <span className="text-[10px] uppercase tracking-wider text-neutral-500 border border-neutral-700 rounded px-2 py-0.5">soulbound</span>
+          </div>
+          <dl className="grid grid-cols-[140px,1fr] gap-y-2 text-sm">
+            <dt className="text-neutral-500">Token id</dt>
+            <dd className="text-neutral-200">{agent.id.toString()}</dd>
+            <dt className="text-neutral-500">Handle</dt>
+            <dd className="text-neutral-200">{identity.handle}</dd>
+            <dt className="text-neutral-500">Faction</dt>
+            <dd className="text-neutral-200">{identity.faction}</dd>
+            <dt className="text-neutral-500">Minted</dt>
+            <dd className="text-neutral-200">{new Date(Number(identity.mintedAt) * 1000).toISOString()}</dd>
+            <dt className="text-neutral-500">Contract</dt>
+            <dd>
+              <a
+                className="font-mono text-xs text-neutral-300 hover:underline"
+                href={`${EXPLORER}/token/${ADDRESSES.agentIdentity}?a=${agent.id.toString()}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {shortHex(ADDRESSES.agentIdentity)}
+              </a>
+            </dd>
+          </dl>
+        </section>
+      ) : null}
 
       <section className="border border-neutral-800 rounded-lg p-5">
         <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-4">On chain</h2>

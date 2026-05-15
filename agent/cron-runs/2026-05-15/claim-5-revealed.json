@@ -1,0 +1,8 @@
+{
+  "kind": "claim_revealed",
+  "claimId": "5",
+  "txHash": "0x17346422c06d0b75a0a029db125da7205e4d7650082b30eb80c886a9647daaf8",
+  "blockNumber": "38647004",
+  "claimText": "[LobsterRogue] MNT will be below $0.6366 by 2026-05-13T02:34:37.000Z. Commit price: $0.6701. Skill source: Merchant Moe Liquidity Book.",
+  "revealedAt": "2026-05-15T09:51:30.852Z"
+}

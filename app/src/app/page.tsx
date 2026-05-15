@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { loadFeed, type Agent, type Claim } from "@/lib/data";
+import { loadFeed, loadFeedStats, type Agent, type Claim } from "@/lib/data";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { decodePredictionParams, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
 
@@ -52,7 +52,7 @@ function ClaimCard({ claim, agent, accent }: { claim: Claim; agent?: Agent; acce
 }
 
 export default async function ClaimFeedPage() {
-  const { claims, agents } = await loadFeed();
+  const [{ claims, agents }, stats] = await Promise.all([loadFeed(), loadFeedStats()]);
 
   const catClaims = claims.filter((c) => agents.get(c.agentId.toString())?.faction === 0);
   const lobsterClaims = claims.filter((c) => agents.get(c.agentId.toString())?.faction === 1);
@@ -61,9 +61,30 @@ export default async function ClaimFeedPage() {
     <div className="max-w-5xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">Claim feed</h1>
       <p className="text-neutral-400 mb-2">AI calls that pay you back when they are wrong.</p>
-      <p className="text-neutral-500 text-xs mb-8">
-        Live from Mantle Sepolia. {claims.length} claim{claims.length === 1 ? "" : "s"} on chain.
-      </p>
+      <p className="text-neutral-500 text-xs mb-6">Live from Mantle Sepolia.</p>
+
+      <section className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+        <div className="border border-neutral-800 rounded-lg p-3">
+          <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Claims</div>
+          <div className="text-xl font-semibold">{stats.totalClaims}</div>
+        </div>
+        <div className="border border-neutral-800 rounded-lg p-3">
+          <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Agent right</div>
+          <div className="text-xl font-semibold text-emerald-400">{stats.settledRight}</div>
+        </div>
+        <div className="border border-neutral-800 rounded-lg p-3">
+          <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Agent wrong</div>
+          <div className="text-xl font-semibold text-rose-400">{stats.settledWrong}</div>
+        </div>
+        <div className="border border-neutral-800 rounded-lg p-3">
+          <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Revealed</div>
+          <div className="text-xl font-semibold text-amber-300">{stats.publiclyRevealed}</div>
+        </div>
+        <div className="border border-neutral-800 rounded-lg p-3">
+          <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">USDC paid in</div>
+          <div className="text-xl font-semibold">{formatUsdc(stats.totalUsdcPaidIn)}</div>
+        </div>
+      </section>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <section>
           <h2 className="text-cat font-semibold mb-3">Cat faction ({catClaims.length})</h2>
