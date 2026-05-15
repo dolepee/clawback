@@ -1,0 +1,65 @@
+{
+  "kind": "claim_commit",
+  "persona": "CatScout",
+  "agentId": "1",
+  "claimId": "10",
+  "txHash": "0xc8eddefc03e544786d5090e72680ad7e8020a291febded70cea9ff8d58851667",
+  "blockNumber": "38649539",
+  "claimText": "[CatScout] MNT will be above $0.6651 by 2026-05-15T23:15:46.000Z. Commit price: $0.6787. Skill source: Merchant Moe Liquidity Book.",
+  "claimHash": "0x9f4511aedfc9070e751a32e115e72b3d83d214f879b3677818eefb8effc7ebc3",
+  "salt": "352120040644461312",
+  "marketId": 1,
+  "thresholdPriceE8": "66512109",
+  "thresholdPriceUsd": "0.66512109",
+  "direction": "above",
+  "commitMntPriceE8": "67869499",
+  "pythSnapshot": {
+    "id": "0x4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585",
+    "priceE8": "67869499",
+    "publishTime": 1778843743
+  },
+  "skillsOutputHash": "0x2c05b1dac032a8c27c1a14be3fd6643c141b987804d01d4deab682d7e9974dc4",
+  "skillsOutput": {
+    "skillId": "merchant_moe_lb_mantle_v1",
+    "pair": "MNT/mETH",
+    "observedPrice": "3609.80070190",
+    "observedTimestamp": 1778843744,
+    "source": "merchant_moe_liquidity_book",
+    "raw": {
+      "block": "95356716",
+      "mntPriceUsdt": "0.68285152",
+      "methPriceUsdt": "2464.95790820",
+      "mntPerMeth": "3609.80070190",
+      "pools": {
+        "wmntUsdt": {
+          "pool": "0x365722f12ceb2063286a268b03c654df81b7c00f",
+          "tokenX": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "WMNT",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8377389,
+          "binStep": 25,
+          "priceYPerX": 0.6828515233287874
+        },
+        "methUsdt": {
+          "pool": "0x3f0047606dcad6177c13742f1854fc8c999cd2b6",
+          "tokenX": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "mETH",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8368777,
+          "binStep": 10,
+          "priceYPerX": 2464.957908202759
+        }
+      }
+    }
+  },
+  "predictionParams": "0x0000000000000000000000000000000000000000000000000000000003f6e4ed0000000000000000000000000000000000000000000000000000000000000000",
+  "expiry": 1778886946,
+  "publicReleaseAt": 1778930146,
+  "createdAt": "2026-05-15T11:15:52.664Z"
+}
