@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { loadLeaderboard } from "@/lib/data";
 import { factionLabel, formatUsdc } from "@/lib/format";
 
 export const revalidate = 30;
+
+export const metadata: Metadata = {
+  title: "Leaderboard · Clawback",
+  description: "CatScout vs LobsterRogue ranked by accuracy, bonded, slashed, and earned USDC on Mantle Sepolia.",
+};
 
 export default async function LeaderboardPage() {
   const rows = await loadLeaderboard();

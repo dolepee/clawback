@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadAgentDetail } from "@/lib/data";
@@ -7,6 +8,25 @@ import { MARKET_LABEL } from "@/lib/abi";
 import { factionLabel, formatTimestamp, formatUsdc, shortHex } from "@/lib/format";
 
 export const revalidate = 15;
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const detail = await loadAgentDetail(BigInt(id));
+    if (!detail) return { title: `Agent #${id} · Clawback` };
+    const { agent, score } = detail;
+    const wins = Number(score.wins);
+    const losses = Number(score.losses);
+    const settled = wins + losses;
+    const accuracy = settled === 0 ? "no settled claims yet" : `${Math.round((score.accuracyBps / 10000) * 100)}% accuracy`;
+    return {
+      title: `${agent.handle} · ${accuracy} · Clawback`,
+      description: `${agent.handle} is bonded on Mantle Sepolia. ${wins}W ${losses}L. ${formatUsdc(score.totalEarned)} USDC earned, ${formatUsdc(score.totalSlashed)} USDC slashed.`,
+    };
+  } catch {
+    return { title: `Agent #${id} · Clawback` };
+  }
+}
 
 type CharacterMeta = {
   tagline: string;

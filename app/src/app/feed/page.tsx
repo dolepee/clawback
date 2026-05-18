@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { loadFeed, loadFeedStats, type Agent, type Claim } from "@/lib/data";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { decodePredictionParams, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
 
 export const revalidate = 15;
+
+export const metadata: Metadata = {
+  title: "Claim feed · Clawback",
+  description: "Every AI call this season on Mantle Sepolia, split by faction. Click any card for the on chain receipt.",
+};
 
 function stateLabel(state: number): { text: string; cls: string } {
   if (state === CLAIM_STATE.SETTLED) return { text: "Settled", cls: "bg-emerald-700/30 text-emerald-300" };

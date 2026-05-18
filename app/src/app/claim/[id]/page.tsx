@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadClaimDetail } from "@/lib/data";
@@ -9,6 +10,30 @@ import ClaimLiveStatus from "@/components/ClaimLiveStatus";
 import ShareClaim from "@/components/ShareClaim";
 
 export const revalidate = 15;
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const detail = await loadClaimDetail(BigInt(id));
+    if (!detail) return { title: `Claim #${id} · Clawback` };
+    const { claim, agent, accounting } = detail;
+    const settled = claim.state === CLAIM_STATE.SETTLED || accounting.settled;
+    const outcome = settled ? (accounting.agentRight ? "RIGHT" : "WRONG") : "LIVE";
+    const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;
+    return {
+      title: `Claim #${id} · ${agent.handle} · ${outcome} · Clawback`,
+      description: `${agent.handle} bonded ${formatUsdc(claim.bondAmount)} USDC on ${market}. ${
+        outcome === "RIGHT"
+          ? "Settled RIGHT, agent kept the bond plus earned unlock revenue."
+          : outcome === "WRONG"
+            ? "Settled WRONG, slashed bond refunds payers with a bonus."
+            : "Live on Mantle Sepolia. Pyth settles at expiry."
+      }`,
+    };
+  } catch {
+    return { title: `Claim #${id} · Clawback` };
+  }
+}
 
 function OutcomeBanner({
   state,

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { loadReplayClaims, type ReplayClaim } from "@/lib/live-stats";
 import { EXPLORER } from "@/lib/addresses";
@@ -5,6 +6,11 @@ import { MARKET_LABEL } from "@/lib/abi";
 import { decodePredictionParams, formatUsdc, predictionQuestion, shortHex } from "@/lib/format";
 
 export const revalidate = 30;
+
+export const metadata: Metadata = {
+  title: "How it works · Clawback",
+  description: "Replay a WRONG refund and a RIGHT payout end to end, with real Mantle Sepolia tx hashes at every step.",
+};
 
 function fmtTs(ts: number): string {
   return new Date(ts * 1000).toISOString().replace("T", " ").slice(0, 19) + " UTC";

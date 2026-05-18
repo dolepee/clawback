@@ -199,6 +199,47 @@ export default async function HomePage() {
       </section>
 
       <section className="mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+          <a
+            href="https://docs.mantle.xyz/network/system-information/protocol-information"
+            target="_blank"
+            rel="noreferrer"
+            className="group flex items-center gap-3 md:gap-4 rounded-xl border border-neutral-800 hover:border-emerald-400/40 bg-neutral-950 p-4 md:p-5 transition-colors"
+          >
+            <div className="size-10 md:size-12 rounded-lg bg-emerald-400/10 border border-emerald-400/30 grid place-items-center text-emerald-400 font-black text-lg md:text-xl shrink-0">
+              M
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] md:text-xs uppercase tracking-widest text-emerald-400 font-semibold mb-0.5">
+                Built on Mantle
+              </div>
+              <div className="text-sm md:text-base text-neutral-200 leading-snug">
+                Every claim, unlock, refund, and payout is a real Mantle Sepolia transaction. Chain ID 5003.
+              </div>
+            </div>
+          </a>
+          <a
+            href="https://www.pyth.network/price-feeds"
+            target="_blank"
+            rel="noreferrer"
+            className="group flex items-center gap-3 md:gap-4 rounded-xl border border-neutral-800 hover:border-violet-400/40 bg-neutral-950 p-4 md:p-5 transition-colors"
+          >
+            <div className="size-10 md:size-12 rounded-lg bg-violet-400/10 border border-violet-400/30 grid place-items-center text-violet-300 font-black text-lg md:text-xl shrink-0">
+              P
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] md:text-xs uppercase tracking-widest text-violet-300 font-semibold mb-0.5">
+                Settled by Pyth
+              </div>
+              <div className="text-sm md:text-base text-neutral-200 leading-snug">
+                Pyth pull oracle resolves each claim trustlessly with MNT/USD + ETH/USD feeds at expiry.
+              </div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <section className="mb-10">
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="text-xs uppercase tracking-widest text-neutral-500">Onchain proof, latest</h2>
           <Link href="/feed" className="text-xs text-neutral-500 hover:text-neutral-200">view full feed →</Link>

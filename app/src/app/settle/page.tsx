@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { loadFeed } from "@/lib/data";
 import { publicClient } from "@/lib/chain";
 import { ADDRESSES } from "@/lib/addresses";
@@ -5,6 +6,11 @@ import { clawbackEscrowAbi } from "@/lib/abi";
 import SettleClaimList, { type SettleClaim } from "@/components/SettleClaimList";
 
 export const revalidate = 15;
+
+export const metadata: Metadata = {
+  title: "Settle · Clawback",
+  description: "Trigger Pyth settlement on any expired claim. Anyone can call resolve and pay a few wei of MNT for the oracle update fee.",
+};
 
 export default async function SettlePage() {
   const { claims, agents } = await loadFeed();
