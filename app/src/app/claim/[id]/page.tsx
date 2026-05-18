@@ -5,6 +5,8 @@ import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { decodePredictionParams, factionLabel, formatTimestamp, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
 import ClaimActions from "@/components/ClaimActions";
+import ClaimLiveStatus from "@/components/ClaimLiveStatus";
+import ShareClaim from "@/components/ShareClaim";
 
 export const revalidate = 15;
 
@@ -59,10 +61,25 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
   const isRevealed = claim.state === CLAIM_STATE.PUBLICLY_REVEALED;
   const isSettled = claim.state === CLAIM_STATE.SETTLED || accounting.settled;
 
+  const shareOutcome: "pending" | "right" | "wrong" = isSettled
+    ? accounting.agentRight
+      ? "right"
+      : "wrong"
+    : "pending";
+
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-2 text-xs md:text-sm text-neutral-500">
-        <Link href="/feed" className="hover:text-white">claim feed</Link> / claim #{claim.id.toString()}
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="text-xs md:text-sm text-neutral-500 min-w-0 truncate">
+          <Link href="/feed" className="hover:text-white">claim feed</Link> / claim #{claim.id.toString()}
+        </div>
+        <ShareClaim
+          claimId={claim.id.toString()}
+          agentHandle={agent.handle}
+          outcome={shareOutcome}
+          bondAmountUsdc6={claim.bondAmount.toString()}
+          totalPaidUsdc6={accounting.totalPaid.toString()}
+        />
       </div>
       <h1 className="text-2xl md:text-3xl font-bold mb-2 break-words">
         <span className={`text-${accent}`}>{agent.handle}</span> · claim #{claim.id.toString()}
@@ -72,6 +89,8 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <OutcomeBanner state={claim.state} agentRight={accounting.agentRight} settled={isSettled} />
+
+      <ClaimLiveStatus settled={isSettled} expirySec={Number(claim.expiry)} />
 
       <ClaimActions
         claimId={claim.id}
