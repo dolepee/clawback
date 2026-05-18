@@ -5,5 +5,8 @@ export const revalidate = 60;
 
 export async function GET() {
   const stats = await buildStats();
-  return NextResponse.json(stats);
+  const json = JSON.parse(
+    JSON.stringify(stats, (_, v) => (typeof v === "bigint" ? v.toString() : v)),
+  );
+  return NextResponse.json(json);
 }

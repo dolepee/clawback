@@ -19,24 +19,24 @@ function OutcomeBanner({
 }) {
   if (state !== CLAIM_STATE.SETTLED && !settled) {
     return (
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-6 mb-6">
-        <div className="text-neutral-400 text-sm mb-1">Outcome pending</div>
-        <div className="text-neutral-200">Claim is live. Settlement runs after expiry.</div>
+      <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-5 md:p-6 mb-5 md:mb-6">
+        <div className="text-neutral-400 text-xs md:text-sm mb-1">Outcome pending</div>
+        <div className="text-neutral-200 text-sm md:text-base">Claim is live. Settlement runs after expiry.</div>
       </div>
     );
   }
   if (agentRight) {
     return (
-      <div className="rounded-lg border border-emerald-700 bg-emerald-900/30 p-6 mb-6">
-        <div className="text-emerald-400 text-sm font-semibold mb-1">RIGHT</div>
-        <div className="text-emerald-100 text-lg">Agent earned its bond plus payer revenue.</div>
+      <div className="rounded-lg border border-emerald-700 bg-emerald-900/30 p-5 md:p-6 mb-5 md:mb-6">
+        <div className="text-emerald-400 text-xs md:text-sm font-semibold mb-1">RIGHT</div>
+        <div className="text-emerald-100 text-base md:text-lg">Agent earned its bond plus payer revenue.</div>
       </div>
     );
   }
   return (
-    <div className="rounded-lg border border-rose-700 bg-rose-900/30 p-6 mb-6">
-      <div className="text-rose-400 text-sm font-semibold mb-1">WRONG → refund</div>
-      <div className="text-rose-100 text-lg">Payers get their USDC back plus a bonus from the slashed bond.</div>
+    <div className="rounded-lg border border-rose-700 bg-rose-900/30 p-5 md:p-6 mb-5 md:mb-6">
+      <div className="text-rose-400 text-xs md:text-sm font-semibold mb-1">WRONG → refund</div>
+      <div className="text-rose-100 text-base md:text-lg">Payers get their USDC back plus a bonus from the slashed bond.</div>
     </div>
   );
 }
@@ -61,13 +61,13 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-2 text-sm text-neutral-500">
-        <Link href="/" className="hover:text-white">claim feed</Link> / claim #{claim.id.toString()}
+      <div className="mb-2 text-xs md:text-sm text-neutral-500">
+        <Link href="/feed" className="hover:text-white">claim feed</Link> / claim #{claim.id.toString()}
       </div>
-      <h1 className="text-3xl font-bold mb-2">
+      <h1 className="text-2xl md:text-3xl font-bold mb-2 break-words">
         <span className={`text-${accent}`}>{agent.handle}</span> · claim #{claim.id.toString()}
       </h1>
-      <div className="text-neutral-400 mb-6">
+      <div className="text-neutral-400 mb-5 md:mb-6 text-sm md:text-base">
         {factionLabel(agent.faction)} faction · {market}
       </div>
 
@@ -116,38 +116,38 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
         )}
       </section>
 
-      <section className="grid grid-cols-2 gap-4 mb-4">
-        <div className="border border-neutral-800 rounded-lg p-4">
-          <div className="text-xs text-neutral-500 mb-1">Bond locked</div>
-          <div className="text-xl font-semibold">{formatUsdc(claim.bondAmount)} USDC</div>
+      <section className="grid grid-cols-2 gap-3 md:gap-4 mb-4">
+        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
+          <div className="text-[10px] md:text-xs text-neutral-500 mb-1">Bond locked</div>
+          <div className="text-lg md:text-xl font-semibold">{formatUsdc(claim.bondAmount)} USDC</div>
         </div>
-        <div className="border border-neutral-800 rounded-lg p-4">
-          <div className="text-xs text-neutral-500 mb-1">Unlock price</div>
-          <div className="text-xl font-semibold">{formatUsdc(claim.unlockPrice)} USDC</div>
+        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
+          <div className="text-[10px] md:text-xs text-neutral-500 mb-1">Unlock price</div>
+          <div className="text-lg md:text-xl font-semibold">{formatUsdc(claim.unlockPrice)} USDC</div>
         </div>
-        <div className="border border-neutral-800 rounded-lg p-4">
-          <div className="text-xs text-neutral-500 mb-1">Total paid</div>
-          <div className="text-xl font-semibold">{formatUsdc(accounting.totalPaid)} USDC</div>
+        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
+          <div className="text-[10px] md:text-xs text-neutral-500 mb-1">Total paid</div>
+          <div className="text-lg md:text-xl font-semibold">{formatUsdc(accounting.totalPaid)} USDC</div>
         </div>
-        <div className="border border-neutral-800 rounded-lg p-4">
-          <div className="text-xs text-neutral-500 mb-1">Bond at stake</div>
-          <div className="text-xl font-semibold">{formatUsdc(accounting.bondAtStake)} USDC</div>
+        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
+          <div className="text-[10px] md:text-xs text-neutral-500 mb-1">Bond at stake</div>
+          <div className="text-lg md:text-xl font-semibold">{formatUsdc(accounting.bondAtStake)} USDC</div>
         </div>
       </section>
 
-      <section className="border border-neutral-800 rounded-lg p-5 mb-4">
-        <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-4">Timing</h2>
-        <dl className="grid grid-cols-2 gap-y-2 text-sm">
+      <section className="border border-neutral-800 rounded-lg p-4 md:p-5 mb-4">
+        <h2 className="text-xs md:text-sm uppercase tracking-wider text-neutral-500 mb-3 md:mb-4">Timing</h2>
+        <dl className="grid grid-cols-1 md:grid-cols-2 gap-y-2 text-xs md:text-sm">
           <dt className="text-neutral-500">Expires</dt>
           <dd className="text-neutral-200">{formatTimestamp(claim.expiry)} ({relativeTime(claim.expiry)})</dd>
-          <dt className="text-neutral-500">Public release</dt>
+          <dt className="text-neutral-500 mt-2 md:mt-0">Public release</dt>
           <dd className="text-neutral-200">{formatTimestamp(claim.publicReleaseAt)} ({relativeTime(claim.publicReleaseAt)})</dd>
         </dl>
       </section>
 
       <section className="border border-neutral-800 rounded-lg p-5 mb-4">
         <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-4">On chain</h2>
-        <dl className="grid grid-cols-[140px,1fr] gap-y-2 text-sm">
+        <dl className="grid grid-cols-[96px,1fr] md:grid-cols-[140px,1fr] gap-y-2 text-sm">
           <dt className="text-neutral-500">Agent</dt>
           <dd>
             <Link href={`/agent/${claim.agentId.toString()}`} className={`text-${accent} hover:underline`}>

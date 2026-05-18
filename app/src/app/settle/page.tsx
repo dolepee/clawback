@@ -39,13 +39,13 @@ export default async function SettlePage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-2">Settlement console</h1>
-      <p className="text-neutral-400 mb-2 text-sm">
+      <h1 className="text-xl md:text-2xl font-bold mb-2">Settlement console</h1>
+      <p className="text-neutral-400 mb-2 text-xs md:text-sm leading-relaxed">
         Anyone can trigger settlement after a claim expires. The Pyth pull oracle fetches a fresh price update, the adapter
         decodes the commit time snapshot from <span className="font-mono text-neutral-300">predictionParams</span>, and the
         market records RIGHT or WRONG trustlessly.
       </p>
-      <p className="text-neutral-500 text-xs mb-6">
+      <p className="text-neutral-500 text-[11px] md:text-xs mb-5 md:mb-6">
         Caller pays a tiny Pyth update fee (a few wei MNT). Claims expire 6h after commit by default.
       </p>
       <SettleClaimList claims={rows} />

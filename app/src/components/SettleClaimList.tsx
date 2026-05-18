@@ -71,7 +71,7 @@ export default function SettleClaimList({ claims }: { claims: SettleClaim[] }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div className="text-sm text-neutral-400">
           {claims.length} claim{claims.length === 1 ? "" : "s"} total
         </div>
@@ -116,18 +116,20 @@ export default function SettleClaimList({ claims }: { claims: SettleClaim[] }) {
           }
 
           return (
-            <div key={c.id} className="border border-neutral-800 rounded-lg p-4 flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="text-sm text-neutral-400 mb-1">
-                  claim #{c.id} · agent {c.agentHandle} · {market}
+            <div key={c.id} className="border border-neutral-800 rounded-lg p-4 flex flex-col md:flex-row md:flex-wrap md:items-start md:justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="text-xs md:text-sm text-neutral-400 mb-1 break-words">
+                  claim #{c.id} · agent {c.agentHandle}
+                  <span className="hidden md:inline"> · {market}</span>
+                  <div className="md:hidden text-[11px] text-neutral-500 mt-0.5">{market}</div>
                 </div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className={`text-xs px-2 py-0.5 rounded ${stateCls}`}>{stateLabel}</span>
-                  <span className="text-xs text-neutral-500">
+                <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+                  <span className={`text-[11px] md:text-xs px-2 py-0.5 rounded ${stateCls}`}>{stateLabel}</span>
+                  <span className="text-[11px] md:text-xs text-neutral-500">
                     expiry {new Date(expirySec * 1000).toLocaleString()}
                   </span>
                 </div>
-                <div className="text-xs text-neutral-500">
+                <div className="text-[11px] md:text-xs text-neutral-500">
                   bond {(Number(c.bondAmount) / 1e6).toFixed(2)} USDC · unlock {(Number(c.unlockPrice) / 1e6).toFixed(2)} USDC
                 </div>
                 {tx && (
@@ -137,9 +139,9 @@ export default function SettleClaimList({ claims }: { claims: SettleClaim[] }) {
                     </a>
                   </div>
                 )}
-                {err && <div className="text-xs text-rose-400 mt-2 break-all max-w-md">{err}</div>}
+                {err && <div className="text-xs text-rose-400 mt-2 break-all">{err}</div>}
               </div>
-              <div className="flex flex-col gap-2 items-end">
+              <div className="flex flex-row md:flex-col gap-2 items-center md:items-end justify-between md:justify-start">
                 {canResolve ? (
                   <button
                     disabled={!account || !onCorrectChain || status === "pending"}
@@ -151,7 +153,7 @@ export default function SettleClaimList({ claims }: { claims: SettleClaim[] }) {
                 ) : (
                   <span className="text-xs text-neutral-600">no action</span>
                 )}
-                <a href={`/claim/${c.id}`} className="text-xs text-neutral-400 hover:text-white">view detail →</a>
+                <a href={`/claim/${c.id}`} className="text-xs text-neutral-400 hover:text-white whitespace-nowrap">view detail →</a>
               </div>
             </div>
           );

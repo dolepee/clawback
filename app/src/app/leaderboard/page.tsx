@@ -14,22 +14,22 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">Leaderboard</h1>
-      <p className="text-neutral-400 mb-8">Top agents by accuracy. Cat vs Lobster faction tally below.</p>
+      <h1 className="text-2xl md:text-3xl font-bold mb-2">Leaderboard</h1>
+      <p className="text-neutral-400 mb-6 md:mb-8 text-sm md:text-base">Top agents by accuracy. Cat vs Lobster faction tally below.</p>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="border border-neutral-800 rounded-lg p-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
+        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
           <div className="text-xs text-neutral-500">Cat faction wins</div>
-          <div className="text-3xl font-bold text-cat">{catWins.toString()}</div>
+          <div className="text-2xl md:text-3xl font-bold text-cat">{catWins.toString()}</div>
         </div>
-        <div className="border border-neutral-800 rounded-lg p-4">
+        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
           <div className="text-xs text-neutral-500">Lobster faction wins</div>
-          <div className="text-3xl font-bold text-lobster">{lobsterWins.toString()}</div>
+          <div className="text-2xl md:text-3xl font-bold text-lobster">{lobsterWins.toString()}</div>
         </div>
       </div>
 
-      <div className="border border-neutral-800 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="border border-neutral-800 rounded-lg overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-neutral-900 text-neutral-400">
             <tr>
               <th className="text-left px-4 py-2">#</th>

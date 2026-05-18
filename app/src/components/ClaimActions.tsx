@@ -261,11 +261,11 @@ export default function ClaimActions(props: Props) {
           <button
             disabled={!isCommittedAndLive || unlocked || unlockStatus === "pending"}
             onClick={doUnlock}
-            className="text-sm px-4 py-2 rounded bg-amber-500 text-black font-semibold hover:bg-amber-400 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed"
+            className="w-full md:w-auto text-sm px-4 py-2.5 rounded bg-amber-500 text-black font-semibold hover:bg-amber-400 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed"
           >
-            {unlocked ? "already unlocked"
-              : !isCommittedAndLive ? (expired ? "expired" : "claim not unlockable")
-              : unlockStatus === "pending" ? "unlocking…" : `Unlock for ${(Number(unlockPrice) / 1e6).toFixed(2)} USDC`}
+            {unlocked ? "Already unlocked"
+              : !isCommittedAndLive ? (expired ? "Expired" : "Not unlockable")
+              : unlockStatus === "pending" ? "Unlocking…" : `Unlock for ${(Number(unlockPrice) / 1e6).toFixed(2)} USDC`}
           </button>
           {unlockHash && <div className="mt-2 text-xs">tx: <Tx hash={unlockHash} /></div>}
           {unlockError && <div className="mt-2 text-xs text-rose-400 break-all">{unlockError}</div>}
@@ -288,9 +288,9 @@ export default function ClaimActions(props: Props) {
           <button
             disabled={!settled || agentRight || refundDone || !refundOwed || refundOwed.paidBack === 0n || refundStatus === "pending"}
             onClick={doRefund}
-            className="text-sm px-4 py-2 rounded bg-rose-600 text-white font-semibold hover:bg-rose-500 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed"
+            className="w-full md:w-auto text-sm px-4 py-2.5 rounded bg-rose-600 text-white font-semibold hover:bg-rose-500 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed"
           >
-            {refundDone ? "refunded" : refundStatus === "pending" ? "claiming…" : "Claim refund"}
+            {refundDone ? "Refunded" : refundStatus === "pending" ? "Claiming…" : "Claim refund"}
           </button>
           {refundHash && <div className="mt-2 text-xs">tx: <Tx hash={refundHash} /></div>}
           {refundError && <div className="mt-2 text-xs text-rose-400 break-all">{refundError}</div>}
@@ -308,9 +308,9 @@ export default function ClaimActions(props: Props) {
             <button
               disabled={!settled || !agentRight || earningsDone || earningsStatus === "pending"}
               onClick={doEarnings}
-              className="text-sm px-4 py-2 rounded bg-emerald-600 text-black font-semibold hover:bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed"
+              className="w-full md:w-auto text-sm px-4 py-2.5 rounded bg-emerald-600 text-black font-semibold hover:bg-emerald-500 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed"
             >
-              {earningsDone ? "claimed" : earningsStatus === "pending" ? "claiming…" : "Claim earnings"}
+              {earningsDone ? "Claimed" : earningsStatus === "pending" ? "Claiming…" : "Claim earnings"}
             </button>
             {earningsHash && <div className="mt-2 text-xs">tx: <Tx hash={earningsHash} /></div>}
             {earningsError && <div className="mt-2 text-xs text-rose-400 break-all">{earningsError}</div>}
