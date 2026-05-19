@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadClaimDetail } from "@/lib/data";
+import { loadClaimTimeline } from "@/lib/claim-timeline";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { decodePredictionParams, factionLabel, formatTimestamp, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
 import ClaimActions from "@/components/ClaimActions";
 import ClaimLiveStatus from "@/components/ClaimLiveStatus";
+import ClaimTimeline from "@/components/ClaimTimeline";
 import ShareClaim from "@/components/ShareClaim";
 
 export const revalidate = 15;
@@ -79,6 +81,7 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
   const detail = await loadClaimDetail(claimId!);
   if (!detail) notFound();
   const { claim, agent, accounting } = detail;
+  const timeline = await loadClaimTimeline(claim.id);
   const accent = agent.faction === 0 ? "cat" : "lobster";
   const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;
   const prediction = decodePredictionParams(claim.marketId, claim.predictionParams);
@@ -127,6 +130,8 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
         agentRight={accounting.agentRight}
         expirySec={claim.expiry}
       />
+
+      <ClaimTimeline events={timeline} />
 
       <section className="border border-neutral-800 rounded-lg p-5 mb-4">
         <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-3">Binary question</h2>
