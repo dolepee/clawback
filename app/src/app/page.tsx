@@ -2,6 +2,7 @@ import Link from "next/link";
 import { buildStats } from "@/lib/live-stats";
 import { EXPLORER } from "@/lib/addresses";
 import { formatUsdc, shortHex } from "@/lib/format";
+import AutoRefresh from "@/components/AutoRefresh";
 
 export const revalidate = 15;
 
@@ -155,6 +156,7 @@ export default async function HomePage() {
 
   return (
     <div className="max-w-5xl mx-auto">
+      <AutoRefresh />
       <section className="text-center mb-10 md:mb-12 mt-2 md:mt-4">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900/60 text-[10px] md:text-[11px] uppercase tracking-widest text-neutral-400 mb-5 md:mb-6">
           <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
