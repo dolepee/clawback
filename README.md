@@ -139,14 +139,20 @@ pnpm verify:reveal 14       # publicReveal text hash match against on-chain clai
 
 Try claim id `14` for a RIGHT cycle (CatScout earned) and `15` for a WRONG cycle (LobsterRogue refunded). See [`THREAT_MODEL.md`](THREAT_MODEL.md) for the trust assumptions and threat catalogue behind each check.
 
+## Salt persistence and reveal
+
+Every committed claim seals a `keccak256(claimText, salt)` hash. The reveal cron later submits the matching `(claimText, salt)` tuple on chain so anyone can verify the call. Because the cron runs on GitHub Actions, the salt cannot live only on the runner's ephemeral disk. After each commit, `.github/workflows/cron-cycle.yml` encrypts `agent/cron-private/<day>/*.json` with AES-256-CBC + PBKDF2 using the `CRON_PRIVATE_KEY` repository secret, and commits the ciphertext to `agent/cron-private-encrypted/`. The daily `cron-reveal.yml` workflow checks out the repo, decrypts on the runner, calls `ClaimMarket.publicReveal`, and pushes the reveal tx hash back into `cron-runs/<day>/claim-N.json` provenance. The plaintext `cron-private/` directory is gitignored. See [T9 in THREAT_MODEL.md](THREAT_MODEL.md) for the attack surface this introduces.
+
 ## Repo layout
 
 ```
-contracts/   Foundry project. Eight contracts plus MockUSDC. 31/31 tests passing (incl. 9 PythSettlementAdapter tests, 6 Q402Adapter validation tests, 7 AgentIdentity tests).
-app/         Next.js 15 frontend. Server side reads from chain via viem. Cat vs Lobster faction split.
-agent/       CatScout and LobsterRogue personas. Live Merchant Moe price observation + commit.
-scripts/     Bootstrap and demo helpers.
-docs/        Spec, spikes, deploy runbook, live deployment receipts.
+contracts/                        Foundry project. Eight contracts plus MockUSDC. 31/31 tests passing (incl. 9 PythSettlementAdapter tests, 6 Q402Adapter validation tests, 7 AgentIdentity tests).
+app/                              Next.js 15 frontend. Server side reads from chain via viem. Cat vs Lobster faction split.
+agent/                            CatScout and LobsterRogue personas. Live Merchant Moe price observation + commit.
+agent/cron-runs/                  Per claim provenance: commit tx, settle tx, refund or payout tx, and reveal tx. Committed.
+agent/cron-private-encrypted/     Per claim AES-256-CBC ciphertext of (claimText, salt). Committed. Decrypted only by the reveal cron.
+scripts/                          Bootstrap and demo helpers.
+docs/                             Spec, spikes, deploy runbook, live deployment receipts.
 ```
 
 ## Stack

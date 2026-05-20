@@ -18,7 +18,7 @@ These are the trust roots the system inherits. If any one is broken, the corresp
 * **Payer.** Anyone. Signs a Q402 witness once, the facilitator submits, the payer's USDC is debited and the call text is delivered privately. After a wrong settlement, the payer pulls `claimRefund`.
 * **Facilitator.** A relayer EOA that pays MNT gas to submit `Q402Adapter.accept` on behalf of the payer. Does not custody funds. Cannot mint claims or move escrow funds independently.
 * **Settler.** Any address. After a claim expires, anyone can call `PythSettlementAdapter.resolve(claimId, params)` and front the Pyth update fee in MNT. The settlement adapter writes the proof to escrow and marks the claim settled. No special role.
-* **Reveal cron.** Owns a settler EOA. After `publicReleaseAt` (or after settlement), it calls `ClaimMarket.publicReveal(claimId, claimText, salt)` using the artifact stored under `agent/cron-private/`. The reveal is hash verified on chain.
+* **Reveal cron.** Owns a settler EOA. After `publicReleaseAt` (or after settlement), it calls `ClaimMarket.publicReveal(claimId, claimText, salt)` using the artifact decrypted from `agent/cron-private-encrypted/<day>/claim-<id>.json.enc` with the `CRON_PRIVATE_KEY` GitHub Actions secret. The reveal is hash verified on chain. Plaintext lives only inside the runner for the duration of the reveal job.
 * **Operator.** The hackathon team. Holds deployer key, sets `escrow` and `claimMarket` wiring on each contract once at deploy, registers the agent identities, and pushes the cron secrets to GitHub Actions. Does not custody payer or agent funds at runtime.
 
 ## Asset inventory
@@ -29,7 +29,7 @@ These are the trust roots the system inherits. If any one is broken, the corresp
 * Earnings claimable by the agent in `ClawbackEscrow` after a right settlement.
 * Agent reputation in `ReputationLedger.scores[agentId]` (`wins`, `losses`, `totalBonded`, `totalSlashed`, `totalEarned`, `accuracyBps`).
 * Soulbound `AgentIdentity` NFTs. One per agent. Token id mirrors agent id.
-* Cron private artifacts under `agent/cron-private/` (claim text + salt). Compromise of this directory before reveal leaks the privately delivered call to anyone with read access.
+* Cron private artifacts under `agent/cron-private-encrypted/` (AES-256-CBC + PBKDF2 ciphertext of claim text + salt, committed to the public repo). The matching plaintext under `agent/cron-private/` is gitignored and exists only on cron-cycle and cron-reveal runners during job execution. Compromise of the `CRON_PRIVATE_KEY` GitHub Actions secret retroactively decrypts every committed blob.
 
 ## Threat catalogue
 
@@ -87,9 +87,9 @@ These are the trust roots the system inherits. If any one is broken, the corresp
 ### T9. Private claim text leaked before reveal window
 
 * **Goal.** A third party reads the privately delivered text before the unlock window expires, free riding on the paid call.
-* **Path.** The text lives in `agent/cron-private/<day>/claim-<id>.json` on the operator's box and on GitHub Actions ephemeral storage during the cron run. Anyone with read access to either surface can see it.
-* **Defence.** `cron-private/` is gitignored. GitHub Actions secrets are masked in logs. The private delivery to the payer happens off chain via a signed payload, not through a public broadcast. After `publicReleaseAt`, the reveal cron pushes the text on chain and the privacy contract ends.
-* **Residual risk.** Medium. The operator box and the GitHub Actions runner are trusted. A compromise of either before reveal is an information leak, not a fund loss. Mitigation for v2: encrypt the per-claim payload to the payer's public key and store only the ciphertext on chain or in a public bucket.
+* **Path.** Salts and claim texts are generated inside the `cron-cycle` GitHub Actions workflow, written to `agent/cron-private/<day>/claim-<id>.json` on the runner, immediately encrypted with AES-256-CBC + PBKDF2 (`openssl enc -aes-256-cbc -pbkdf2 -salt -pass env:CRON_PRIVATE_KEY`), and the `.enc` ciphertext is committed to the public repository at `agent/cron-private-encrypted/<day>/claim-<id>.json.enc`. The plaintext directory is gitignored. Anyone who decrypts a `.enc` blob obtains both `claimText` and `salt` and could front-run the paid unlock, or read the call without paying.
+* **Defence.** Ciphertext is useless without `CRON_PRIVATE_KEY`. GitHub Actions masks the secret in workflow logs and restricts read access to repository administrators. The reveal cron is the only consumer; it decrypts in-memory on a fresh runner and never writes the key to disk. Local replay needs the same key passed via env, never committed. `cron-private/` is gitignored everywhere so plaintext never reaches a public commit.
+* **Residual risk.** Medium, and now centralized around a single secret. A leak of `CRON_PRIVATE_KEY` retroactively decrypts every salt committed under this scheme. Mitigation if leaked: rotate the GHA secret, re-encrypt the historical `cron-private-encrypted/` tree under the new key, force push, and acknowledge the leak window (no fund impact because the on chain hash check still prevents fake reveals, and any paid unlock has already delivered the text off chain). For mainnet v2, encrypt the per-claim payload to the payer's libsodium public key so no central secret is load bearing.
 
 ### T10. Public reveal is censored
 
