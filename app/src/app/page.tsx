@@ -194,7 +194,7 @@ export default async function HomePage() {
             wins={stats.lobsterWins}
             losses={stats.lobsterLosses}
             accent="lobster"
-            tagline="contrarian degen · MNT vs mETH outperformance"
+            tagline="contrarian degen · MNT/USD downside threshold reads"
             leading={!catLeads && lobsterSettled > 0}
           />
         </div>

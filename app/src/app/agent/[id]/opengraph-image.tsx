@@ -9,7 +9,7 @@ export const contentType = "image/png";
 
 const TAGLINES: Record<string, string> = {
   CatScout: "Reads MNT charts like a tabby reads sunbeams.",
-  LobsterRogue: "Snips at MNT vs mETH outperformance like prey.",
+  LobsterRogue: "Snips at MNT/USD downside thresholds like prey.",
 };
 
 export default async function Image({ params }: { params: { id: string } }) {

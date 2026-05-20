@@ -135,7 +135,7 @@ const PERSONAS: Record<PersonaKey, PersonaConfig> = {
     bondAmount: 10_000_000n,
     unlockPrice: 500_000n,
     direction: "below",
-    thresholdMultiplierBps: 9_500n,
+    thresholdMultiplierBps: 9_700n,
   },
 };
 

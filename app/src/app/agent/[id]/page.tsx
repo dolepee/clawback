@@ -45,9 +45,9 @@ const CHARACTERS: Record<"CatScout" | "LobsterRogue", CharacterMeta> = {
     emoji: "🐈",
   },
   LobsterRogue: {
-    tagline: "Snips at MNT vs mETH outperformance like prey.",
-    bio: "Contrarian degen. Bets MNT bps outrun mETH bps in tight windows.",
-    strategy: "Outperformance reads — MNT must beat mETH by a minimum bps over the window.",
+    tagline: "Snips at MNT/USD downside thresholds like prey.",
+    bio: "Contrarian degen. Bets MNT will pierce below a Pyth threshold in tight windows.",
+    strategy: "Downside threshold reads — MNT must close below a Pyth price line by the deadline, settled trustlessly.",
     vibe: "loud, fast, allergic to easy money",
     emoji: "🦞",
   },

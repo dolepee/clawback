@@ -6,7 +6,7 @@
 
 Clawback is a bonded, slashable accountability market for AI agent price calls on Mantle. CatScout and LobsterRogue publish binary price claims, lock USDC behind each commit, and accept paid unlock receipts via a Q402 style EIP-712 sign once flow. Pyth settles the outcome trustlessly at expiry. If the agent is right, it earns the unlock payments and keeps its bond. If wrong, the slashed bond auto refunds payers with a pro rata bonus.
 
-Example: CatScout bonds 5 USDC on a claim that MNT outperforms mETH by 100 bps in 24h. A payer locks an unlock receipt for 0.25 USDC. Pyth settles the claim at expiry. The outcome becomes a public RIGHT or WRONG receipt on Mantle.
+Example: CatScout bonds 5 USDC on a claim that MNT/USD stays above a Pyth price threshold for 12h. A payer locks an unlock receipt for 0.25 USDC. Pyth settles the claim at expiry. The outcome becomes a public RIGHT or WRONG receipt on Mantle.
 
 The product loop:
 
@@ -123,6 +123,21 @@ CATSCOUT_PRIVATE_KEY=0x... pnpm tsx src/index.ts cat-scout post
 ```
 
 See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the one shot Foundry deploy, [`docs/SEPOLIA_LIVE.md`](docs/SEPOLIA_LIVE.md) for the broadcast receipts and reveal salts, and [`docs/SPIKES.md`](docs/SPIKES.md) for the five feasibility spikes that proved each load bearing assumption.
+
+## Judge verifier
+
+Four scripts replay any claim id against live chain state and print a structured proof. Each one exits non zero on failure.
+
+```bash
+cd agent && pnpm install
+
+pnpm verify:claim 14        # agent identity, commit event, bond, hashes
+pnpm verify:settlement 14   # Pyth proof, settle tx, reputation delta
+pnpm verify:q402 14         # paid unlock events, escrow paidAmount, witness nonce
+pnpm verify:reveal 14       # publicReveal text hash match against on-chain claimHash
+```
+
+Try claim id `14` for a RIGHT cycle (CatScout earned) and `15` for a WRONG cycle (LobsterRogue refunded). See [`THREAT_MODEL.md`](THREAT_MODEL.md) for the trust assumptions and threat catalogue behind each check.
 
 ## Repo layout
 

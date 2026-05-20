@@ -14,6 +14,10 @@
     "cron:settle": "tsx src/cron/settle.ts",
     "cron:collect": "tsx src/cron/collect.ts",
     "cron:reveal": "tsx src/cron/reveal.ts",
+    "verify:claim": "tsx src/verify/claim.ts",
+    "verify:settlement": "tsx src/verify/settlement.ts",
+    "verify:q402": "tsx src/verify/q402.ts",
+    "verify:reveal": "tsx src/verify/reveal.ts",
     "spike:s1": "tsx src/spikes/s1-q402.ts"
   },
   "dependencies": {
