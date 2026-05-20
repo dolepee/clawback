@@ -43,12 +43,32 @@ jobs:
       - name: unlock new claims
         run: pnpm tsx src/cron/unlock.ts
 
+      - name: encrypt cron-private salts
+        env:
+          CRON_PRIVATE_KEY: ${{ secrets.CRON_PRIVATE_KEY }}
+        run: |
+          if [ -z "$CRON_PRIVATE_KEY" ]; then
+            echo "::error::CRON_PRIVATE_KEY secret missing — cannot persist salts for reveal"
+            exit 1
+          fi
+          if [ ! -d cron-private ]; then
+            echo "no cron-private dir produced this run"
+            exit 0
+          fi
+          find cron-private -type f -name "*.json" -print0 | while IFS= read -r -d '' f; do
+            rel="${f#cron-private/}"
+            out="cron-private-encrypted/${rel}.enc"
+            mkdir -p "$(dirname "$out")"
+            openssl enc -aes-256-cbc -pbkdf2 -salt -in "$f" -out "$out" -pass "env:CRON_PRIVATE_KEY"
+            echo "encrypted $f -> $out"
+          done
+
       - name: commit provenance
         working-directory: .
         run: |
           git config user.name "clawback-cron"
           git config user.email "cron@clawback.local"
-          git add agent/cron-runs/
+          git add agent/cron-runs/ agent/cron-private-encrypted/
           if git diff --staged --quiet; then
             echo "no provenance changes"
           else

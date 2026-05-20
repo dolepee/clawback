@@ -1,0 +1,69 @@
+name: Cron Reveal
+
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  reveal:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    env:
+      MANTLE_SEPOLIA_RPC_URL: ${{ secrets.MANTLE_SEPOLIA_RPC_URL }}
+      SETTLER_PRIVATE_KEY: ${{ secrets.SETTLER_PRIVATE_KEY }}
+      PAYER_PRIVATE_KEY: ${{ secrets.PAYER_PRIVATE_KEY }}
+      CAT_AGENT_PRIVATE_KEY: ${{ secrets.CAT_AGENT_PRIVATE_KEY }}
+      LOBSTER_AGENT_PRIVATE_KEY: ${{ secrets.LOBSTER_AGENT_PRIVATE_KEY }}
+      CRON_PRIVATE_KEY: ${{ secrets.CRON_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: agent/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+
+      - name: decrypt cron-private salts
+        run: |
+          if [ -z "$CRON_PRIVATE_KEY" ]; then
+            echo "::error::CRON_PRIVATE_KEY secret missing — cannot decrypt salts"
+            exit 1
+          fi
+          if [ ! -d cron-private-encrypted ]; then
+            echo "no encrypted salt directory yet, nothing to reveal"
+            exit 0
+          fi
+          mkdir -p cron-private
+          find cron-private-encrypted -type f -name "*.json.enc" -print0 | while IFS= read -r -d '' f; do
+            rel="${f#cron-private-encrypted/}"
+            out="cron-private/${rel%.enc}"
+            mkdir -p "$(dirname "$out")"
+            openssl enc -d -aes-256-cbc -pbkdf2 -in "$f" -out "$out" -pass "env:CRON_PRIVATE_KEY"
+          done
+          echo "decrypted $(find cron-private -type f -name '*.json' | wc -l) salt files"
+
+      - name: reveal eligible claims
+        run: pnpm tsx src/cron/reveal.ts
+
+      - name: commit reveal provenance
+        working-directory: .
+        run: |
+          git config user.name "clawback-cron"
+          git config user.email "cron@clawback.local"
+          git add agent/cron-runs/
+          if git diff --staged --quiet; then
+            echo "no reveal provenance changes"
+          else
+            git commit -m "cron reveal $(date -u +%Y-%m-%d)"
+            git push
+          fi
