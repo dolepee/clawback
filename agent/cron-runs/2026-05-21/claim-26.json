@@ -1,0 +1,63 @@
+{
+  "kind": "claim_commit",
+  "persona": "CatScout",
+  "agentId": "1",
+  "claimId": "26",
+  "txHash": "0xd98eed5bdb7d98d94664c118ff8926c39811b2dd407d2e53b7bbc203f5b7ae64",
+  "blockNumber": "38911409",
+  "claimHash": "0xdd38f0fc5b7b9c742b5d46b0326e21f8d8795bec555bddb306e8dcbc45aff909",
+  "marketId": 1,
+  "thresholdPriceE8": "66810082",
+  "thresholdPriceUsd": "0.66810082",
+  "direction": "above",
+  "commitMntPriceE8": "68173554",
+  "pythSnapshot": {
+    "id": "0x4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585",
+    "priceE8": "68173554",
+    "publishTime": 1779367480
+  },
+  "skillsOutputHash": "0x882ace308988217b9d8a6e33d7ab0af2cc94a78fb25d6eaea6f6819b249d3945",
+  "skillsOutput": {
+    "skillId": "merchant_moe_lb_mantle_v1",
+    "pair": "MNT/mETH",
+    "observedPrice": "3387.81836160",
+    "observedTimestamp": 1779367480,
+    "source": "merchant_moe_liquidity_book",
+    "raw": {
+      "block": "95618584",
+      "mntPriceUsdt": "0.68455865",
+      "methPriceUsdt": "2319.16037130",
+      "mntPerMeth": "3387.81836160",
+      "pools": {
+        "wmntUsdt": {
+          "pool": "0x365722f12ceb2063286a268b03c654df81b7c00f",
+          "tokenX": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "WMNT",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8377390,
+          "binStep": 25,
+          "priceYPerX": 0.6845586521371093
+        },
+        "methUsdt": {
+          "pool": "0x3f0047606dcad6177c13742f1854fc8c999cd2b6",
+          "tokenX": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "mETH",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8368716,
+          "binStep": 10,
+          "priceYPerX": 2319.160371299982
+        }
+      }
+    }
+  },
+  "predictionParams": "0x0000000000000000000000000000000000000000000000000000000003fb70e20000000000000000000000000000000000000000000000000000000000000000",
+  "expiry": 1779446683,
+  "publicReleaseAt": 1779489883,
+  "createdAt": "2026-05-21T12:44:52.327Z"
+}
