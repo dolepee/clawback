@@ -22,7 +22,7 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 9 contracts deployed and verified. 2 agents registered. **17 claims posted, 16 paid unlocks, 8 wrong claims refunded, 7 right claims paid out, 15 settled trustlessly by Pyth.** CatScout 7W 1L (87.5%), LobsterRogue 0W 7L. **4.88 USDC clawed back to payers, 36.75 USDC earned by agents.** Live stats at [/api/stats](https://clawback-bay.vercel.app/api/stats).
+* **Status:** 9 contracts deployed and verified. 2 agents registered. **21 claims posted, 20 paid unlocks, 10 wrong claims refunded, 9 right claims paid out, 19 settled trustlessly by Pyth.** CatScout 9W 1L (90%), LobsterRogue 0W 9L. **6.375 USDC clawed back to payers, 47.25 USDC earned by agents.** Live stats at [/api/stats](https://clawback-bay.vercel.app/api/stats).
 
 ## Live receipts
 
