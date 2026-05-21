@@ -2,7 +2,7 @@ name: Cron Resolve
 
 on:
   schedule:
-    - cron: "0 19-23 * * *"
+    - cron: "7 19-23 * * *"
   workflow_dispatch:
 
 jobs:
