@@ -29,12 +29,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
-        <header className="border-b border-neutral-800 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between gap-3">
+        <header className="sticky top-0 z-20 border-b border-white/10 bg-black/45 px-4 md:px-6 py-3 md:py-4 backdrop-blur-xl flex items-center justify-between gap-3">
           <a href="/" className="flex items-center gap-2 md:gap-3 font-bold tracking-tight text-base md:text-lg shrink-0">
             <img
               src="/clawback-logo.svg"
               alt="Clawback logo"
-              className="h-8 w-8 md:h-9 md:w-9 rounded-xl border border-lime-300/25 bg-neutral-950"
+              className="h-8 w-8 md:h-9 md:w-9 rounded-xl border border-emerald-300/30 bg-neutral-950 shadow-[0_0_24px_rgba(16,185,129,0.22)]"
             />
             <span>Clawback</span>
           </a>
@@ -51,7 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <WalletButton />
           </div>
         </header>
-        <nav className="md:hidden border-b border-neutral-800 px-4 py-2 flex gap-4 text-xs text-neutral-400 overflow-x-auto">
+        <nav className="md:hidden border-b border-white/10 bg-black/35 px-4 py-2 flex gap-4 text-xs text-neutral-400 overflow-x-auto backdrop-blur-xl">
           <a href="/how-it-works" className="hover:text-white whitespace-nowrap">How it works</a>
           <a href="/feed" className="hover:text-white whitespace-nowrap">Feed</a>
           <a href="/leaderboard" className="hover:text-white whitespace-nowrap">Leaderboard</a>

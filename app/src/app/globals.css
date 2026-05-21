@@ -3,12 +3,37 @@
 @tailwind utilities;
 
 :root {
-  --bg: 10 10 10;
-  --fg: 240 240 240;
+  --bg: 4 8 7;
+  --fg: 244 241 232;
 }
 
 html, body {
   background: rgb(var(--bg));
   color: rgb(var(--fg));
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: "Aptos", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background:
+    radial-gradient(circle at 14% 8%, rgba(16, 185, 129, 0.20), transparent 30rem),
+    radial-gradient(circle at 88% 0%, rgba(245, 158, 11, 0.16), transparent 26rem),
+    linear-gradient(135deg, rgba(15, 23, 42, 0.45), transparent 45%),
+    rgb(var(--bg));
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 72%);
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.35);
+  color: rgb(var(--fg));
 }

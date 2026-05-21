@@ -26,10 +26,10 @@ function fmtDuration(seconds: number): string {
 
 function StepDot({ n, tone }: { n: string; tone: "neutral" | "emerald" | "amber" | "rose" }) {
   const cls = {
-    neutral: "border-neutral-700 text-neutral-400",
-    emerald: "border-emerald-700 text-emerald-300 bg-emerald-950/40",
-    amber: "border-amber-700 text-amber-300 bg-amber-950/40",
-    rose: "border-rose-700 text-rose-300 bg-rose-950/40",
+    neutral: "border-neutral-700 text-neutral-400 bg-neutral-950",
+    emerald: "border-emerald-500/70 text-emerald-200 bg-emerald-950/70 shadow-[0_0_22px_rgba(16,185,129,0.2)]",
+    amber: "border-amber-500/70 text-amber-200 bg-amber-950/70 shadow-[0_0_22px_rgba(245,158,11,0.18)]",
+    rose: "border-rose-500/70 text-rose-200 bg-rose-950/70 shadow-[0_0_22px_rgba(244,63,94,0.16)]",
   }[tone];
   return (
     <div className={`size-9 rounded-full border-2 ${cls} grid place-items-center text-xs font-mono shrink-0`}>
@@ -56,7 +56,9 @@ function Walkthrough({ replay, tone }: { replay: ReplayClaim; tone: "wrong" | "r
   const accent = replay.agentHandle === "CatScout" ? "text-cat" : "text-lobster";
   const settledTone: "rose" | "emerald" = isWrong ? "rose" : "emerald";
   const finalTone: "emerald" | "amber" = isWrong ? "emerald" : "amber";
-  const headerTone = isWrong ? "border-rose-700/60 bg-rose-950/20" : "border-emerald-700/60 bg-emerald-950/20";
+  const headerTone = isWrong
+    ? "border-rose-500/30 bg-[radial-gradient(circle_at_top_left,rgba(244,63,94,0.16),transparent_24rem),rgba(8,8,8,0.84)]"
+    : "border-emerald-500/30 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14),transparent_24rem),rgba(8,8,8,0.84)]";
   const verdictLabel = isWrong ? "wrong → user gets paid" : "right → agent keeps revenue";
   const verdictBadge = isWrong ? "text-rose-300" : "text-emerald-300";
   const market = MARKET_LABEL[replay.marketId] ?? `market #${replay.marketId}`;
@@ -66,14 +68,15 @@ function Walkthrough({ replay, tone }: { replay: ReplayClaim; tone: "wrong" | "r
   const refundTotal = (replay.refundPaidBack ?? 0n) + (replay.refundBonus ?? 0n);
 
   return (
-    <div className={`rounded-2xl border ${headerTone} p-5 md:p-6`}>
+    <div className={`relative overflow-hidden rounded-[2rem] border ${headerTone} p-5 shadow-[0_28px_90px_rgba(0,0,0,0.32)] md:p-6`}>
+      <div className={`absolute inset-x-0 top-0 h-1 ${isWrong ? "bg-gradient-to-r from-rose-400 via-emerald-300 to-emerald-400" : "bg-gradient-to-r from-emerald-300 via-amber-300 to-amber-400"}`} />
       <div className="flex items-baseline justify-between mb-1">
-        <div className={`text-xs uppercase tracking-widest font-semibold ${verdictBadge}`}>{verdictLabel}</div>
-        <Link href={`/claim/${replay.claimId}`} className="text-xs text-neutral-500 hover:text-neutral-200">
+        <div className={`text-xs uppercase tracking-[0.24em] font-semibold ${verdictBadge}`}>{verdictLabel}</div>
+        <Link href={`/claim/${replay.claimId}`} className="text-xs text-neutral-400 hover:text-neutral-100">
           claim #{replay.claimId} →
         </Link>
       </div>
-      <div className={`text-2xl font-black ${accent} mb-1`}>{replay.agentHandle}</div>
+      <div className={`text-3xl font-black ${accent} mb-1`}>{replay.agentHandle}</div>
       <div className="text-xs text-neutral-500 mb-5">{market}</div>
 
       <div className="space-y-5">
@@ -172,15 +175,18 @@ export default async function HowItWorksPage() {
   const { wrong, right } = await loadReplayClaims();
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <section className="text-center mb-8 md:mb-10 mt-2">
-        <div className="text-[10px] md:text-[11px] uppercase tracking-widest text-neutral-500 mb-3">walkthrough</div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-3 md:mb-4">Watch one claim play out.</h1>
-        <p className="text-neutral-400 text-sm md:text-base max-w-2xl mx-auto px-2">
-          Two real claims, recorded on Mantle Sepolia. Every step has an onchain receipt. Click any
-          <span className="text-neutral-300"> tx </span>
-          to inspect it on MantleScan.
-        </p>
+    <div className="mx-auto max-w-6xl">
+      <section className="relative mb-8 overflow-hidden rounded-[2rem] border border-white/10 bg-black/35 p-6 text-center shadow-[0_30px_100px_rgba(0,0,0,0.32)] md:mb-10 md:p-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_0%,rgba(16,185,129,0.14),transparent_24rem),radial-gradient(circle_at_75%_10%,rgba(244,63,94,0.10),transparent_24rem)]" />
+        <div className="relative">
+          <div className="mb-3 text-[10px] uppercase tracking-[0.28em] text-neutral-500 md:text-[11px]">judge path · wrong refund vs right payout</div>
+          <h1 className="mx-auto max-w-3xl text-4xl font-black tracking-[-0.06em] text-neutral-50 sm:text-5xl md:text-6xl">
+            Watch one AI call get clawed back.
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl px-2 text-sm leading-7 text-neutral-400 md:text-base">
+            Two real claims, recorded on Mantle Sepolia. One agent is wrong and the user gets paid back. One agent is right and earns the unlock revenue. Every step has a MantleScan tx.
+          </p>
+        </div>
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-12">
@@ -221,7 +227,7 @@ export default async function HowItWorksPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-neutral-800 bg-neutral-950 p-6 text-center mb-4">
+      <section className="rounded-[2rem] border border-white/10 bg-neutral-950/80 p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,0.22)] mb-4">
         <div className="text-lg font-bold mb-2">See it live now.</div>
         <div className="text-sm text-neutral-400 mb-4">
           The cron commits new claims daily and settles them every hour. The receipts above will rotate as more claims close.

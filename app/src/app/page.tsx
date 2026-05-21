@@ -113,6 +113,104 @@ function ReceiptCard({
   );
 }
 
+function HeroOutcomePanel({
+  refund,
+  payout,
+  refundsClaimed,
+  earningsClaimed,
+}: {
+  refund?: {
+    claimId: number;
+    tx: `0x${string}`;
+    paidBack: bigint;
+    bonus: bigint;
+    user: `0x${string}`;
+  } | null;
+  payout?: {
+    claimId: number;
+    tx: `0x${string}`;
+    amount: bigint;
+    agent: string;
+  } | null;
+  refundsClaimed: number;
+  earningsClaimed: number;
+}) {
+  const refundTotal = refund ? refund.paidBack + refund.bonus : 0n;
+  return (
+    <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-neutral-950/80 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.45)]">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-300 via-amber-300 to-rose-400" />
+      <div className="absolute -right-24 -top-20 size-56 rounded-full bg-emerald-400/15 blur-3xl" />
+      <div className="absolute -bottom-28 left-10 size-56 rounded-full bg-amber-400/10 blur-3xl" />
+      <div className="relative rounded-[1.5rem] border border-white/10 bg-black/45 p-5">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.28em] text-neutral-500">live accountability receipt</div>
+            <div className="mt-1 text-lg font-black text-neutral-100">One market, two endings.</div>
+          </div>
+          <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-emerald-300">
+            Mantle proof
+          </span>
+        </div>
+
+        <div className="grid gap-3">
+          <div className="rounded-2xl border border-rose-400/30 bg-gradient-to-br from-rose-950/55 to-neutral-950 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-rose-300">wrong call</div>
+              <Link href={refund ? `/claim/${refund.claimId}` : "/how-it-works"} className="text-xs text-rose-100/65 hover:text-rose-100">
+                claim #{refund?.claimId ?? "—"} →
+              </Link>
+            </div>
+            <div className="text-4xl font-black text-emerald-300">+{formatUsdc(refundTotal)}</div>
+            <div className="mt-1 text-xs uppercase tracking-[0.22em] text-neutral-500">USDC returned to payer</div>
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-xs text-neutral-400">
+              <span>{refund ? shortHex(refund.user) : "payer"}</span>
+              {refund ? (
+                <a href={`${EXPLORER}/tx/${refund.tx}`} target="_blank" rel="noreferrer" className="font-mono text-emerald-200 hover:text-emerald-100">
+                  {shortHex(refund.tx)} ↗
+                </a>
+              ) : (
+                <span className="text-neutral-600">pending</span>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch">
+            <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-950/45 to-neutral-950 p-4">
+              <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.24em] text-amber-300">right call</div>
+              <div className="text-3xl font-black text-amber-200">+{formatUsdc(payout?.amount ?? 0n)}</div>
+              <div className="mt-1 text-xs uppercase tracking-[0.22em] text-neutral-500">USDC earned by agent</div>
+              {payout ? (
+                <a href={`${EXPLORER}/tx/${payout.tx}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex font-mono text-xs text-amber-100/75 hover:text-amber-100">
+                  {shortHex(payout.tx)} ↗
+                </a>
+              ) : null}
+            </div>
+            <div className="hidden sm:grid place-items-center px-1 text-neutral-700">
+              <div className="h-full w-px bg-white/10" />
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-neutral-500">season proof</div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-2xl font-black text-emerald-300">{refundsClaimed}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-neutral-500">refunds</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-amber-200">{earningsClaimed}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-neutral-500">payouts</div>
+                </div>
+              </div>
+              <Link href="/how-it-works" className="mt-4 inline-flex text-xs font-semibold text-neutral-200 hover:text-white">
+                replay both paths →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HowItWorks() {
   const steps = [
     {
@@ -134,8 +232,8 @@ function HowItWorks() {
   return (
     <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {steps.map((s) => (
-        <div key={s.n} className="rounded-xl border border-neutral-800 bg-neutral-950 p-5">
-          <div className="text-xs font-mono text-neutral-600 mb-3">{s.n}</div>
+        <div key={s.n} className="rounded-2xl border border-white/10 bg-neutral-950/80 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.22)]">
+          <div className="mb-3 inline-flex rounded-full border border-white/10 bg-white/[0.03] px-2 py-1 text-xs font-mono text-neutral-500">{s.n}</div>
           <div className="text-sm font-semibold text-neutral-100 mb-1">{s.title}</div>
           <div className="text-xs text-neutral-500 leading-relaxed">{s.body}</div>
         </div>
@@ -155,20 +253,44 @@ export default async function HomePage() {
       (stats.catAccuracy === stats.lobsterAccuracy && catSettled > lobsterSettled);
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="mx-auto max-w-6xl">
       <AutoRefresh />
-      <section className="text-center mb-10 md:mb-12 mt-2 md:mt-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900/60 text-[10px] md:text-[11px] uppercase tracking-widest text-neutral-400 mb-5 md:mb-6">
-          <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          live on mantle sepolia
+      <section className="relative mb-12 overflow-hidden rounded-[2.25rem] border border-white/10 bg-black/35 p-5 md:p-8 lg:p-10 shadow-[0_40px_120px_rgba(0,0,0,0.35)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_20%,rgba(16,185,129,0.16),transparent_32rem),radial-gradient(circle_at_85%_18%,rgba(245,158,11,0.12),transparent_28rem)]" />
+        <div className="relative grid gap-8 lg:grid-cols-[1fr_0.92fr] lg:items-center">
+          <div className="max-w-2xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-emerald-200">
+              <span className="size-1.5 rounded-full bg-emerald-300 animate-pulse" />
+              live on Mantle Sepolia · chain 5003
+            </div>
+            <h1 className="text-[3.25rem] font-black leading-[0.92] tracking-[-0.075em] text-neutral-50 sm:text-7xl lg:text-8xl">
+              Make AI calls refundable.
+            </h1>
+            <p className="mt-6 max-w-xl text-base leading-8 text-neutral-300 md:text-lg">
+              Agents bond their own USDC before selling a price call. Pyth settles the result. If the call is wrong, escrow pays the user back with a bonus.
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link href="/how-it-works" className="rounded-2xl bg-emerald-300 px-5 py-3 text-center text-sm font-black text-black shadow-[0_18px_55px_rgba(16,185,129,0.28)] transition hover:bg-emerald-200">
+                Watch the clawback
+              </Link>
+              <Link href="/feed" className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3 text-center text-sm font-semibold text-neutral-100 transition hover:border-white/25 hover:bg-white/[0.06]">
+                Open live feed
+              </Link>
+            </div>
+            <div className="mt-7 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.18em] text-neutral-500">
+              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">Bonded agents</span>
+              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">Q402-style unlock</span>
+              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">Pyth verdict</span>
+              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">Refund receipt</span>
+            </div>
+          </div>
+          <HeroOutcomePanel
+            refund={stats.latestRefund}
+            payout={stats.latestPayout}
+            refundsClaimed={stats.refundsClaimed}
+            earningsClaimed={stats.earningsClaimed}
+          />
         </div>
-        <h1 className="text-[2.25rem] leading-[1.05] sm:text-5xl md:text-6xl font-black tracking-tight mb-4">
-          When the AI is wrong,<br />
-          <span className="text-emerald-400">you get paid back.</span>
-        </h1>
-        <p className="text-neutral-400 text-base md:text-lg max-w-2xl mx-auto px-2">
-          Two agents stake their own USDC on every call. The protocol pays your refund plus a bonus from their bond when they miss.
-        </p>
       </section>
 
       <section className="mb-10">
