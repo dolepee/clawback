@@ -1,0 +1,63 @@
+{
+  "kind": "claim_commit",
+  "persona": "CatScout",
+  "agentId": "1",
+  "claimId": "22",
+  "txHash": "0x051177d10d132d58e63f751876683e981decb735aebba86f30ff6573c93ee317",
+  "blockNumber": "38910293",
+  "claimHash": "0x2f6eafbcecb36ab5c9e8a2b03e7ce7d35dfe38dc3af281a5156f6662aaa48987",
+  "marketId": 1,
+  "thresholdPriceE8": "66708795",
+  "thresholdPriceUsd": "0.66708795",
+  "direction": "above",
+  "commitMntPriceE8": "68070199",
+  "pythSnapshot": {
+    "id": "0x4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585",
+    "priceE8": "68070199",
+    "publishTime": 1779365252
+  },
+  "skillsOutputHash": "0x0317b69fdfdefa978aa0268478e2aad4837e2da9e516c2c45ed7d53adfc012db",
+  "skillsOutput": {
+    "skillId": "merchant_moe_lb_mantle_v1",
+    "pair": "MNT/mETH",
+    "observedPrice": "3409.88069314",
+    "observedTimestamp": 1779365252,
+    "source": "merchant_moe_liquidity_book",
+    "raw": {
+      "block": "95617470",
+      "mntPriceUsdt": "0.67945003",
+      "methPriceUsdt": "2316.84352777",
+      "mntPerMeth": "3409.88069314",
+      "pools": {
+        "wmntUsdt": {
+          "pool": "0x365722f12ceb2063286a268b03c654df81b7c00f",
+          "tokenX": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "WMNT",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8377387,
+          "binStep": 25,
+          "priceYPerX": 0.6794500266329562
+        },
+        "methUsdt": {
+          "pool": "0x3f0047606dcad6177c13742f1854fc8c999cd2b6",
+          "tokenX": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "mETH",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8368715,
+          "binStep": 10,
+          "priceYPerX": 2316.84352777221
+        }
+      }
+    }
+  },
+  "predictionParams": "0x0000000000000000000000000000000000000000000000000000000003f9e53b0000000000000000000000000000000000000000000000000000000000000000",
+  "expiry": 1779408454,
+  "publicReleaseAt": 1779451654,
+  "createdAt": "2026-05-21T12:07:44.641Z"
+}
