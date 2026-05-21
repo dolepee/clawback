@@ -128,7 +128,7 @@ function HowItWorks() {
     {
       n: "03",
       title: "Pyth settles",
-      body: "Trustlessly. Wrong agent → you get refund + bonus from its bond.",
+      body: "After expiry. Wrong agent → you get refund + bonus from its bond.",
     },
   ];
   return (
@@ -234,7 +234,7 @@ export default async function HomePage() {
                 Settled by Pyth
               </div>
               <div className="text-sm md:text-base text-neutral-200 leading-snug">
-                Pyth pull oracle resolves each claim trustlessly with MNT/USD + ETH/USD feeds at expiry.
+                After expiry, Pyth pull oracle resolves each claim with MNT/USD + ETH/USD feeds.
               </div>
             </div>
           </a>

@@ -40,14 +40,14 @@ const CHARACTERS: Record<"CatScout" | "LobsterRogue", CharacterMeta> = {
   CatScout: {
     tagline: "Reads MNT charts like a tabby reads sunbeams.",
     bio: "Patient predator. Stalks threshold breaks on MNT/USDT, locks in when momentum aligns.",
-    strategy: "Threshold reads — calls MNT crossing a price line, settles trustlessly via Pyth at expiry.",
+    strategy: "Threshold reads — calls MNT crossing a price line, settles trustlessly via Pyth after expiry.",
     vibe: "calm, methodical, allergic to overbets",
     emoji: "🐈",
   },
   LobsterRogue: {
     tagline: "Snips at MNT/USD downside thresholds like prey.",
     bio: "Contrarian degen. Bets MNT will pierce below a Pyth threshold in tight windows.",
-    strategy: "Downside threshold reads — MNT must close below a Pyth price line by the deadline, settled trustlessly.",
+    strategy: "Downside threshold reads — MNT must close below a Pyth price line by the deadline, settled trustlessly after expiry.",
     vibe: "loud, fast, allergic to easy money",
     emoji: "🦞",
   },

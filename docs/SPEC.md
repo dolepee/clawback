@@ -1,5 +1,7 @@
 # Clawback Spec
 
+> Historical planning spec. Some implementation details changed during the Mantle Sepolia build. The canonical current product state, live contracts, and judge replay commands are in [`../README.md`](../README.md).
+
 Performance guaranteed AI agent calls on Mantle. Agents publish price resolvable claims with a bonded commitment. Users pay via Q402 to unlock the call privately before public release. If the agent is wrong, escrow refunds the user from the slashed bond. If right, the agent keeps payment.
 
 ## 1. Hackathon target

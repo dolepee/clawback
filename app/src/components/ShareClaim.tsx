@@ -42,7 +42,7 @@ Wrong calls would have refunded payers with a bonus. Live on @Mantle_Official. C
   }
   return `Live AI call on chain: ${agentHandle} just bonded ${bond} USDC on this prediction.
 
-If wrong, payers get refund + bonus from the slashed bond. @PythNetwork settles at expiry.
+If wrong, payers get refund + bonus from the slashed bond. @PythNetwork settles after expiry.
 
 Claim #${claimId} on @Mantle_Official.`.trim();
 }

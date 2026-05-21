@@ -151,10 +151,17 @@ These are the trust roots the system inherits. If any one is broken, the corresp
 The four verifier scripts in `agent/` are the judge replay path. Each one prints a structured proof and exits non zero on validation failure.
 
 ```bash
-pnpm verify:claim 14
-pnpm verify:settlement 14
-pnpm verify:q402 14
-pnpm verify:reveal 14
+# RIGHT cycle with public reveal artifact
+corepack pnpm@9.15.0 verify:claim 4
+corepack pnpm@9.15.0 verify:settlement 4
+corepack pnpm@9.15.0 verify:q402 4
+corepack pnpm@9.15.0 verify:reveal 4
+
+# WRONG cycle with public reveal artifact
+corepack pnpm@9.15.0 verify:claim 5
+corepack pnpm@9.15.0 verify:settlement 5
+corepack pnpm@9.15.0 verify:q402 5
+corepack pnpm@9.15.0 verify:reveal 5
 ```
 
-The judge runs them against any claim id and grades the output. The expected `verdict:` line for a well-formed settled claim is `CLAWBACK_*_VALID`.
+The judge can run them against any compatible claim id and grade the output. The expected `verdict:` line for a well-formed proof is `CLAWBACK_*_VALID`. Newer settled claims may not have a `publicReveal` artifact yet; use claims 4 and 5 for the full four-script replay.

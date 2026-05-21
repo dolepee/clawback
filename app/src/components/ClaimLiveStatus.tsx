@@ -76,7 +76,7 @@ export default function ClaimLiveStatus({ settled, expirySec }: Props) {
       </div>
       <div className="text-right text-[10px] md:text-xs text-neutral-500 leading-relaxed max-w-[40%]">
         Page auto-refreshes.<br />
-        Pyth resolves at expiry.
+        Pyth can resolve after expiry.
       </div>
     </div>
   );

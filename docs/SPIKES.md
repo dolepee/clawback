@@ -1,5 +1,7 @@
 # Feasibility Spikes
 
+> Historical spike log. Some adapter details changed after the spikes. The canonical current product state, live contracts, and judge replay commands are in [`../README.md`](../README.md).
+
 Five spikes must pass before full build proceeds. Each spike is a small, time boxed test of a load bearing assumption in the spec.
 
 ## S1: Q402 hello world

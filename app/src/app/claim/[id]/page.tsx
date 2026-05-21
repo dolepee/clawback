@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
           ? "Settled RIGHT, agent kept the bond plus earned unlock revenue."
           : outcome === "WRONG"
             ? "Settled WRONG, slashed bond refunds payers with a bonus."
-            : "Live on Mantle Sepolia. Pyth settles at expiry."
+            : "Live on Mantle Sepolia. Pyth settles after expiry."
       }`,
     };
   } catch {
@@ -138,12 +138,12 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
         <div className="text-neutral-100 leading-snug">{question}</div>
         {prediction.kind === "outperform" && (
           <div className="mt-3 text-xs text-neutral-500">
-            Settled trustlessly by Pyth at expiry. Adapter compares Pyth MNT/USD and ETH/USD returns since commit.
+            Settled trustlessly by Pyth after expiry. Adapter compares Pyth MNT/USD and ETH/USD returns since commit.
           </div>
         )}
         {prediction.kind === "threshold" && (
           <div className="mt-3 text-xs text-neutral-500">
-            Settled trustlessly by Pyth at expiry. Adapter reads Pyth MNT/USD and checks the {prediction.direction} bound.
+            Settled trustlessly by Pyth after expiry. Adapter reads Pyth MNT/USD and checks the {prediction.direction} bound.
           </div>
         )}
       </section>

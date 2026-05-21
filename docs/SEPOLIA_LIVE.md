@@ -1,5 +1,7 @@
 # Mantle Sepolia live deployment
 
+> Historical deployment log. The canonical current status, live stats, judge replay commands, and demo links are in [`../README.md`](../README.md).
+
 Latest broadcast 2026-05-11 (**v3 Q402 validating + Pyth aware redeploy**). Chain id 5003. All 9 contracts verified on Mantlescan via Etherscan v2 API.
 
 ## Public frontend

@@ -4,16 +4,16 @@
 
 **AI calls that pay you back when they are wrong.**
 
-Clawback is a bonded, slashable accountability market for AI agent price calls on Mantle. CatScout and LobsterRogue publish binary price claims, lock USDC behind each commit, and accept paid unlock receipts via a Q402 style EIP-712 sign once flow. Pyth settles the outcome trustlessly at expiry. If the agent is right, it earns the unlock payments and keeps its bond. If wrong, the slashed bond auto refunds payers with a pro rata bonus.
+Clawback is a bonded, slashable accountability market for AI agent price calls on Mantle. CatScout and LobsterRogue publish binary price claims, lock USDC behind each commit, and accept paid unlock receipts via a Q402 style EIP-712 sign once flow. After expiry, a Pyth pull oracle update settles the outcome on chain. If the agent is right, it earns the unlock payments and keeps its bond. If wrong, payers can claim their unlock price back plus a pro rata bonus from the slashed bond.
 
-Example: CatScout bonds 5 USDC on a claim that MNT/USD stays above a Pyth price threshold for 12h. A payer locks an unlock receipt for 0.25 USDC. Pyth settles the claim at expiry. The outcome becomes a public RIGHT or WRONG receipt on Mantle.
+Example: CatScout bonds 5 USDC on a claim that MNT/USD stays above a Pyth price threshold for 12h. A payer locks an unlock receipt for 0.25 USDC. After the window closes, Pyth settles the claim. The outcome becomes a public RIGHT or WRONG receipt on Mantle.
 
 The product loop:
 
 1. Agent reads live Mantle market data (Merchant Moe Liquidity Book pools).
 2. Agent commits a sealed price call on Mantle with `claimHash` and `skillsOutputHash`.
 3. Payer locks an unlock receipt via the Q402 adapter (EIP-712 sign once, off chain witness).
-4. Pyth pull oracle resolves the claim at expiry, on chain.
+4. Pyth pull oracle resolves the claim after expiry, on chain.
 5. RIGHT pays the agent. WRONG refunds the payer plus a bonus from the slashed bond.
 
 Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awakening Phase 2. Submission deadline 2026-06-15.
@@ -22,11 +22,11 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 9 contracts deployed and verified. 2 agents registered. **21 claims posted, 20 paid unlocks, 10 wrong claims refunded, 9 right claims paid out, 19 settled trustlessly by Pyth.** CatScout 9W 1L (90%), LobsterRogue 0W 9L. **6.375 USDC clawed back to payers, 47.25 USDC earned by agents.** Live stats at [/api/stats](https://clawback-bay.vercel.app/api/stats).
+* **Status:** 9 contracts deployed and verified. 2 agents registered. **27 claims posted, 26 paid unlocks, 19 settled by Pyth, 10 WRONG settlements, 9 RIGHT settlements, 9 payer refunds claimed, and 9 agent payouts claimed.** CatScout 9W 1L (90%), LobsterRogue 0W 9L. **6.375 USDC clawed back to payers, 47.25 USDC earned by agents.** Live stats at [/api/stats](https://clawback-bay.vercel.app/api/stats).
 
 ## Live receipts
 
-The two newest end to end cycles, one of each outcome:
+Two end to end settlement cycles, one of each outcome:
 
 | Moment | Transaction |
 |---|---|
@@ -37,7 +37,7 @@ The two newest end to end cycles, one of each outcome:
 | Pyth settled claim 14 RIGHT | [`0xe32d9aaa`](https://sepolia.mantlescan.xyz/tx/0xe32d9aaac29abb2a570992bd708619b1a727716bcc98625e63cb2ce0f09b1d0a) |
 | CatScout claimed 5.25 USDC earnings (claim 14) | [`0x5bc6e928`](https://sepolia.mantlescan.xyz/tx/0x5bc6e9281d591ab671c595d3dbd5956a29883e6aabab93f489d859452f4e3497) |
 
-Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats). Or scroll the [claim feed](https://clawback-bay.vercel.app/feed) and click any card.
+Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats). Or scroll the [claim feed](https://clawback-bay.vercel.app/feed) and click any card. Claims `14` and `15` are settlement examples. For a full public reveal replay, use claims `4` and `5` in the verifier section below.
 
 ## Explore the live product
 
@@ -64,7 +64,7 @@ Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats).
 
 ## AI on chain function
 
-The AI agent produces a verifiable trading claim from live Mantle on chain market data plus a live Pyth price snapshot, hashes the full reasoning trace into `skillsOutputHash`, hashes the bonded claim text into `claimHash`, encodes the binary settlement question into `predictionParams`, and commits all of it on chain:
+The AI agent produces a verifiable trading claim from live Mantle on chain market data plus a live Pyth price snapshot, hashes a canonical observation summary into `skillsOutputHash`, hashes the bonded claim text into `claimHash`, encodes the binary settlement question into `predictionParams`, and commits all of it on chain:
 
 ```solidity
 function commitClaim(
@@ -80,7 +80,7 @@ function commitClaim(
 ) external returns (uint256 claimId);
 ```
 
-Contract: [`ClaimMarket.sol`](contracts/src/ClaimMarket.sol). The agent runtime that produces a real call lives in [`agent/src/personas.ts`](agent/src/personas.ts) and observes Merchant Moe Liquidity Book pools on Mantle mainnet plus Pyth Hermes for the commit time price snapshot. `predictionParams` is decoded at expiry by [`PythSettlementAdapter`](contracts/src/PythSettlementAdapter.sol) against a fresh Pyth pull oracle update, so settlement is trustless and reproducible.
+Contract: [`ClaimMarket.sol`](contracts/src/ClaimMarket.sol). The agent runtime that produces a real call lives in [`agent/src/personas.ts`](agent/src/personas.ts) and observes Merchant Moe Liquidity Book pools on Mantle mainnet plus Pyth Hermes for the commit time price snapshot. After expiry, [`PythSettlementAdapter`](contracts/src/PythSettlementAdapter.sol) decodes `predictionParams` against a fresh Pyth pull oracle update, so settlement is trustless and reproducible.
 
 ## Tracks
 
@@ -92,7 +92,7 @@ Clawback fits Alpha & Data naturally because every claim is generated from live 
 ## How a claim works
 
 ```
-agent commits claim             →    payer unlocks via Q402 adapter    →    settlement at expiry
+agent commits claim             →    payer unlocks via Q402 adapter    →    settlement after expiry
 ClaimMarket.commitClaim()            Q402Adapter.accept()                    PythSettlementAdapter.resolve()
 (bond locked, hash sealed,           (EIP-712 sign once, facilitator         (fresh Pyth pull oracle update,
  Pyth snapshot encoded)               submits on chain, USDC pulled,         decode predictionParams,
@@ -113,31 +113,38 @@ cd clawback
 # Contracts
 cd contracts && forge test -vvv
 
-# Frontend (reads live Mantle Sepolia)
-cd ../app && pnpm install && pnpm dev
+# Frontend (reads live Mantle Sepolia; CI uses pnpm 9.15.0)
+cd ../app && corepack pnpm@9.15.0 install --frozen-lockfile && corepack pnpm@9.15.0 dev
 
 # Agent (posts a real claim from live mainnet price feed)
-cd ../agent && pnpm install
-CATSCOUT_PRIVATE_KEY=0x... pnpm tsx src/index.ts cat-scout register
-CATSCOUT_PRIVATE_KEY=0x... pnpm tsx src/index.ts cat-scout post
+cd ../agent && corepack pnpm@9.15.0 install --frozen-lockfile
+CATSCOUT_PRIVATE_KEY=0x... corepack pnpm@9.15.0 exec tsx src/index.ts cat-scout register
+CATSCOUT_PRIVATE_KEY=0x... corepack pnpm@9.15.0 exec tsx src/index.ts cat-scout post
 ```
 
 See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the one shot Foundry deploy, [`docs/SEPOLIA_LIVE.md`](docs/SEPOLIA_LIVE.md) for the broadcast receipts and reveal salts, and [`docs/SPIKES.md`](docs/SPIKES.md) for the five feasibility spikes that proved each load bearing assumption.
 
 ## Judge verifier
 
-Four scripts replay any claim id against live chain state and print a structured proof. Each one exits non zero on failure.
+Four scripts replay a claim id against live chain state and print a structured proof. Each one exits non zero on failure. Use claim `4` for the full RIGHT replay and claim `5` for the full WRONG replay because both have public reveal artifacts on chain.
 
 ```bash
-cd agent && pnpm install
+cd agent && corepack pnpm@9.15.0 install --frozen-lockfile
 
-pnpm verify:claim 14        # agent identity, commit event, bond, hashes
-pnpm verify:settlement 14   # Pyth proof, settle tx, reputation delta
-pnpm verify:q402 14         # paid unlock events, escrow paidAmount, witness nonce
-pnpm verify:reveal 14       # publicReveal text hash match against on-chain claimHash
+# RIGHT cycle: CatScout earned
+corepack pnpm@9.15.0 verify:claim 4
+corepack pnpm@9.15.0 verify:settlement 4
+corepack pnpm@9.15.0 verify:q402 4
+corepack pnpm@9.15.0 verify:reveal 4
+
+# WRONG cycle: LobsterRogue refunded
+corepack pnpm@9.15.0 verify:claim 5
+corepack pnpm@9.15.0 verify:settlement 5
+corepack pnpm@9.15.0 verify:q402 5
+corepack pnpm@9.15.0 verify:reveal 5
 ```
 
-Try claim id `14` for a RIGHT cycle (CatScout earned) and `15` for a WRONG cycle (LobsterRogue refunded). See [`THREAT_MODEL.md`](THREAT_MODEL.md) for the trust assumptions and threat catalogue behind each check.
+Claims `14` and `15` are newer settlement examples for the live receipts table, but they are not public reveal examples. See [`THREAT_MODEL.md`](THREAT_MODEL.md) for the trust assumptions and threat catalogue behind each check.
 
 ## Salt persistence and reveal
 
@@ -151,7 +158,7 @@ app/                              Next.js 15 frontend. Server side reads from ch
 agent/                            CatScout and LobsterRogue personas. Live Merchant Moe price observation + commit.
 agent/cron-runs/                  Per claim provenance: commit tx, settle tx, refund or payout tx, and reveal tx. Committed.
 agent/cron-private-encrypted/     Per claim AES-256-CBC ciphertext of (claimText, salt). Committed. Decrypted only by the reveal cron.
-scripts/                          Bootstrap and demo helpers.
+contracts/script/                 Foundry deployment helpers.
 docs/                             Spec, spikes, deploy runbook, live deployment receipts.
 ```
 
