@@ -67,6 +67,22 @@ function makeClient(): PublicClient {
   }) as PublicClient;
 }
 
+// Mantle Sepolia caps eth_getLogs at 10000 blocks per call.
+async function chunkedLogs<T>(
+  client: PublicClient,
+  fetch: (fromBlock: bigint, toBlock: bigint) => Promise<T[]>,
+): Promise<T[]> {
+  const latest = await client.getBlockNumber();
+  const chunkSize = 9999n;
+  const ranges: Array<[bigint, bigint]> = [];
+  for (let from = DEPLOY_BLOCK; from <= latest; from = from + chunkSize + 1n) {
+    const to = from + chunkSize > latest ? latest : from + chunkSize;
+    ranges.push([from, to]);
+  }
+  const chunks = await Promise.all(ranges.map(([f, t]) => fetch(f, t)));
+  return chunks.flat();
+}
+
 export async function buildStats(client: PublicClient = makeClient()): Promise<LiveStats> {
   const [
     nextClaimId,
@@ -79,11 +95,11 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
   ] = await Promise.all([
     client.readContract({ address: ADDRESSES.claimMarket, abi: claimMarketAbi, functionName: "nextClaimId" }),
     client.readContract({ address: ADDRESSES.agentRegistry, abi: agentRegistryAbi, functionName: "nextAgentId" }),
-    client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[0], fromBlock: DEPLOY_BLOCK, toBlock: "latest" }),
-    client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[1], fromBlock: DEPLOY_BLOCK, toBlock: "latest" }),
-    client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[2], fromBlock: DEPLOY_BLOCK, toBlock: "latest" }),
-    client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[0], fromBlock: DEPLOY_BLOCK, toBlock: "latest" }),
-    client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[1], fromBlock: DEPLOY_BLOCK, toBlock: "latest" }),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[0], fromBlock, toBlock })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[1], fromBlock, toBlock })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[2], fromBlock, toBlock })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[0], fromBlock, toBlock })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[1], fromBlock, toBlock })),
   ]);
 
   const agents = new Map<string, "CatScout" | "LobsterRogue">();
@@ -263,10 +279,10 @@ export async function loadReplayClaims(
   client: PublicClient = makeClient(),
 ): Promise<{ wrong?: ReplayClaim; right?: ReplayClaim }> {
   const [commitLogs, settleLogs, refundLogs, earningLogs, nextAgentId] = await Promise.all([
-    client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[0], fromBlock: DEPLOY_BLOCK, toBlock: "latest" }),
-    client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[1], fromBlock: DEPLOY_BLOCK, toBlock: "latest" }),
-    client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[0], fromBlock: DEPLOY_BLOCK, toBlock: "latest" }),
-    client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[1], fromBlock: DEPLOY_BLOCK, toBlock: "latest" }),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[0], fromBlock, toBlock })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.claimMarket, event: claimEventsAbi[1], fromBlock, toBlock })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[0], fromBlock, toBlock })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[1], fromBlock, toBlock })),
     client.readContract({ address: ADDRESSES.agentRegistry, abi: agentRegistryAbi, functionName: "nextAgentId" }),
   ]);
 
@@ -425,32 +441,32 @@ export async function loadAgentReceipts(
   client: PublicClient = makeClient(),
 ): Promise<AgentCharacter> {
   const [commitLogs, settleLogs, refundLogs, earningLogs] = await Promise.all([
-    client.getLogs({
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({
       address: ADDRESSES.claimMarket,
       event: claimEventsAbi[0],
       args: { agentId },
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
-    client.getLogs({
+      fromBlock,
+      toBlock,
+    })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({
       address: ADDRESSES.claimMarket,
       event: claimEventsAbi[1],
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
-    client.getLogs({
+      fromBlock,
+      toBlock,
+    })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({
       address: ADDRESSES.clawbackEscrow,
       event: escrowEventsAbi[0],
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
-    client.getLogs({
+      fromBlock,
+      toBlock,
+    })),
+    chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({
       address: ADDRESSES.clawbackEscrow,
       event: escrowEventsAbi[1],
       args: { agentId },
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
+      fromBlock,
+      toBlock,
+    })),
   ]);
 
   const claimIds = new Set<string>();

@@ -4,6 +4,7 @@ import { loadFeed, loadFeedStats, type Agent, type Claim } from "@/lib/data";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { decodePredictionParams, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
 export const metadata: Metadata = {

@@ -4,6 +4,7 @@ import { EXPLORER } from "@/lib/addresses";
 import { formatUsdc, shortHex } from "@/lib/format";
 import AutoRefresh from "@/components/AutoRefresh";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
 function pct(v: number): string {

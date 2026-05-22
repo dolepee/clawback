@@ -3,6 +3,7 @@ import { loadClaimDetail } from "@/lib/data";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { decodePredictionParams, formatUsdc, predictionQuestion } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
 export const alt = "Clawback claim";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { buildStats } from "@/lib/live-stats";
 import { formatUsdc } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
 export const alt = "Clawback — AI calls that pay you back when they are wrong";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

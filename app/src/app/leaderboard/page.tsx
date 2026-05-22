@@ -3,6 +3,7 @@ import Link from "next/link";
 import { loadLeaderboard } from "@/lib/data";
 import { factionLabel, formatUsdc } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 export const metadata: Metadata = {

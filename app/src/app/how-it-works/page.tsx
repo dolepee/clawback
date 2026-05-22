@@ -5,6 +5,7 @@ import { EXPLORER } from "@/lib/addresses";
 import { MARKET_LABEL } from "@/lib/abi";
 import { decodePredictionParams, formatUsdc, predictionQuestion, shortHex } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 export const metadata: Metadata = {

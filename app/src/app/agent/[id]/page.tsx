@@ -7,6 +7,7 @@ import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { MARKET_LABEL } from "@/lib/abi";
 import { factionLabel, formatTimestamp, formatUsdc, shortHex } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {

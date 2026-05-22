@@ -11,6 +11,7 @@ import ClaimLiveStatus from "@/components/ClaimLiveStatus";
 import ClaimTimeline from "@/components/ClaimTimeline";
 import ShareClaim from "@/components/ShareClaim";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {

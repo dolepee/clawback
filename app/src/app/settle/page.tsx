@@ -5,6 +5,7 @@ import { ADDRESSES } from "@/lib/addresses";
 import { clawbackEscrowAbi } from "@/lib/abi";
 import SettleClaimList, { type SettleClaim } from "@/components/SettleClaimList";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
 export const metadata: Metadata = {

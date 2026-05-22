@@ -3,6 +3,7 @@ import { loadAgentDetail } from "@/lib/data";
 import { loadAgentReceipts } from "@/lib/live-stats";
 import { formatUsdc } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
 export const alt = "Clawback agent";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
