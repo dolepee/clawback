@@ -7,6 +7,7 @@ import {
   encodeFunctionData,
   http,
   keccak256,
+  nonceManager,
   parseAbi,
   toHex,
   type Address,
@@ -220,7 +221,7 @@ export function publicClient(): PublicClient {
 }
 
 export function accountFromPrivateKey(privateKey: string): PrivateKeyAccount {
-  return privateKeyToAccount(privateKey as Hex);
+  return privateKeyToAccount(privateKey as Hex, { nonceManager });
 }
 
 export function walletClient(account: PrivateKeyAccount): WalletClient {
