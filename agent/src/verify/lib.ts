@@ -137,7 +137,8 @@ export function decodePythProof(proof: Hex): { mntPrice: bigint; ethPrice: bigin
   }
 }
 
-const SCAN_CHUNK = BigInt(Number(process.env.VERIFY_LOG_CHUNK ?? 50_000));
+// Mantle Sepolia caps eth_getLogs ranges at 10_000 blocks. Default must stay under that.
+const SCAN_CHUNK = BigInt(Number(process.env.VERIFY_LOG_CHUNK ?? 9_999));
 const SCAN_LOOKBACK = BigInt(Number(process.env.VERIFY_LOG_LOOKBACK ?? 1_500_000));
 
 async function scanLogs<T>(

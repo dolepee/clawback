@@ -1,6 +1,7 @@
 import { parseAbi, type PublicClient } from "viem";
 import { publicClient } from "./chain";
-import { ADDRESSES, DEPLOY_BLOCK } from "./addresses";
+import { ADDRESSES } from "./addresses";
+import { chunkedLogs } from "./live-stats";
 
 const marketEventsAbi = parseAbi([
   "event ClaimCommitted(uint256 indexed claimId, uint256 indexed agentId, bytes32 claimHash, bytes32 skillsOutputHash, uint256 bondAmount, uint256 unlockPrice, uint64 expiry, uint64 publicReleaseAt, uint8 marketId, bytes predictionParams)",
@@ -27,48 +28,24 @@ export async function loadClaimTimeline(
   client: PublicClient = publicClient as unknown as PublicClient,
 ): Promise<TimelineEvent[]> {
   const [commitLogs, settleLogs, revealLogs, paymentLogs, refundLogs, earningLogs] = await Promise.all([
-    client.getLogs({
-      address: ADDRESSES.claimMarket,
-      event: marketEventsAbi[0],
-      args: { claimId },
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
-    client.getLogs({
-      address: ADDRESSES.claimMarket,
-      event: marketEventsAbi[1],
-      args: { claimId },
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
-    client.getLogs({
-      address: ADDRESSES.claimMarket,
-      event: marketEventsAbi[2],
-      args: { claimId },
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
-    client.getLogs({
-      address: ADDRESSES.clawbackEscrow,
-      event: escrowEventsAbi[0],
-      args: { claimId },
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
-    client.getLogs({
-      address: ADDRESSES.clawbackEscrow,
-      event: escrowEventsAbi[1],
-      args: { claimId },
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
-    client.getLogs({
-      address: ADDRESSES.clawbackEscrow,
-      event: escrowEventsAbi[2],
-      args: { claimId },
-      fromBlock: DEPLOY_BLOCK,
-      toBlock: "latest",
-    }),
+    chunkedLogs(client, (fromBlock, toBlock) =>
+      client.getLogs({ address: ADDRESSES.claimMarket, event: marketEventsAbi[0], args: { claimId }, fromBlock, toBlock }),
+    ),
+    chunkedLogs(client, (fromBlock, toBlock) =>
+      client.getLogs({ address: ADDRESSES.claimMarket, event: marketEventsAbi[1], args: { claimId }, fromBlock, toBlock }),
+    ),
+    chunkedLogs(client, (fromBlock, toBlock) =>
+      client.getLogs({ address: ADDRESSES.claimMarket, event: marketEventsAbi[2], args: { claimId }, fromBlock, toBlock }),
+    ),
+    chunkedLogs(client, (fromBlock, toBlock) =>
+      client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[0], args: { claimId }, fromBlock, toBlock }),
+    ),
+    chunkedLogs(client, (fromBlock, toBlock) =>
+      client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[1], args: { claimId }, fromBlock, toBlock }),
+    ),
+    chunkedLogs(client, (fromBlock, toBlock) =>
+      client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[2], args: { claimId }, fromBlock, toBlock }),
+    ),
   ]);
 
   const blockNumbers = new Set<bigint>();

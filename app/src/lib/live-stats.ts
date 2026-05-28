@@ -68,7 +68,7 @@ function makeClient(): PublicClient {
 }
 
 // Mantle Sepolia caps eth_getLogs at 10000 blocks per call.
-async function chunkedLogs<T>(
+export async function chunkedLogs<T>(
   client: PublicClient,
   fetch: (fromBlock: bigint, toBlock: bigint) => Promise<T[]>,
 ): Promise<T[]> {
