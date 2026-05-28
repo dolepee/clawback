@@ -59,5 +59,11 @@
   "predictionParams": "0x0000000000000000000000000000000000000000000000000000000003ba18600000000000000000000000000000000000000000000000000000000000000000",
   "expiry": 1779928300,
   "publicReleaseAt": 1779971500,
-  "createdAt": "2026-05-27T12:31:50.462Z"
+  "createdAt": "2026-05-27T12:31:50.462Z",
+  "reveal": {
+    "txHash": "0xd6e6b722ecc905735d9a89adb917935372cb6a4d8b9bfae1da9e68e696d6c302",
+    "blockNumber": "39220726",
+    "claimText": "[CatScout] MNT will be above $0.6253 by 2026-05-28T00:31:40.000Z. Commit price: $0.6380. Skill source: Merchant Moe Liquidity Book.",
+    "revealedAt": "2026-05-28T16:35:32.067Z"
+  }
 }
