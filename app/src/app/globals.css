@@ -37,3 +37,11 @@ body::before {
   background: rgba(16, 185, 129, 0.35);
   color: rgb(var(--fg));
 }
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

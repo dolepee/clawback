@@ -212,40 +212,77 @@ function HeroOutcomePanel({
   );
 }
 
-// Live pulse strip. The whole page revalidates every 20s via AutoRefresh,
-// so the numbers tick without explicit polling. The "updated Xs ago"
-// label gives judges a visible "this is alive, not a screenshot" signal.
-function LiveStatStrip({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> }) {
-  const settled = stats.settledRight + stats.settledWrong;
+// ClaimTape — horizontal scrolling timeline of the most recent on chain
+// events (commits, settlements, refunds, payouts). Specific to Clawback
+// because each pill shows the actual claim id + agent + outcome and links
+// to the on chain receipt. Movement on the page comes from the AutoRefresh
+// 20s tick plus the marquee CSS animation; the timeline is the page's
+// pulse, not a static stat row.
+function ClaimTape({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> }) {
   const ageS = Math.max(0, Math.floor(Date.now() / 1000) - stats.lastClaimAt);
-  const age = ageS < 60 ? `${ageS}s` : ageS < 3600 ? `${Math.floor(ageS / 60)}m` : `${Math.floor(ageS / 3600)}h`;
-  const cells: Array<{ k: string; v: string; sub?: string; tint: string }> = [
-    { k: "Claims", v: stats.totalClaims.toString(), tint: "text-neutral-100" },
-    { k: "Settled", v: settled.toString(), sub: `${stats.settledRight} right · ${stats.settledWrong} wrong`, tint: "text-neutral-100" },
-    { k: "Earned", v: formatUsdc(stats.totalEarningsUsdc), sub: "USDC to right agents", tint: "text-amber-300" },
-    { k: "Refunded", v: formatUsdc(stats.totalRefundUsdc), sub: "USDC clawed back", tint: "text-emerald-300" },
-    { k: "Agents live", v: "3", sub: "CatScout · LobsterRogue · LlmScout", tint: "text-neutral-100" },
-  ];
+  const age = ageS < 60 ? `${ageS}s ago` : ageS < 3600 ? `${Math.floor(ageS / 60)}m ago` : `${Math.floor(ageS / 3600)}h ago`;
+
+  type Pill = { claimId: number; agent: string; label: string; tint: string; tx: `0x${string}` };
+  const pills: Pill[] = stats.latestReceipts.map((r) => {
+    if (r.outcome === "right") {
+      return {
+        claimId: r.claimId,
+        agent: r.agent,
+        label: "RIGHT · agent kept bond + earnings",
+        tint: "border-amber-500/50 bg-amber-950/40 text-amber-200",
+        tx: r.payoutTx ?? r.settleTx ?? r.commitTx,
+      };
+    }
+    if (r.outcome === "wrong") {
+      return {
+        claimId: r.claimId,
+        agent: r.agent,
+        label: "WRONG · bond slashed → refund to payer",
+        tint: "border-emerald-500/50 bg-emerald-950/40 text-emerald-200",
+        tx: r.refundTx ?? r.settleTx ?? r.commitTx,
+      };
+    }
+    return {
+      claimId: r.claimId,
+      agent: r.agent,
+      label: "committed · awaiting Pyth verdict",
+      tint: "border-neutral-700 bg-neutral-900/60 text-neutral-300",
+      tx: r.commitTx,
+    };
+  });
+
   return (
-    <section className="mb-10">
-      <div className="rounded-2xl border border-white/10 bg-neutral-950/70 p-3 md:p-4 backdrop-blur">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] text-neutral-500">
+    <section className="mb-8 -mx-2 md:-mx-4">
+      <div className="px-2 md:px-4">
+        <div className="flex items-center justify-between mb-2 text-[10px] uppercase tracking-[0.28em] text-neutral-500">
+          <div className="flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-emerald-300 animate-pulse" />
-            live counters
+            claim tape · last {pills.length} on chain events
           </div>
-          <div className="text-[10px] uppercase tracking-widest text-neutral-600">
-            last commit {age} ago · refresh 20s
-          </div>
+          <div className="text-neutral-600">latest commit {age}</div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3">
-          {cells.map((c) => (
-            <div key={c.k} className="rounded-xl border border-white/5 bg-black/40 px-3 py-3">
-              <div className="text-[9px] uppercase tracking-[0.24em] text-neutral-500">{c.k}</div>
-              <div className={`mt-1 text-2xl md:text-3xl font-black tabular-nums ${c.tint}`}>{c.v}</div>
-              {c.sub ? <div className="mt-1 text-[10px] text-neutral-500 truncate">{c.sub}</div> : null}
-            </div>
-          ))}
+      </div>
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-12 z-10 bg-gradient-to-r from-black to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 z-10 bg-gradient-to-l from-black to-transparent" />
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide px-2 md:px-4 py-2">
+          {pills.length === 0 ? (
+            <div className="text-sm text-neutral-500 py-3">No on chain events yet.</div>
+          ) : (
+            pills.map((p, i) => (
+              <Link
+                key={`${p.claimId}-${i}`}
+                href={`/claim/${p.claimId}`}
+                className={`shrink-0 rounded-2xl border px-4 py-3 ${p.tint} hover:scale-[1.02] transition`}
+              >
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-[10px] uppercase tracking-[0.24em] opacity-75">#{p.claimId}</span>
+                  <span className="text-sm font-bold">{p.agent}</span>
+                </div>
+                <div className="text-[11px] uppercase tracking-wider">{p.label}</div>
+              </Link>
+            ))
+          )}
         </div>
       </div>
     </section>
@@ -387,11 +424,23 @@ export default async function HomePage() {
                 Open live feed
               </Link>
             </div>
-            <div className="mt-7 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.18em] text-neutral-500">
-              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">Bonded agents</span>
-              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">Q402-style unlock</span>
-              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">Pyth verdict</span>
-              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1">Refund receipt</span>
+            <div className="mt-7 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.18em]">
+              <span className="rounded-full border border-emerald-400/30 bg-emerald-400/[0.06] px-3 py-1 text-emerald-200/90">
+                <span className="font-black text-emerald-300 tabular-nums">{formatUsdc(stats.totalRefundUsdc)}</span>
+                <span className="ml-1.5 text-emerald-200/60">clawed back</span>
+              </span>
+              <span className="rounded-full border border-amber-400/30 bg-amber-400/[0.06] px-3 py-1 text-amber-200/90">
+                <span className="font-black text-amber-300 tabular-nums">{formatUsdc(stats.totalEarningsUsdc)}</span>
+                <span className="ml-1.5 text-amber-200/60">earned by agents</span>
+              </span>
+              <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-neutral-300">
+                <span className="font-black text-neutral-100 tabular-nums">{stats.totalClaims}</span>
+                <span className="ml-1.5 text-neutral-400">claims on chain</span>
+              </span>
+              <span className="rounded-full border border-violet-400/30 bg-violet-400/[0.06] px-3 py-1 text-violet-200/90">
+                <span className="font-black text-violet-300 tabular-nums">{stats.settledRight + stats.settledWrong}</span>
+                <span className="ml-1.5 text-violet-200/60">settled by Pyth</span>
+              </span>
             </div>
           </div>
           <HeroOutcomePanel
@@ -403,7 +452,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <LiveStatStrip stats={stats} />
+      <ClaimTape stats={stats} />
 
       <section className="mb-10">
         <div className="flex items-baseline justify-between mb-4">
