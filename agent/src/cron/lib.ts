@@ -401,9 +401,18 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
   let chosenDirection: Direction = persona.direction;
   let chosenMultiplierBps: bigint = persona.thresholdMultiplierBps;
   let llmDecisionRecord: Record<string, unknown> | undefined;
+  let elfaSnapshot: Awaited<ReturnType<typeof import("../elfa.js")["fetchElfaTriggers"]>> | null = null;
   if (persona.useLlm) {
     const { providersFromEnv, decideWithProviders } = await import("../llm.js");
+    const { fetchElfaTriggers } = await import("../elfa.js");
     const providers = providersFromEnv();
+    // Pull Elfa real-time triggers in parallel with the LLM request setup.
+    // When ELFA_API_KEY is unset (current state) this resolves to null and
+    // the prompt context falls back to Pyth + Merchant Moe alone.
+    elfaSnapshot = await fetchElfaTriggers();
+    if (elfaSnapshot) {
+      console.log(`[${persona.handle}] elfa: ${elfaSnapshot.signals.length} signals fetched at ${elfaSnapshot.fetchedAt}`);
+    }
     const currentUsdPreview = Number(pythSnapshot.priceE8) / 1e8;
     const decision = await decideWithProviders(
       {
@@ -413,6 +422,7 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
         methPriceUsdt: String((skillOutput.raw as { methPriceUsdt?: string }).methPriceUsdt ?? ""),
         pythMntE8: pythSnapshot.priceE8,
         blockNumber: String((skillOutput.raw as { block?: string }).block ?? ""),
+        elfaTriggers: elfaSnapshot,
       },
       providers,
       {

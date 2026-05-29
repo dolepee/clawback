@@ -10,6 +10,9 @@
 // response is persisted in the encrypted reveal vault, so judges can
 // audit the model's reasoning after publicReleaseAt.
 
+import type { ElfaSnapshot } from "./elfa.js";
+import { renderForPrompt as renderElfaForPrompt } from "./elfa.js";
+
 export interface MarketObservation {
   pair: string;
   observedPrice: string;
@@ -18,6 +21,10 @@ export interface MarketObservation {
   pythMntE8?: bigint;
   pythEthE8?: bigint;
   blockNumber: string;
+  // Optional Elfa AI signal snapshot. Present when ELFA_API_KEY is set;
+  // null otherwise. The prompt builder appends the rendered signals to
+  // the user message when this is non-null.
+  elfaTriggers?: ElfaSnapshot | null;
 }
 
 export interface LlmDecision {
@@ -128,6 +135,7 @@ export async function decideThresholdClaim(
   config: LlmConfig,
   fallback: { thresholdPriceUsd: number; direction: "above" | "below"; confidenceBps: number },
 ): Promise<LlmDecision> {
+  const elfaSection = renderElfaForPrompt(observation.elfaTriggers ?? null);
   const userPrompt = [
     `Live Mantle Sepolia observation at block ${observation.blockNumber}:`,
     `- ${observation.pair} = ${observation.observedPrice}`,
@@ -139,6 +147,8 @@ export async function decideThresholdClaim(
     observation.pythEthE8 != null
       ? `- Pyth ETH/USD = ${(Number(observation.pythEthE8) / 1e8).toFixed(2)}`
       : null,
+    elfaSection ? "" : null,
+    elfaSection || null,
     "",
     "Pick a 6h threshold claim. Be conservative; you forfeit your bond when wrong.",
   ]
