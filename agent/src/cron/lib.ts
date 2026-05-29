@@ -244,6 +244,25 @@ export function settlerAccount(): PrivateKeyAccount {
   return accountFromPrivateKey(firstEnv(["SETTLER_PRIVATE_KEY", "PAYER_PRIVATE_KEY"]));
 }
 
+// Minimum native MNT a cron actor must hold for the step to attempt any tx.
+// Below this, the step prints a clean skip marker and exits 0 so the
+// workflow stays green and no failure email is sent. Tune via env override.
+const MIN_GAS_MNT_WEI = BigInt(process.env.CLAWBACK_CRON_MIN_GAS_WEI ?? "50000000000000000"); // 0.05 MNT
+
+export async function requireGasOrSkip(
+  account: PrivateKeyAccount,
+  label: string,
+  client = publicClient(),
+): Promise<void> {
+  const balance = await client.getBalance({ address: account.address });
+  if (balance < MIN_GAS_MNT_WEI) {
+    console.log(
+      `CLAWBACK_CRON_SKIP_LOW_GAS step=${label} address=${account.address} balance=${balance} threshold=${MIN_GAS_MNT_WEI}`,
+    );
+    process.exit(0);
+  }
+}
+
 export async function ensureAgent(persona: PersonaConfig, client = publicClient()): Promise<bigint> {
   const addrs = addresses();
   const account = personaAccount(persona);

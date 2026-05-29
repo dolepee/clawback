@@ -1,3 +1,4 @@
-import { settleClaims } from "./lib.js";
+import { requireGasOrSkip, settleClaims, settlerAccount } from "./lib.js";
 
+await requireGasOrSkip(settlerAccount(), "settle");
 await settleClaims();
