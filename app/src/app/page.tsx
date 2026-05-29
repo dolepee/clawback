@@ -212,6 +212,161 @@ function HeroOutcomePanel({
   );
 }
 
+// MoneyFlow — Clawback's signature visual. Renders the bonded settlement
+// loop as a literal flowing diagram: agents stake bonds (left), escrow
+// holds them (center), payouts go up to right-correct agents and refunds
+// go down to wrong-call payers. Paths animate with traveling dashes so
+// the page feels like money is actually moving. All numbers come from
+// the same buildStats() data that powers the rest of the page.
+function MoneyFlow({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> }) {
+  const refunded = stats.totalRefundUsdc;
+  const earned = stats.totalEarningsUsdc;
+  const settled = stats.settledRight + stats.settledWrong;
+  // 10s per cycle feels slow enough to track an individual dot without
+  // making the animation look frantic.
+  const flowSec = 10;
+  return (
+    <section className="mb-8">
+      <div className="rounded-[1.75rem] border border-white/10 bg-gradient-to-b from-neutral-950 to-black overflow-hidden">
+        <div className="px-5 md:px-7 pt-4 pb-2 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] text-neutral-500">
+            <span className="size-1.5 rounded-full bg-emerald-300 animate-pulse" />
+            money in motion · live on Mantle Sepolia
+          </div>
+          <div className="text-[10px] uppercase tracking-widest text-neutral-600 hidden sm:block">
+            bonded settlement loop
+          </div>
+        </div>
+        <div className="px-3 md:px-6 pb-5">
+          <svg
+            viewBox="0 0 1000 240"
+            preserveAspectRatio="xMidYMid meet"
+            className="w-full h-[180px] md:h-[220px]"
+            aria-label="Money flow from agents to escrow to outcomes"
+          >
+            <defs>
+              <linearGradient id="path-payout" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stopColor="rgba(252,211,77,0.0)" />
+                <stop offset="40%" stopColor="rgba(252,211,77,0.9)" />
+                <stop offset="100%" stopColor="rgba(252,211,77,0.0)" />
+              </linearGradient>
+              <linearGradient id="path-refund" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stopColor="rgba(110,231,183,0.0)" />
+                <stop offset="40%" stopColor="rgba(110,231,183,0.9)" />
+                <stop offset="100%" stopColor="rgba(110,231,183,0.0)" />
+              </linearGradient>
+              <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.18)" />
+                <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+              </radialGradient>
+              <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3.5" />
+              </filter>
+            </defs>
+
+            {/* agents column halo */}
+            <ellipse cx="120" cy="120" rx="120" ry="120" fill="url(#halo)" />
+            {/* escrow halo */}
+            <ellipse cx="500" cy="120" rx="100" ry="100" fill="url(#halo)" />
+            {/* outcomes halo */}
+            <ellipse cx="880" cy="120" rx="120" ry="120" fill="url(#halo)" />
+
+            {/* AGENT TILES */}
+            <g>
+              <rect x="40" y="48" width="160" height="38" rx="10" fill="rgba(245,158,11,0.10)" stroke="rgba(245,158,11,0.35)" />
+              <text x="56" y="73" fill="#fbbf24" fontSize="14" fontWeight="800" fontFamily="ui-sans-serif">CatScout</text>
+              <text x="56" y="120" fill="#737373" fontSize="10" textAnchor="start" letterSpacing="2" fontFamily="ui-sans-serif">FACTION</text>
+              <text x="56" y="120" fill="#737373" fontSize="10" textAnchor="start" letterSpacing="2" fontFamily="ui-sans-serif"></text>
+            </g>
+            <g>
+              <rect x="40" y="100" width="160" height="38" rx="10" fill="rgba(220,38,38,0.10)" stroke="rgba(220,38,38,0.35)" />
+              <text x="56" y="125" fill="#f87171" fontSize="14" fontWeight="800" fontFamily="ui-sans-serif">LobsterRogue</text>
+            </g>
+            <g>
+              <rect x="40" y="152" width="160" height="38" rx="10" fill="rgba(167,139,250,0.10)" stroke="rgba(167,139,250,0.35)" />
+              <text x="56" y="177" fill="#c4b5fd" fontSize="14" fontWeight="800" fontFamily="ui-sans-serif">LlmScout</text>
+            </g>
+
+            {/* ESCROW HUB */}
+            <g>
+              <rect x="430" y="78" width="140" height="84" rx="14" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.25)" />
+              <text x="500" y="108" textAnchor="middle" fill="#e5e5e5" fontSize="11" fontWeight="700" letterSpacing="2" fontFamily="ui-sans-serif">ESCROW</text>
+              <text x="500" y="138" textAnchor="middle" fill="#fafafa" fontSize="22" fontWeight="900" fontFamily="ui-sans-serif">{settled}</text>
+              <text x="500" y="155" textAnchor="middle" fill="#737373" fontSize="9" letterSpacing="1.5" fontFamily="ui-sans-serif">SETTLED LOOPS</text>
+            </g>
+
+            {/* PAYOUT SINK (top right) — RIGHT calls */}
+            <g>
+              <rect x="780" y="44" width="180" height="60" rx="12" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.45)" />
+              <text x="800" y="66" fill="#fcd34d" fontSize="10" letterSpacing="2" fontWeight="700" fontFamily="ui-sans-serif">RIGHT → AGENT</text>
+              <text x="800" y="92" fill="#fde68a" fontSize="20" fontWeight="900" fontFamily="ui-sans-serif" className="tabular-nums">
+                +{formatUsdc(earned)}
+              </text>
+            </g>
+
+            {/* REFUND SINK (bottom right) — WRONG calls */}
+            <g>
+              <rect x="780" y="138" width="180" height="60" rx="12" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.45)" />
+              <text x="800" y="160" fill="#6ee7b7" fontSize="10" letterSpacing="2" fontWeight="700" fontFamily="ui-sans-serif">WRONG → PAYER</text>
+              <text x="800" y="186" fill="#a7f3d0" fontSize="20" fontWeight="900" fontFamily="ui-sans-serif" className="tabular-nums">
+                +{formatUsdc(refunded)}
+              </text>
+            </g>
+
+            {/* PATHS — agents → escrow */}
+            <path d="M 200 67 C 320 67, 360 100, 430 110" stroke="rgba(255,255,255,0.10)" strokeWidth="1.5" fill="none" />
+            <path d="M 200 119 C 320 119, 360 120, 430 120" stroke="rgba(255,255,255,0.10)" strokeWidth="1.5" fill="none" />
+            <path d="M 200 171 C 320 171, 360 140, 430 130" stroke="rgba(255,255,255,0.10)" strokeWidth="1.5" fill="none" />
+
+            {/* PATHS — escrow → sinks */}
+            <path d="M 570 105 C 660 90, 720 76, 780 74" stroke="rgba(252,211,77,0.18)" strokeWidth="1.5" fill="none" />
+            <path d="M 570 135 C 660 150, 720 164, 780 168" stroke="rgba(110,231,183,0.18)" strokeWidth="1.5" fill="none" />
+
+            {/* TRAVELING DASH ANIMATIONS — money in motion */}
+            <path d="M 200 67 C 320 67, 360 100, 430 110" stroke="rgba(245,158,11,0.85)" strokeWidth="2" fill="none" strokeDasharray="3 26">
+              <animate attributeName="stroke-dashoffset" from="0" to="-58" dur={`${flowSec}s`} repeatCount="indefinite" />
+            </path>
+            <path d="M 200 119 C 320 119, 360 120, 430 120" stroke="rgba(220,38,38,0.85)" strokeWidth="2" fill="none" strokeDasharray="3 26">
+              <animate attributeName="stroke-dashoffset" from="0" to="-58" dur={`${flowSec}s`} repeatCount="indefinite" />
+            </path>
+            <path d="M 200 171 C 320 171, 360 140, 430 130" stroke="rgba(167,139,250,0.85)" strokeWidth="2" fill="none" strokeDasharray="3 26">
+              <animate attributeName="stroke-dashoffset" from="0" to="-58" dur={`${flowSec}s`} repeatCount="indefinite" />
+            </path>
+            <path d="M 570 105 C 660 90, 720 76, 780 74" stroke="url(#path-payout)" strokeWidth="2.5" fill="none" strokeDasharray="4 24">
+              <animate attributeName="stroke-dashoffset" from="0" to="-56" dur={`${flowSec * 0.9}s`} repeatCount="indefinite" />
+            </path>
+            <path d="M 570 135 C 660 150, 720 164, 780 168" stroke="url(#path-refund)" strokeWidth="2.5" fill="none" strokeDasharray="4 24">
+              <animate attributeName="stroke-dashoffset" from="0" to="-56" dur={`${flowSec * 0.9}s`} repeatCount="indefinite" />
+            </path>
+
+            {/* Pulsing dots at escrow node */}
+            <circle cx="430" cy="110" r="3" fill="#fbbf24">
+              <animate attributeName="r" values="2;5;2" dur="2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="430" cy="130" r="3" fill="#34d399">
+              <animate attributeName="r" values="2;5;2" dur="2.4s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.4;1;0.4" dur="2.4s" repeatCount="indefinite" />
+            </circle>
+
+            {/* Pulsing sink halos when there's value */}
+            {earned > 0n ? (
+              <circle cx="780" cy="74" r="6" fill="rgba(252,211,77,0.6)" filter="url(#soft-glow)">
+                <animate attributeName="r" values="4;10;4" dur="2.4s" repeatCount="indefinite" />
+              </circle>
+            ) : null}
+            {refunded > 0n ? (
+              <circle cx="780" cy="168" r="6" fill="rgba(110,231,183,0.6)" filter="url(#soft-glow)">
+                <animate attributeName="r" values="4;10;4" dur="2.8s" repeatCount="indefinite" />
+              </circle>
+            ) : null}
+          </svg>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ClaimTape — horizontal scrolling timeline of the most recent on chain
 // events (commits, settlements, refunds, payouts). Specific to Clawback
 // because each pill shows the actual claim id + agent + outcome and links
@@ -451,6 +606,8 @@ export default async function HomePage() {
           />
         </div>
       </section>
+
+      <MoneyFlow stats={stats} />
 
       <ClaimTape stats={stats} />
 
