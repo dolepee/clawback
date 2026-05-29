@@ -707,9 +707,23 @@ export async function collectClaims(): Promise<void> {
     return { persona, account, agentId, wallet: walletClient(account) };
   }));
   let completed = 0;
+  let skipped = 0;
 
   for (const claimId of await claimIds(client)) {
-    const accounting = await readAccounting(claimId, client);
+    // Mantle Sepolia public RPC intermittently reverts on accounting reads
+    // for arbitrary claim IDs (root cause unclear, suspected upstream node
+    // staleness across geographies). Without this guard, a single flaky
+    // read aborts the whole collect loop and stalls every downstream
+    // refund / earnings claim. Retry briefly, then log and continue so
+    // other claims still get collected on this run.
+    let accounting: AccountingView;
+    try {
+      accounting = await withRetry(() => readAccounting(claimId, client), 3, 1000);
+    } catch (e) {
+      skipped++;
+      console.log(`CLAWBACK_COLLECT_SKIP claimId=${claimId} reason=accounting_read_failed err=${(e as Error).message.slice(0, 120)}`);
+      continue;
+    }
     if (!accounting.settled) continue;
     if (accounting.agentRight) {
       const already = await client.readContract({
@@ -761,7 +775,22 @@ export async function collectClaims(): Promise<void> {
       console.log(`block=${receipt.blockNumber}`);
     }
   }
-  if (completed === 0) console.log("CLAWBACK_COLLECTED none");
+  if (completed === 0 && skipped === 0) console.log("CLAWBACK_COLLECTED none");
+  if (skipped > 0) console.log(`CLAWBACK_COLLECT_SKIPPED count=${skipped}`);
+}
+
+async function withRetry<T>(fn: () => Promise<T>, attempts: number, baseMs: number): Promise<T> {
+  let last: Error | null = null;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      last = e as Error;
+      if (i === attempts - 1) throw last;
+      await new Promise((r) => setTimeout(r, baseMs * 2 ** i));
+    }
+  }
+  throw last ?? new Error("retry exhausted");
 }
 
 interface PrivateClaimRecord {
