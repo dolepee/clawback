@@ -69,6 +69,14 @@ const ERC20_ABI = parseAbi([
   "function balanceOf(address) view returns (uint256)",
 ]);
 
+// MockUSDC.mint is public — anyone can mint to any address. Preflight uses
+// this to keep persona bond balances topped up automatically so the cron
+// never fails on "bond balance 0 below required X" after a long run of
+// WRONG outcomes drains a persona's USDC.
+const MOCK_USDC_MINT_ABI = parseAbi([
+  "function mint(address to, uint256 amount)",
+]);
+
 const Q402_ABI = parseAbi([
   "struct Witness { address owner; uint256 claimId; uint256 amount; uint256 deadline; bytes32 paymentId; uint256 nonce; }",
   "function accept(Witness calldata w, bytes calldata sig)",
@@ -989,12 +997,33 @@ export async function preflight(): Promise<void> {
   const unique = new Map<string, { label: string; account: PrivateKeyAccount }>();
   for (const actor of actors) unique.set(actor.account.address.toLowerCase(), actor);
 
+  // Self-healing USDC top-up: when any persona / payer / settler falls
+  // below the threshold, the payer wallet mints fresh mUSDC straight to
+  // that address. MockUSDC.mint is permissionless on the deployed
+  // contract, so this works without any privileged role.
+  const MIN_USDC_BALANCE = 50_000_000n; // 50 mUSDC
+  const TOPUP_AMOUNT = 1_000_000_000n; // 1000 mUSDC
+  const minter = payerAccount();
+  const minterWallet = walletClient(minter);
   for (const actor of unique.values()) {
     const [mnt, usdc] = await Promise.all([
       client.getBalance({ address: actor.account.address }),
       client.readContract({ address: addrs.usdc, abi: ERC20_ABI, functionName: "balanceOf", args: [actor.account.address] }),
     ]);
     console.log(`${actor.label} ${actor.account.address} MNT=${mnt} USDC=${usdc}`);
+    if (usdc < MIN_USDC_BALANCE) {
+      console.log(`  → topping up ${actor.label} with ${TOPUP_AMOUNT} mUSDC (current ${usdc} < min ${MIN_USDC_BALANCE})`);
+      const txHash = await minterWallet.writeContract({
+        address: addrs.usdc,
+        abi: MOCK_USDC_MINT_ABI,
+        functionName: "mint",
+        args: [actor.account.address, TOPUP_AMOUNT],
+        account: minter,
+        chain: mantleSepolia,
+      });
+      await client.waitForTransactionReceipt({ hash: txHash });
+      console.log(`  ✓ minted ${TOPUP_AMOUNT} mUSDC to ${actor.label} tx=${txHash}`);
+    }
   }
   for (const key of personaKeys()) {
     const persona = getPersona(key);
