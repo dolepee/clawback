@@ -19,6 +19,13 @@ jobs:
       CAT_AGENT_PRIVATE_KEY: ${{ secrets.CAT_AGENT_PRIVATE_KEY }}
       LOBSTER_AGENT_PRIVATE_KEY: ${{ secrets.LOBSTER_AGENT_PRIVATE_KEY }}
       PAYER_PRIVATE_KEY: ${{ secrets.PAYER_PRIVATE_KEY }}
+      # V2 LLM persona. The cron skip-guard exits 0 cleanly when these are
+      # unset, so this is safe to leave wired even before the wallet or
+      # LLM provider key is configured.
+      LLM_AGENT_PRIVATE_KEY: ${{ secrets.LLM_AGENT_PRIVATE_KEY }}
+      BANKR_LLM_KEY: ${{ secrets.BANKR_LLM_KEY }}
+      BANKR_LLM_MODEL: ${{ secrets.BANKR_LLM_MODEL }}
+      ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -39,6 +46,10 @@ jobs:
 
       - name: commit lobster
         run: pnpm tsx src/cron/commit.ts lobster-rogue
+
+      - name: commit llm-scout
+        continue-on-error: true
+        run: pnpm tsx src/cron/commit.ts llm-scout
 
       - name: unlock new claims
         run: pnpm tsx src/cron/unlock.ts
