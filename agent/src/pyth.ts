@@ -13,10 +13,33 @@ interface HermesResponse {
   }[];
 }
 
+// Hermes occasionally returns 5xx for ~30-90s during edge node rotations.
+// Retry transients so cron-cycle doesn't abort cat-scout (and thus skip
+// the dependent llm-scout step) on a routine blip.
+async function fetchHermes(url: string): Promise<Response> {
+  const attempts = 4;
+  let lastErr: Error | null = null;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) return res;
+      if (res.status >= 500 && i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, 1000 * 2 ** i));
+        continue;
+      }
+      throw new Error(`Pyth Hermes ${res.status}: ${await res.text()}`);
+    } catch (e) {
+      lastErr = e as Error;
+      if (i === attempts - 1) throw lastErr;
+      await new Promise((r) => setTimeout(r, 1000 * 2 ** i));
+    }
+  }
+  throw lastErr ?? new Error("Pyth Hermes retry exhausted");
+}
+
 export async function fetchPythPriceE8(feedId: `0x${string}`): Promise<PythPriceSnapshot> {
   const url = `${HERMES_BASE}/v2/updates/price/latest?ids[]=${feedId.replace(/^0x/, "")}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Pyth Hermes ${res.status}: ${await res.text()}`);
+  const res = await fetchHermes(url);
   const data = (await res.json()) as HermesResponse;
   const parsed = data.parsed.find((p) => `0x${p.id.toLowerCase()}` === feedId.toLowerCase());
   if (!parsed) throw new Error(`feed ${feedId} not returned`);
@@ -35,8 +58,7 @@ export interface PythUpdateBundle {
 export async function fetchPythUpdateBundle(feedIds: `0x${string}`[]): Promise<PythUpdateBundle> {
   const params = feedIds.map((id) => `ids[]=${id.replace(/^0x/, "")}`).join("&");
   const url = `${HERMES_BASE}/v2/updates/price/latest?${params}&encoding=hex`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Pyth Hermes ${res.status}: ${await res.text()}`);
+  const res = await fetchHermes(url);
   const data = (await res.json()) as HermesResponse & { binary: { encoding: string; data: string[] } };
   const updateData = data.binary.data.map((h) => (h.startsWith("0x") ? h : `0x${h}`) as `0x${string}`);
   const snapshots: PythPriceSnapshot[] = feedIds.map((id) => {
