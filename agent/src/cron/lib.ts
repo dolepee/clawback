@@ -462,6 +462,7 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     llmDecisionRecord = {
       provider: decision.model,
       direction: decision.direction,
+      strategy: decision.strategy,
       thresholdPriceUsd: decision.thresholdPriceUsd,
       // On-chain confidence is mechanically calibrated from the chosen
       // threshold's safety margin. The model's own confidence call is
@@ -473,7 +474,7 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
       fellBack: decision.fellBack,
     };
     console.log(
-      `[${persona.handle}] llm: ${decision.model} → ${decision.direction} $${decision.thresholdPriceUsd.toFixed(4)} ` +
+      `[${persona.handle}] llm: ${decision.model} → ${decision.strategy} | ${decision.direction} $${decision.thresholdPriceUsd.toFixed(4)} ` +
       `(onChainConf=${decision.confidenceBps}bps modelConf=${decision.modelConfidenceBps}bps fellBack=${decision.fellBack})`,
     );
   }

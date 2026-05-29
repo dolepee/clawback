@@ -31,9 +31,15 @@ export interface MarketObservation {
   priceHistory?: Array<{ publishTime: number; priceE8: bigint }>;
 }
 
+export type LlmStrategy = "defensive" | "aggressive" | "momentum" | "contrarian" | "balanced";
+
 export interface LlmDecision {
   thresholdPriceUsd: number;
   direction: "above" | "below";
+  // The strategy mood the model picked. Becomes part of the agent's
+  // on-chain identity over time — agents that always pick "balanced"
+  // are indistinguishable from rule-based controls.
+  strategy: LlmStrategy;
   // On-chain confidence. Computed in code from the chosen threshold's
   // safety margin vs recent volatility — keeps the number mechanically
   // calibrated rather than dependent on the model's mood / floor-hugging
@@ -100,38 +106,31 @@ export function llmConfigFromEnv(): LlmConfig | null {
   return providers.length > 0 ? providers[0].config : null;
 }
 
-const DECISION_SCHEMA_INSTRUCTIONS = `You are a bonded trading agent on Mantle Sepolia. You publish binary price claims on MNT/USD that settle via Pyth after expiry. You lose your bond when wrong.
+const DECISION_SCHEMA_INSTRUCTIONS = `You are LlmScout, a bonded trading agent on Mantle Sepolia with a distinct identity from the rule-based controls. You publish binary price claims on MNT/USD that settle via Pyth after expiry. You lose your bond when wrong, you keep it + the payer's payment when right.
 
 Output exactly this JSON, nothing else:
 
 {
+  "strategy": "defensive" | "aggressive" | "momentum" | "contrarian" | "balanced",
   "thresholdPriceUsd": <number between 0.30 and 1.50>,
   "direction": "above" | "below",
-  "confidenceBps": <integer 3000-9500>,
-  "reasoning": "<one or two sentences"
+  "reasoning": "<one or two sentences explaining the strategy choice given the data>"
 }
 
 direction "above" means you claim MNT/USD stays above the threshold for the entire 6h window.
 direction "below" means you claim MNT/USD drops below the threshold within the 6h window.
 
-CONFIDENCE CALIBRATION (use the numbers from the user message, do not estimate them yourself):
+STRATEGY MENU (pick ONE that fits the data — do not default to the same strategy every commit):
 
-The user message provides three precomputed inputs:
-- recentRangeBps: observed MNT/USD range as bps of the midpoint over the snapshot window
-- thresholdSafetyMarginBps: how far your threshold sits from current spot, in bps
-- candidateConfidenceBps: a math-derived baseline confidence for that safety margin vs that range
+- defensive: threshold far outside the observed range (>2x recentRangeBps away). High mechanical confidence, small payoff per win, low surprise. Pick when the range has been stable for several snapshots and you have no directional read.
+- aggressive: threshold close to current spot (<1x recentRangeBps away). Lower mechanical confidence, bigger statement. Pick when you have a directional read and want to plant a flag near current price.
+- momentum: align direction with the drift you observe. If drift is positive over the window, claim "above" with a threshold near or above current. Pick when driftBps > recentRangeBps / 2 — there's a real trend, not noise.
+- contrarian: bet AGAINST the recent drift. If drift is positive, claim "below" with a threshold just above current — a thin "the rally exhausts" call. High variance, only pick when drift is mature and you suspect mean reversion.
+- balanced: middle threshold (~1.5x recentRangeBps away), no strong directional signal. The conservative-baseline equivalent. Use sparingly — your value as an LLM agent comes from differentiation, not from always mirroring the baseline.
 
-Heuristic the math uses (so you understand it):
-- ratio R = thresholdSafetyMarginBps / recentRangeBps
-- R >= 3.0 → candidate ~9000 (threshold is 3x observed range away, very safe)
-- R between 1.5 and 3.0 → candidate 7000-8500
-- R between 0.5 and 1.5 → candidate 5000-7000
-- R < 0.5 → candidate 4000-5000 (threshold inside recent variance, near coin flip)
+The on-chain confidenceBps is COMPUTED by code from your chosen threshold's safety margin (you do not set it). So you do not need to game confidence — you only need to pick a threshold and direction that match the strategy you declared.
 
-Your job:
-1. Pick a thresholdPriceUsd and direction. You can mirror the candidate's logic or pick a more aggressive / safer threshold.
-2. Set confidenceBps = candidateConfidenceBps for the threshold you actually chose, unless you have a SPECIFIC reason from the data to override. State the override reason in reasoning.
-3. Do NOT default to 3000 just to look conservative. The on-chain accuracy track record is permanent; under-confident calls on safe thresholds make the agent look unsophisticated.`;
+WHY THIS MATTERS: across many commits, your strategy distribution becomes your identity. An agent that always picks "defensive" is just a rule. An agent that reads the data and switches strategies is what judges came to see.`;
 
 export async function decideWithProviders(
   observation: MarketObservation,
@@ -150,6 +149,7 @@ export async function decideWithProviders(
   return {
     thresholdPriceUsd: fallback.thresholdPriceUsd,
     direction: fallback.direction,
+    strategy: "balanced",
     confidenceBps: fallback.confidenceBps,
     modelConfidenceBps: fallback.confidenceBps,
     reasoning: providers.length === 0
@@ -235,6 +235,7 @@ export async function decideThresholdClaim(
     if (!content) throw new Error("LLM response missing content");
 
     const parsed = JSON.parse(content) as {
+      strategy?: unknown;
       thresholdPriceUsd?: unknown;
       direction?: unknown;
       confidenceBps?: unknown;
@@ -244,21 +245,38 @@ export async function decideThresholdClaim(
     const finalThreshold = clampNumber(parsed.thresholdPriceUsd, 0.3, 1.5, fallback.thresholdPriceUsd);
     const finalDirection: "above" | "below" =
       parsed.direction === "above" || parsed.direction === "below" ? parsed.direction : fallback.direction;
-    const modelConfidence = clampInt(parsed.confidenceBps, 3000, 9500, fallback.confidenceBps);
-    // Mechanically calibrated on-chain confidence: derive from the model's
-    // actual chosen threshold's safety margin vs recent observed range.
-    // Falls back to the model's own number when there's no price history
-    // to anchor against.
+    const STRATEGIES = ["defensive", "aggressive", "momentum", "contrarian", "balanced"] as const;
+    type Strategy = (typeof STRATEGIES)[number];
+    const finalStrategy: Strategy = STRATEGIES.includes(parsed.strategy as Strategy)
+      ? (parsed.strategy as Strategy)
+      : "balanced";
+    // Some models still emit confidenceBps; we accept it as a courtesy
+    // for the audit record but always recompute the on-chain confidence
+    // from the chosen threshold's safety margin.
+    const modelConfidence = clampInt(parsed.confidenceBps, 3000, 9500, 6000);
     let onChainConfidence = modelConfidence;
     if (calibration) {
-      const chosenSafetyMarginBps = Math.round(
-        (Math.abs(calibration.midpoint - finalThreshold) / calibration.midpoint) * 10_000,
-      );
-      onChainConfidence = candidateConfidenceFor(chosenSafetyMarginBps, calibration.recentRangeBps);
+      // SIGNED safety margin: positive when the threshold is on the "easy"
+      // side of the direction (above + threshold<spot = stays above; below
+      // + threshold>spot = dips below via volatility). Negative when on
+      // the "hard" side — those are momentum / contrarian bets where the
+      // price has to MOVE through the threshold, which is base-rate hard.
+      const signedDistance =
+        finalDirection === "above"
+          ? calibration.midpoint - finalThreshold
+          : finalThreshold - calibration.midpoint;
+      const signedMarginBps = Math.round((signedDistance / calibration.midpoint) * 10_000);
+      onChainConfidence =
+        signedMarginBps >= 0
+          ? candidateConfidenceFor(signedMarginBps, calibration.recentRangeBps)
+          : // Hard-side claim (momentum / contrarian): floor confidence
+            // since base rate of meaningful price moves in a 6h window is low.
+            3000;
     }
     const decision: LlmDecision = {
       thresholdPriceUsd: finalThreshold,
       direction: finalDirection,
+      strategy: finalStrategy,
       confidenceBps: onChainConfidence,
       modelConfidenceBps: modelConfidence,
       reasoning: typeof parsed.reasoning === "string" ? parsed.reasoning.trim() : "(model returned no reasoning)",
@@ -271,6 +289,7 @@ export async function decideThresholdClaim(
     return {
       thresholdPriceUsd: fallback.thresholdPriceUsd,
       direction: fallback.direction,
+      strategy: "balanced",
       confidenceBps: fallback.confidenceBps,
       modelConfidenceBps: fallback.confidenceBps,
       reasoning: `LLM unavailable (${(err as Error).message}); used baseline ${fallback.direction} ${fallback.thresholdPriceUsd}.`,
