@@ -291,7 +291,7 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
 // lives in the repo and is fetched via raw.githubusercontent.com so the
 // edge function has zero file-system dependency.
 export async function fetchLlmStrategySummary(
-  llmClaimIds: number[],
+  llmClaimIds: number[] = [],
 ): Promise<{ llmStrategyDistribution: Record<string, number>; llmRecentDecisions: LiveStats["llmRecentDecisions"] }> {
   const repo = process.env.CLAWBACK_GITHUB_REPO ?? "dolepee/clawback";
   const branch = process.env.CLAWBACK_GITHUB_BRANCH ?? "main";
@@ -301,6 +301,33 @@ export async function fetchLlmStrategySummary(
     const dt = new Date(today);
     dt.setUTCDate(dt.getUTCDate() - d);
     dateCandidates.push(dt.toISOString().slice(0, 10));
+  }
+
+  // If no claim IDs were provided (e.g. loadAgentReceipts hit its timeout
+  // budget and returned empty), discover LlmScout claims by scanning the
+  // GitHub Contents API for recent date directories. This makes the panel
+  // self sufficient — it does not depend on the chain RPC succeeding.
+  let workingClaimIds = llmClaimIds;
+  if (workingClaimIds.length === 0) {
+    const discovered = new Set<number>();
+    for (const date of dateCandidates) {
+      if (discovered.size >= 24) break;
+      try {
+        const r = await fetch(
+          `https://api.github.com/repos/${repo}/contents/agent/cron-runs/${date}?ref=${branch}`,
+          { next: { revalidate: 300 }, headers: { accept: "application/vnd.github+json" } },
+        );
+        if (!r.ok) continue;
+        const files = (await r.json()) as Array<{ name: string }>;
+        for (const f of files) {
+          const m = f.name.match(/^claim-(\d+)\.json$/);
+          if (m) discovered.add(Number(m[1]));
+        }
+      } catch {
+        // continue
+      }
+    }
+    workingClaimIds = Array.from(discovered).sort((a, b) => b - a).slice(0, 24);
   }
 
   const fetchOne = async (claimId: number): Promise<LiveStats["llmRecentDecisions"][number] | null> => {
@@ -333,7 +360,7 @@ export async function fetchLlmStrategySummary(
     return null;
   };
 
-  const results = (await Promise.all(llmClaimIds.map(fetchOne))).filter(
+  const results = (await Promise.all(workingClaimIds.map(fetchOne))).filter(
     (r): r is LiveStats["llmRecentDecisions"][number] => r !== null,
   );
   const llmStrategyDistribution: Record<string, number> = {};

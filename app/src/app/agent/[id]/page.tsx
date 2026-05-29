@@ -125,18 +125,19 @@ const STRATEGY_HUES: Record<string, string> = {
   balanced: "bg-neutral-800 text-neutral-300 border-neutral-700",
 };
 
-async function LlmStrategyPanel({ claimIds }: { claimIds: number[] }) {
-  // Fetch strategy provenance for the most recent N claims. The fetch
-  // surfaces all 5 strategy buckets so the panel always renders, even
-  // before LlmScout has committed any claims of a given strategy.
-  const { llmStrategyDistribution, llmRecentDecisions } = await fetchLlmStrategySummary(claimIds.slice(0, 12));
+async function LlmStrategyPanel() {
+  // No claim IDs passed — fetchLlmStrategySummary discovers recent
+  // LlmScout claims itself via the GitHub Contents API, so this panel
+  // renders even when the chain RPC fallback (loadAgentReceipts) times
+  // out. The fetch surfaces all 5 strategy buckets and the recent picks.
+  const { llmStrategyDistribution, llmRecentDecisions } = await fetchLlmStrategySummary();
   const buckets = ["defensive", "aggressive", "momentum", "contrarian", "balanced"];
   const totalLabeled = Object.values(llmStrategyDistribution).reduce((a, b) => a + b, 0);
   return (
     <section className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 mb-8">
       <div className="flex items-baseline justify-between mb-3">
         <h2 className="text-xs uppercase tracking-widest text-neutral-500">Strategy mix</h2>
-        <span className="text-xs text-neutral-600">{totalLabeled} of last {claimIds.length} commits labeled</span>
+        <span className="text-xs text-neutral-600">{totalLabeled} labeled · {llmRecentDecisions.length} discovered</span>
       </div>
       {totalLabeled === 0 ? (
         <div className="text-sm text-neutral-500">
@@ -302,7 +303,7 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
         <AccuracySparkline points={receiptsData.curve} accent={accent} />
       </section>
 
-      {agent.handle === "LlmScout" ? <LlmStrategyPanel claimIds={receiptsData.receipts.map((r) => r.claimId)} /> : null}
+      {agent.handle === "LlmScout" ? <LlmStrategyPanel /> : null}
 
       <section className="mb-8">
         <div className="flex items-baseline justify-between mb-3">
