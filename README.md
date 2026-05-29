@@ -22,7 +22,8 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 9 contracts deployed and verified. 2 agents registered, with daily commits via GitHub Actions. CatScout is 14W 2L (88%); LobsterRogue is 0W 15L. Every accepted call ends in a verifiable RIGHT or WRONG receipt on Mantle, refunding payers from the slashed bond when the agent is wrong. Live counts and the most recent receipts are at [/api/stats](https://clawback-bay.vercel.app/api/stats).
+* **Status:** 9 contracts deployed and verified. 3 agents registered, with daily commits via GitHub Actions. The two rule-based controls (CatScout 14W 2L, LobsterRogue 0W 15L) demonstrate the bonded settlement loop end to end; **LlmScout** is a model-driven agent that emits a fresh threshold direction and confidence per commit via Bankr's LLM gateway, with the prompt and structured response persisted in the encrypted reveal vault for post-`publicReleaseAt` audit. Every accepted call ends in a verifiable RIGHT or WRONG receipt on Mantle, refunding payers from the slashed bond when the agent is wrong. Live counts and the most recent receipts are at [/api/stats](https://clawback-bay.vercel.app/api/stats).
+* **First LlmScout claim:** [`#48`](https://sepolia.mantlescan.xyz/tx/0x87072d490b839796faf6ad0468b60f726ff9fd8e6b5d4c7b3852d5f37f37d5b0) (registration: [`tx`](https://sepolia.mantlescan.xyz/tx/0xe17043e5334a1c62d24ce1a9b5da2580816cb2ce00c1cc927a1e8ebe266b7c89))
 
 ## Live receipts
 
@@ -82,7 +83,17 @@ function commitClaim(
 
 Contract: [`ClaimMarket.sol`](contracts/src/ClaimMarket.sol). The agent runtime that produces a real call lives in [`agent/src/personas.ts`](agent/src/personas.ts) and observes Merchant Moe Liquidity Book pools on Mantle mainnet plus Pyth Hermes for the commit time price snapshot. After expiry, [`PythSettlementAdapter`](contracts/src/PythSettlementAdapter.sol) decodes `predictionParams` against a fresh Pyth pull oracle update, so settlement is trustless and reproducible.
 
-CatScout and LobsterRogue are deterministic baselines: they consume the same Pyth + Merchant Moe observations and emit a structured claim through a fixed strategy template. Their accuracy split (CatScout right, LobsterRogue wrong) is intentional — it lets judges see both RIGHT and WRONG settlement and refund flows on the same live infrastructure. The same persona contract accepts a model-driven agent; that drop-in is the V2 upgrade tracked in [`docs/DEPLOY.md`](docs/DEPLOY.md).
+CatScout and LobsterRogue are deterministic baselines: they consume the same Pyth + Merchant Moe observations and emit a structured claim through a fixed strategy template. Their accuracy split (CatScout right, LobsterRogue wrong) is intentional, it lets judges see both RIGHT and WRONG settlement and refund flows on the same live infrastructure.
+
+**LlmScout** is the model-driven persona that ships on the same persona interface. Implementation lives in [`agent/src/llm.ts`](agent/src/llm.ts) and the `llm-scout` config in [`agent/src/cron/lib.ts`](agent/src/cron/lib.ts). Per commit, the persona:
+
+1. Reads the same Merchant Moe + Pyth observation the rule-based personas use.
+2. Sends the observation through a structured-output LLM call (provider chain: Z.ai primary when credits are available, [Bankr LLM gateway](https://docs.bankr.bot) fallback, deterministic baseline as last resort).
+3. Receives `{thresholdPriceUsd, direction, confidenceBps, reasoning}` from the model.
+4. Hashes the structured decision into `skillsOutputHash`, commits the claim on chain.
+5. Stores the full prompt and model response in the AES-256 encrypted reveal blob so judges can audit the model's actual reasoning after `publicReleaseAt`.
+
+The cron-cycle workflow runs the LLM persona alongside the two controls daily. First live LlmScout claim is `#48`, committed via Bankr's `deepseek-v3.2`. When Elfa Phase II compute credits land, the Elfa real-time triggers slot into the prompt context with no contract or workflow changes.
 
 ## Tracks
 
