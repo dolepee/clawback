@@ -422,6 +422,13 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     if (elfaSnapshot) {
       console.log(`[${persona.handle}] elfa: ${elfaSnapshot.signals.length} signals fetched at ${elfaSnapshot.fetchedAt}`);
     }
+    const priceHistory = await recentPriceHistory(8);
+    if (priceHistory.length > 0) {
+      const prices = priceHistory.map((s) => Number(s.priceE8) / 1e8);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      console.log(`[${persona.handle}] price-history: ${priceHistory.length} snapshots, range ${min.toFixed(6)} to ${max.toFixed(6)}`);
+    }
     const currentUsdPreview = Number(pythSnapshot.priceE8) / 1e8;
     const decision = await decideWithProviders(
       {
@@ -432,6 +439,7 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
         pythMntE8: pythSnapshot.priceE8,
         blockNumber: String((skillOutput.raw as { block?: string }).block ?? ""),
         elfaTriggers: elfaSnapshot,
+        priceHistory,
       },
       providers,
       {
@@ -807,6 +815,50 @@ async function withRetry<T>(fn: () => Promise<T>, attempts: number, baseMs: numb
     }
   }
   throw last ?? new Error("retry exhausted");
+}
+
+async function recentPriceHistory(limit: number): Promise<Array<{ publishTime: number; priceE8: bigint }>> {
+  // Pulls Pyth snapshots from prior committed claim records on disk. The
+  // cron-runs/ directory is checked into git so it's available on the
+  // GitHub Actions runner after actions/checkout. Returns up to `limit`
+  // snapshots (newest first by file scan, sorted oldest→newest at the
+  // call site) so the LLM has volatility context for confidence calibration.
+  const root = join(process.cwd(), "cron-runs");
+  let days: string[];
+  try {
+    days = (await readdir(root)).sort().reverse();
+  } catch {
+    return [];
+  }
+  const out: Array<{ publishTime: number; priceE8: bigint }> = [];
+  for (const day of days) {
+    if (out.length >= limit) break;
+    let files: string[];
+    try {
+      files = (await readdir(join(root, day))).filter((f) => f.startsWith("claim-") && f.endsWith(".json"));
+    } catch {
+      continue;
+    }
+    files.sort((a, b) => {
+      const na = Number(a.replace(/^claim-(\d+)\.json$/, "$1"));
+      const nb = Number(b.replace(/^claim-(\d+)\.json$/, "$1"));
+      return nb - na;
+    });
+    for (const f of files) {
+      if (out.length >= limit) break;
+      try {
+        const raw = await readFile(join(root, day, f), "utf8");
+        const j = JSON.parse(raw) as { pythSnapshot?: { priceE8?: string; publishTime?: number | string } };
+        const ps = j.pythSnapshot;
+        if (ps?.priceE8 && ps?.publishTime != null) {
+          out.push({ publishTime: Number(ps.publishTime), priceE8: BigInt(ps.priceE8) });
+        }
+      } catch {
+        // skip unreadable file
+      }
+    }
+  }
+  return out;
 }
 
 interface PrivateClaimRecord {

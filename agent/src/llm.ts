@@ -25,6 +25,10 @@ export interface MarketObservation {
   // null otherwise. The prompt builder appends the rendered signals to
   // the user message when this is non-null.
   elfaTriggers?: ElfaSnapshot | null;
+  // Recent MNT/USD snapshots from prior commits, ordered oldest first.
+  // Lets the model anchor confidence on observed volatility instead of
+  // defaulting to the schema floor when given only a single spot price.
+  priceHistory?: Array<{ publishTime: number; priceE8: bigint }>;
 }
 
 export interface LlmDecision {
@@ -89,20 +93,25 @@ export function llmConfigFromEnv(): LlmConfig | null {
   return providers.length > 0 ? providers[0].config : null;
 }
 
-const DECISION_SCHEMA_INSTRUCTIONS = `You are a bonded trading agent on Mantle Sepolia. You publish binary price claims on MNT/USD that settle via Pyth after expiry. You lose your bond when wrong, so be honest about uncertainty.
+const DECISION_SCHEMA_INSTRUCTIONS = `You are a bonded trading agent on Mantle Sepolia. You publish binary price claims on MNT/USD that settle via Pyth after expiry. You lose your bond when wrong, so be honest about uncertainty — and ambitious when the data supports it.
 
 Output exactly this JSON, nothing else:
 
 {
   "thresholdPriceUsd": <number between 0.30 and 1.50>,
   "direction": "above" | "below",
-  "confidenceBps": <integer 4000-9000>,
+  "confidenceBps": <integer 3000-9500>,
   "reasoning": "<one or two sentences"
 }
 
 direction "above" means you claim MNT/USD stays above the threshold for the entire 6h window.
 direction "below" means you claim MNT/USD drops below the threshold within the 6h window.
-confidenceBps reflects your subjective certainty (5000 = 50%, 9000 = 90%).`;
+
+CONFIDENCE CALIBRATION:
+- Use the recent MNT/USD price-history snapshots provided in the user message to estimate volatility before choosing a threshold.
+- A threshold that's well outside the observed 24h range justifies high confidence (>7000).
+- A threshold within recent variance is a coin flip (4000-5000).
+- Do not default to the floor (3000) to look conservative. Pick the threshold AND the confidence that genuinely match the data you can see. The on-chain accuracy track record is permanent.`;
 
 export async function decideWithProviders(
   observation: MarketObservation,
@@ -136,6 +145,7 @@ export async function decideThresholdClaim(
   fallback: { thresholdPriceUsd: number; direction: "above" | "below"; confidenceBps: number },
 ): Promise<LlmDecision> {
   const elfaSection = renderElfaForPrompt(observation.elfaTriggers ?? null);
+  const historySection = renderPriceHistoryForPrompt(observation.priceHistory ?? []);
   const userPrompt = [
     `Live Mantle Sepolia observation at block ${observation.blockNumber}:`,
     `- ${observation.pair} = ${observation.observedPrice}`,
@@ -147,10 +157,12 @@ export async function decideThresholdClaim(
     observation.pythEthE8 != null
       ? `- Pyth ETH/USD = ${(Number(observation.pythEthE8) / 1e8).toFixed(2)}`
       : null,
+    historySection ? "" : null,
+    historySection || null,
     elfaSection ? "" : null,
     elfaSection || null,
     "",
-    "Pick a 6h threshold claim. Be conservative; you forfeit your bond when wrong.",
+    "Pick a 6h threshold claim. Calibrate confidence against the historical range above.",
   ]
     .filter(Boolean)
     .join("\n");
@@ -196,7 +208,7 @@ export async function decideThresholdClaim(
       thresholdPriceUsd: clampNumber(parsed.thresholdPriceUsd, 0.3, 1.5, fallback.thresholdPriceUsd),
       direction:
         parsed.direction === "above" || parsed.direction === "below" ? parsed.direction : fallback.direction,
-      confidenceBps: clampInt(parsed.confidenceBps, 4000, 9000, fallback.confidenceBps),
+      confidenceBps: clampInt(parsed.confidenceBps, 3000, 9500, fallback.confidenceBps),
       reasoning: typeof parsed.reasoning === "string" ? parsed.reasoning.trim() : "(model returned no reasoning)",
       model: config.model,
       fellBack: false,
@@ -213,6 +225,27 @@ export async function decideThresholdClaim(
       fellBack: true,
     };
   }
+}
+
+function renderPriceHistoryForPrompt(history: Array<{ publishTime: number; priceE8: bigint }>): string | null {
+  if (history.length === 0) return null;
+  const sorted = [...history].sort((a, b) => a.publishTime - b.publishTime);
+  const prices = sorted.map((s) => Number(s.priceE8) / 1e8);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const first = prices[0];
+  const last = prices[prices.length - 1];
+  const rangeBps = (((max - min) / ((min + max) / 2)) * 10_000).toFixed(0);
+  const driftBps = (((last - first) / first) * 10_000).toFixed(0);
+  const lines = sorted.map((s) => {
+    const ts = new Date(s.publishTime * 1000).toISOString().replace("T", " ").slice(0, 16) + "Z";
+    return `  ${ts}  ${(Number(s.priceE8) / 1e8).toFixed(6)}`;
+  });
+  return [
+    `MNT/USD recent Pyth snapshots (oldest → newest):`,
+    ...lines,
+    `Range: ${min.toFixed(6)} to ${max.toFixed(6)} (${rangeBps} bps) | Drift first→last: ${driftBps} bps`,
+  ].join("\n");
 }
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
