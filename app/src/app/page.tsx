@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { buildStats } from "@/lib/live-stats";
 import { EXPLORER } from "@/lib/addresses";
-import { formatUsdc, shortHex } from "@/lib/format";
+import { formatDollar, formatUsdc, shortHex } from "@/lib/format";
 import AutoRefresh from "@/components/AutoRefresh";
 
 export const dynamic = "force-dynamic";
@@ -97,7 +97,7 @@ function ReceiptCard({
           claim #{claimId} →
         </Link>
       </div>
-      <div className="text-3xl sm:text-4xl font-black mb-2">{formatUsdc(amountUsdc)} <span className="text-base font-medium text-neutral-500">USDC</span></div>
+      <div className="text-3xl sm:text-4xl font-black mb-2">{formatDollar(amountUsdc)} <span className="text-base font-medium text-neutral-500">({formatUsdc(amountUsdc)} USDC)</span></div>
       <div className="text-sm text-neutral-300 mb-1">{subject}</div>
       <div className="text-xs text-neutral-500 mb-4">{verb} · {flavor}</div>
       <a
@@ -161,8 +161,8 @@ function HeroOutcomePanel({
                 claim #{refund?.claimId ?? "—"} →
               </Link>
             </div>
-            <div className="text-4xl font-black text-emerald-300">+{formatUsdc(refundTotal)}</div>
-            <div className="mt-1 text-xs uppercase tracking-[0.22em] text-neutral-500">USDC returned to payer</div>
+            <div className="text-4xl font-black text-emerald-300">+{formatDollar(refundTotal)}</div>
+            <div className="mt-1 text-xs uppercase tracking-[0.22em] text-neutral-500">refunded to the customer who paid</div>
             <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-xs text-neutral-400">
               <span>{refund ? shortHex(refund.user) : "payer"}</span>
               {refund ? (
@@ -178,8 +178,8 @@ function HeroOutcomePanel({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch">
             <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-950/45 to-neutral-950 p-4">
               <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.24em] text-amber-300">right call</div>
-              <div className="text-3xl font-black text-amber-200">+{formatUsdc(payout?.amount ?? 0n)}</div>
-              <div className="mt-1 text-xs uppercase tracking-[0.22em] text-neutral-500">USDC earned by agent</div>
+              <div className="text-3xl font-black text-amber-200">+{formatDollar(payout?.amount ?? 0n)}</div>
+              <div className="mt-1 text-xs uppercase tracking-[0.22em] text-neutral-500">earned by the bot that was right</div>
               {payout ? (
                 <a href={`${EXPLORER}/tx/${payout.tx}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex font-mono text-xs text-amber-100/75 hover:text-amber-100">
                   {shortHex(payout.tx)} ↗
@@ -209,6 +209,35 @@ function HeroOutcomePanel({
         </div>
       </div>
     </div>
+  );
+}
+
+// PlainEnglishExplainer — a no-jargon panel sitting between the hero
+// and the MoneyFlow visual so a non-crypto visitor can grok the product
+// in five seconds. Web2 natives won't read "/how-it-works" before they
+// decide to scroll on, so the explainer has to live above the fold.
+function PlainEnglishExplainer() {
+  return (
+    <section className="mb-8">
+      <div className="rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-950/30 via-neutral-950 to-neutral-950 p-5 md:p-6">
+        <div className="flex items-center gap-2 mb-3 text-[10px] uppercase tracking-[0.28em] text-amber-300/80">
+          <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5">new here?</span>
+          <span className="text-amber-200/50">30 second read</span>
+        </div>
+        <div className="text-sm md:text-base text-neutral-200 leading-relaxed max-w-3xl">
+          Three AI bots take bets on whether the price of MNT (Mantle's crypto token) goes up or down.
+          Before each bet, the bot has to put up its own money as collateral. When a bot is{" "}
+          <span className="font-semibold text-rose-300">wrong</span>, the customer who paid for that
+          prediction gets a <span className="font-semibold text-emerald-300">cash refund</span> out of
+          the bot's collateral. When the bot is <span className="font-semibold text-amber-300">right</span>,
+          it keeps the collateral plus the customer's payment.
+        </div>
+        <div className="mt-3 text-xs md:text-sm text-neutral-400 leading-relaxed max-w-3xl">
+          Every bet, refund, and payout below is a real transaction on a public ledger — you can click
+          any of them to see the actual receipt.
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -298,18 +327,18 @@ function MoneyFlow({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> })
             {/* PAYOUT SINK (top right) — RIGHT calls */}
             <g>
               <rect x="780" y="44" width="180" height="60" rx="12" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.45)" />
-              <text x="800" y="66" fill="#fcd34d" fontSize="10" letterSpacing="2" fontWeight="700" fontFamily="ui-sans-serif">RIGHT → AGENT</text>
+              <text x="800" y="66" fill="#fcd34d" fontSize="10" letterSpacing="2" fontWeight="700" fontFamily="ui-sans-serif">RIGHT → BOT KEEPS</text>
               <text x="800" y="92" fill="#fde68a" fontSize="20" fontWeight="900" fontFamily="ui-sans-serif" className="tabular-nums">
-                +{formatUsdc(earned)}
+                {formatDollar(earned)}
               </text>
             </g>
 
             {/* REFUND SINK (bottom right) — WRONG calls */}
             <g>
               <rect x="780" y="138" width="180" height="60" rx="12" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.45)" />
-              <text x="800" y="160" fill="#6ee7b7" fontSize="10" letterSpacing="2" fontWeight="700" fontFamily="ui-sans-serif">WRONG → PAYER</text>
+              <text x="800" y="160" fill="#6ee7b7" fontSize="10" letterSpacing="2" fontWeight="700" fontFamily="ui-sans-serif">WRONG → CUSTOMER REFUND</text>
               <text x="800" y="186" fill="#a7f3d0" fontSize="20" fontWeight="900" fontFamily="ui-sans-serif" className="tabular-nums">
-                +{formatUsdc(refunded)}
+                {formatDollar(refunded)}
               </text>
             </g>
 
@@ -383,7 +412,7 @@ function ClaimTape({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> })
       return {
         claimId: r.claimId,
         agent: r.agent,
-        label: "RIGHT · agent kept bond + earnings",
+        label: "BOT WAS RIGHT · kept its money + customer's fee",
         tint: "border-amber-500/50 bg-amber-950/40 text-amber-200",
         tx: r.payoutTx ?? r.settleTx ?? r.commitTx,
       };
@@ -392,7 +421,7 @@ function ClaimTape({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> })
       return {
         claimId: r.claimId,
         agent: r.agent,
-        label: "WRONG · bond slashed → refund to payer",
+        label: "BOT WAS WRONG · customer got cash refund",
         tint: "border-emerald-500/50 bg-emerald-950/40 text-emerald-200",
         tx: r.refundTx ?? r.settleTx ?? r.commitTx,
       };
@@ -400,7 +429,7 @@ function ClaimTape({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> })
     return {
       claimId: r.claimId,
       agent: r.agent,
-      label: "committed · awaiting Pyth verdict",
+      label: "bet placed · waiting for the price to be checked",
       tint: "border-neutral-700 bg-neutral-900/60 text-neutral-300",
       tx: r.commitTx,
     };
@@ -475,9 +504,9 @@ function LlmScoutCard({
     >
       <div className="flex items-baseline justify-between mb-2">
         <div className="text-violet-300 text-xl font-bold tracking-tight">LlmScout</div>
-        <span className="text-[10px] uppercase tracking-widest text-violet-300">model driven</span>
+        <span className="text-[10px] uppercase tracking-widest text-violet-300">AI driven</span>
       </div>
-      <div className="text-xs text-neutral-500 mb-5">deepseek-v3.2 via Bankr · 5-strategy menu</div>
+      <div className="text-xs text-neutral-500 mb-5">an LLM picks a fresh strategy on every bet</div>
       <div className="text-6xl sm:text-7xl font-black leading-none text-violet-300 mb-3 tabular-nums">
         {total === 0 ? "—" : pct(accuracy)}
       </div>
@@ -620,20 +649,20 @@ export default async function HomePage() {
             </div>
             <div className="mt-7 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.18em]">
               <span className="rounded-full border border-emerald-400/30 bg-emerald-400/[0.06] px-3 py-1 text-emerald-200/90">
-                <span className="font-black text-emerald-300 tabular-nums">{formatUsdc(stats.totalRefundUsdc)}</span>
-                <span className="ml-1.5 text-emerald-200/60">clawed back</span>
+                <span className="font-black text-emerald-300 tabular-nums">{formatDollar(stats.totalRefundUsdc)}</span>
+                <span className="ml-1.5 text-emerald-200/60">refunded to customers</span>
               </span>
               <span className="rounded-full border border-amber-400/30 bg-amber-400/[0.06] px-3 py-1 text-amber-200/90">
-                <span className="font-black text-amber-300 tabular-nums">{formatUsdc(stats.totalEarningsUsdc)}</span>
-                <span className="ml-1.5 text-amber-200/60">earned by agents</span>
+                <span className="font-black text-amber-300 tabular-nums">{formatDollar(stats.totalEarningsUsdc)}</span>
+                <span className="ml-1.5 text-amber-200/60">earned by bots</span>
               </span>
               <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-neutral-300">
                 <span className="font-black text-neutral-100 tabular-nums">{stats.totalClaims}</span>
-                <span className="ml-1.5 text-neutral-400">claims on chain</span>
+                <span className="ml-1.5 text-neutral-400">total bets placed</span>
               </span>
               <span className="rounded-full border border-violet-400/30 bg-violet-400/[0.06] px-3 py-1 text-violet-200/90">
                 <span className="font-black text-violet-300 tabular-nums">{stats.settledRight + stats.settledWrong}</span>
-                <span className="ml-1.5 text-violet-200/60">settled by Pyth</span>
+                <span className="ml-1.5 text-violet-200/60">scored by real-world price</span>
               </span>
             </div>
           </div>
@@ -645,6 +674,8 @@ export default async function HomePage() {
           />
         </div>
       </section>
+
+      <PlainEnglishExplainer />
 
       <MoneyFlow stats={stats} />
 
@@ -663,7 +694,7 @@ export default async function HomePage() {
             wins={stats.catWins}
             losses={stats.catLosses}
             accent="cat"
-            tagline="momentum sniffer · MNT/USD threshold reads"
+            tagline="bets MNT prices keep rising (momentum reader)"
             leading={catLeads}
           />
           <ScoreCard
@@ -673,7 +704,7 @@ export default async function HomePage() {
             wins={stats.lobsterWins}
             losses={stats.lobsterLosses}
             accent="lobster"
-            tagline="contrarian degen · MNT/USD downside threshold reads"
+            tagline="bets MNT prices crash (contrarian downside)"
             leading={!catLeads && lobsterSettled > 0}
           />
           <LlmScoutCard
@@ -740,7 +771,7 @@ export default async function HomePage() {
               tx={stats.latestRefund.tx}
               amountUsdc={stats.latestRefund.paidBack + stats.latestRefund.bonus}
               subject={`Recipient ${shortHex(stats.latestRefund.user)} clawed back the bond.`}
-              flavor={`refund ${formatUsdc(stats.latestRefund.paidBack)} + bonus ${formatUsdc(stats.latestRefund.bonus)} USDC`}
+              flavor={`base refund ${formatDollar(stats.latestRefund.paidBack)} plus bonus ${formatDollar(stats.latestRefund.bonus)} (from the bot's collateral)`}
             />
           ) : (
             <div className="rounded-2xl border border-neutral-800 p-6 text-sm text-neutral-500">No refunds yet this season.</div>
@@ -765,7 +796,7 @@ export default async function HomePage() {
           </div>
           <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
             <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">USDC clawed back</div>
-            <div className="text-lg font-semibold text-emerald-400">{formatUsdc(stats.totalRefundUsdc)}</div>
+            <div className="text-lg font-semibold text-emerald-400">{formatDollar(stats.totalRefundUsdc)}</div>
           </div>
           <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
             <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Agent payouts</div>
@@ -773,7 +804,7 @@ export default async function HomePage() {
           </div>
           <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
             <div className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">USDC earned by agents</div>
-            <div className="text-lg font-semibold text-amber-300">{formatUsdc(stats.totalEarningsUsdc)}</div>
+            <div className="text-lg font-semibold text-amber-300">{formatDollar(stats.totalEarningsUsdc)}</div>
           </div>
         </div>
       </section>

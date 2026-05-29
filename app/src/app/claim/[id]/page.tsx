@@ -6,7 +6,7 @@ import { loadClaimDetail } from "@/lib/data";
 import { loadClaimTimeline } from "@/lib/claim-timeline";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
-import { decodePredictionParams, factionLabel, formatTimestamp, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
+import { decodePredictionParams, factionLabel, formatDollar, formatTimestamp, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
 import ClaimActions from "@/components/ClaimActions";
 import ClaimLiveStatus from "@/components/ClaimLiveStatus";
 import ClaimTimeline from "@/components/ClaimTimeline";
@@ -14,6 +14,44 @@ import ShareClaim from "@/components/ShareClaim";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 15;
+
+// PlainEnglishSummary — one sentence describing what this claim was
+// about and how it ended, written for someone who has never seen a
+// crypto receipt page. Sits at the top of the receipt above all the
+// hex hashes and contract addresses, so a non-crypto reader gets the
+// story before they hit the technical surface area.
+function PlainEnglishSummary({
+  agentHandle,
+  question,
+  settled,
+  agentRight,
+  totalPaidUsdc6,
+  bondAmountUsdc6,
+}: {
+  agentHandle: string;
+  question: string;
+  settled: boolean;
+  agentRight: boolean;
+  totalPaidUsdc6: bigint;
+  bondAmountUsdc6: bigint;
+}) {
+  const paid = totalPaidUsdc6 > 0n ? formatDollar(totalPaidUsdc6) : null;
+  const bond = formatDollar(bondAmountUsdc6);
+  const outcomeLine = !settled
+    ? `The bet is live — waiting for the real-world price to settle it.`
+    : agentRight
+    ? `The bot was right. It kept its ${bond} collateral${paid ? ` plus the ${paid} customers paid for its prediction` : ""}.`
+    : `The bot was wrong. ${paid ? `The customers who paid ${paid} got their money back, with a bonus paid out of the bot's ${bond} collateral.` : `Anyone who had paid would have been refunded from the bot's ${bond} collateral.`}`;
+  return (
+    <section className="rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-950/20 via-neutral-950 to-neutral-950 p-5 mb-4">
+      <div className="text-[10px] uppercase tracking-[0.28em] text-amber-300/80 mb-2">what happened</div>
+      <div className="text-sm md:text-base text-neutral-200 leading-relaxed">
+        <span className="font-semibold text-neutral-100">{agentHandle}</span> placed a bet: {question}
+      </div>
+      <div className="mt-2 text-sm text-neutral-300 leading-relaxed">{outcomeLine}</div>
+    </section>
+  );
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -132,6 +170,15 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
       <div className="text-neutral-400 mb-5 md:mb-6 text-sm md:text-base">
         {factionLabel(agent.faction)} faction · {market}
       </div>
+
+      <PlainEnglishSummary
+        agentHandle={agent.handle}
+        question={question}
+        settled={isSettled}
+        agentRight={accounting.agentRight}
+        totalPaidUsdc6={accounting.totalPaid}
+        bondAmountUsdc6={claim.bondAmount}
+      />
 
       <OutcomeBanner state={claim.state} agentRight={accounting.agentRight} settled={isSettled} />
 

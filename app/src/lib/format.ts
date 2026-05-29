@@ -3,6 +3,15 @@ export function formatUsdc(amount: bigint): string {
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// USDC is a USD-pegged stablecoin (1 USDC ≈ $1). For web2 visitors we
+// surface the dollar sign as the primary anchor and keep the USDC token
+// label as a smaller suffix — they can decode "$2.25" instantly without
+// needing to know what USDC is.
+export function formatDollar(amount: bigint): string {
+  const n = Number(amount) / 1e6;
+  return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export function shortHex(h: string, head = 6, tail = 4): string {
   if (!h.startsWith("0x")) return h;
   return h.slice(0, 2 + head) + "..." + h.slice(-tail);
