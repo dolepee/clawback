@@ -544,8 +544,47 @@ function HowItWorks() {
   );
 }
 
+// Empty-shell stats fallback. Used when buildStats() throws (typically
+// Mantle Sepolia public RPC returning -32016 rate limit exceeded under
+// load). Renders the same components with zeroed counts rather than
+// failing the entire page with an Application Error.
+const EMPTY_STATS: Awaited<ReturnType<typeof buildStats>> = {
+  totalClaims: 0,
+  totalUnlocks: 0,
+  settledRight: 0,
+  settledWrong: 0,
+  refundsClaimed: 0,
+  earningsClaimed: 0,
+  catAccuracy: 0,
+  lobsterAccuracy: 0,
+  llmAccuracy: 0,
+  catAgentId: 1,
+  lobsterAgentId: 2,
+  llmAgentId: 3,
+  catWins: 0,
+  catLosses: 0,
+  lobsterWins: 0,
+  lobsterLosses: 0,
+  llmWins: 0,
+  llmLosses: 0,
+  totalRefundUsdc: 0n,
+  totalEarningsUsdc: 0n,
+  lastClaimAt: 0,
+  lastSettleAt: 0,
+  generatedAt: 0,
+  latestReceipts: [],
+  llmStrategyDistribution: {},
+  llmRecentDecisions: [],
+};
+
 export default async function HomePage() {
-  const stats = await buildStats();
+  let stats: Awaited<ReturnType<typeof buildStats>>;
+  try {
+    stats = await buildStats();
+  } catch (err) {
+    console.warn("buildStats() failed, rendering empty-shell page:", err);
+    stats = EMPTY_STATS;
+  }
   const totalSettled = stats.settledRight + stats.settledWrong;
   const catSettled = stats.catWins + stats.catLosses;
   const lobsterSettled = stats.lobsterWins + stats.lobsterLosses;
