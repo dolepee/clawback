@@ -213,10 +213,21 @@ export const mantleSepolia = defineChain({
   testnet: true,
 });
 
+// Some Mantle Sepolia RPC providers (drpc.org in particular) return
+// "Unknown block" (code 26) immediately after a tx is submitted, before they
+// index it. viem's default transport surfaces that as a hard error and the
+// cron crashes mid-cycle. Raising retryCount + retryDelay lets the transport
+// re-poll until the receipt is indexed.
+const RPC_TRANSPORT_OPTS = {
+  retryCount: 8,
+  retryDelay: 600,
+  timeout: 15_000,
+} as const;
+
 export function publicClient(): PublicClient {
   return createPublicClient({
     chain: mantleSepolia,
-    transport: http(env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc)),
+    transport: http(env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc), RPC_TRANSPORT_OPTS),
   }) as PublicClient;
 }
 
@@ -228,7 +239,7 @@ export function walletClient(account: PrivateKeyAccount): WalletClient {
   return createWalletClient({
     account,
     chain: mantleSepolia,
-    transport: http(env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc)),
+    transport: http(env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc), RPC_TRANSPORT_OPTS),
   }) as WalletClient;
 }
 
