@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { loadAgentDetail } from "@/lib/data";
-import { loadAgentReceipts, type AccuracyPoint, type AgentReceipt } from "@/lib/live-stats";
+import { loadAgentReceipts, fetchLlmStrategySummary, type AccuracyPoint, type AgentReceipt } from "@/lib/live-stats";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { MARKET_LABEL } from "@/lib/abi";
 import { factionLabel, formatTimestamp, formatUsdc, shortHex } from "@/lib/format";
@@ -115,6 +115,63 @@ function OutcomeBadge({ receipt }: { receipt: AgentReceipt }) {
     return <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-300">right</span>;
   }
   return <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-rose-900/40 text-rose-300">wrong</span>;
+}
+
+const STRATEGY_HUES: Record<string, string> = {
+  defensive: "bg-emerald-900/40 text-emerald-300 border-emerald-900/60",
+  aggressive: "bg-rose-900/40 text-rose-300 border-rose-900/60",
+  momentum: "bg-amber-900/40 text-amber-300 border-amber-900/60",
+  contrarian: "bg-violet-900/40 text-violet-300 border-violet-900/60",
+  balanced: "bg-neutral-800 text-neutral-300 border-neutral-700",
+};
+
+async function LlmStrategyPanel({ claimIds }: { claimIds: number[] }) {
+  // Fetch strategy provenance for the most recent N claims. The fetch
+  // surfaces all 5 strategy buckets so the panel always renders, even
+  // before LlmScout has committed any claims of a given strategy.
+  const { llmStrategyDistribution, llmRecentDecisions } = await fetchLlmStrategySummary(claimIds.slice(0, 12));
+  const buckets = ["defensive", "aggressive", "momentum", "contrarian", "balanced"];
+  const totalLabeled = Object.values(llmStrategyDistribution).reduce((a, b) => a + b, 0);
+  return (
+    <section className="rounded-2xl border border-neutral-800 bg-neutral-950 p-5 mb-8">
+      <div className="flex items-baseline justify-between mb-3">
+        <h2 className="text-xs uppercase tracking-widest text-neutral-500">Strategy mix</h2>
+        <span className="text-xs text-neutral-600">{totalLabeled} of last {claimIds.length} commits labeled</span>
+      </div>
+      {totalLabeled === 0 ? (
+        <div className="text-sm text-neutral-500">
+          No strategy-labeled claims yet. (Older claims pre-date the strategy schema.)
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {buckets.map((b) => {
+              const n = llmStrategyDistribution[b] ?? 0;
+              const hue = STRATEGY_HUES[b];
+              return (
+                <span key={b} className={`text-[11px] uppercase tracking-wider px-2.5 py-1 rounded border ${hue}`}>
+                  {b} · {n}
+                </span>
+              );
+            })}
+          </div>
+          <div className="text-[11px] uppercase tracking-widest text-neutral-500 mb-2">Recent picks</div>
+          <ul className="text-sm space-y-1">
+            {llmRecentDecisions.slice(0, 6).map((d) => (
+              <li key={d.claimId} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-neutral-300">
+                <Link href={`/claim/${d.claimId}`} className="text-neutral-500 hover:text-white">#{d.claimId}</Link>
+                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border ${STRATEGY_HUES[d.strategy] ?? STRATEGY_HUES.balanced}`}>
+                  {d.strategy}
+                </span>
+                <span className="text-neutral-400">{d.direction} ${d.thresholdPriceUsd.toFixed(4)}</span>
+                <span className="text-xs text-neutral-600">conf {d.onChainConfBps}bps · model said {d.modelConfBps}bps</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </section>
+  );
 }
 
 function TxPill({ label, tx }: { label: string; tx?: `0x${string}` }) {
@@ -244,6 +301,8 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
         </div>
         <AccuracySparkline points={receiptsData.curve} accent={accent} />
       </section>
+
+      {agent.handle === "LlmScout" ? <LlmStrategyPanel claimIds={receiptsData.receipts.map((r) => r.claimId)} /> : null}
 
       <section className="mb-8">
         <div className="flex items-baseline justify-between mb-3">

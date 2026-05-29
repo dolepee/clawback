@@ -49,6 +49,21 @@ export type LiveStats = {
     payoutTx?: `0x${string}`;
     refundTx?: `0x${string}`;
   }>;
+  // LlmScout strategic identity: counts of each strategy across recent
+  // LlmScout claims, plus the last few labeled claims for the agent page.
+  // Sourced from the public cron-runs/*.json provenance files on the
+  // repo (fetched via raw.githubusercontent.com).
+  llmStrategyDistribution: Record<string, number>;
+  llmRecentDecisions: Array<{
+    claimId: number;
+    strategy: string;
+    direction: "above" | "below";
+    thresholdPriceUsd: number;
+    onChainConfBps: number;
+    modelConfBps: number;
+    provider: string;
+    fellBack: boolean;
+  }>;
 };
 
 export type HealthStatus = {
@@ -267,7 +282,65 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
     lastSettleAt,
     generatedAt: Math.floor(Date.now() / 1000),
     latestReceipts,
+    ...(await fetchLlmStrategySummary(latestReceipts.filter((r) => r.agent === "LlmScout").map((r) => r.claimId))),
   };
+}
+
+// Pulls strategy + threshold + confidence from the public provenance
+// committed alongside each cron-cycle run. cron-runs/{date}/claim-{N}.json
+// lives in the repo and is fetched via raw.githubusercontent.com so the
+// edge function has zero file-system dependency.
+export async function fetchLlmStrategySummary(
+  llmClaimIds: number[],
+): Promise<{ llmStrategyDistribution: Record<string, number>; llmRecentDecisions: LiveStats["llmRecentDecisions"] }> {
+  const repo = process.env.CLAWBACK_GITHUB_REPO ?? "dolepee/clawback";
+  const branch = process.env.CLAWBACK_GITHUB_BRANCH ?? "main";
+  const today = new Date();
+  const dateCandidates: string[] = [];
+  for (let d = 0; d < 7; d++) {
+    const dt = new Date(today);
+    dt.setUTCDate(dt.getUTCDate() - d);
+    dateCandidates.push(dt.toISOString().slice(0, 10));
+  }
+
+  const fetchOne = async (claimId: number): Promise<LiveStats["llmRecentDecisions"][number] | null> => {
+    for (const date of dateCandidates) {
+      const url = `https://raw.githubusercontent.com/${repo}/${branch}/agent/cron-runs/${date}/claim-${claimId}.json`;
+      try {
+        const r = await fetch(url, { next: { revalidate: 300 } });
+        if (!r.ok) continue;
+        const j = (await r.json()) as {
+          persona?: string;
+          direction?: "above" | "below";
+          thresholdPriceUsd?: string;
+          llm?: { provider?: string; strategy?: string; fellBack?: boolean; confidenceBps?: number; modelConfidenceBps?: number };
+        };
+        if (j.persona !== "LlmScout" || !j.llm) return null;
+        return {
+          claimId,
+          strategy: j.llm.strategy ?? "balanced",
+          direction: j.direction ?? "above",
+          thresholdPriceUsd: Number(j.thresholdPriceUsd ?? 0),
+          onChainConfBps: j.llm.confidenceBps ?? 0,
+          modelConfBps: j.llm.modelConfidenceBps ?? 0,
+          provider: j.llm.provider ?? "unknown",
+          fellBack: j.llm.fellBack ?? false,
+        };
+      } catch {
+        // try next date
+      }
+    }
+    return null;
+  };
+
+  const results = (await Promise.all(llmClaimIds.map(fetchOne))).filter(
+    (r): r is LiveStats["llmRecentDecisions"][number] => r !== null,
+  );
+  const llmStrategyDistribution: Record<string, number> = {};
+  for (const r of results) {
+    llmStrategyDistribution[r.strategy] = (llmStrategyDistribution[r.strategy] ?? 0) + 1;
+  }
+  return { llmStrategyDistribution, llmRecentDecisions: results };
 }
 
 export async function buildHealth(client: PublicClient = makeClient()): Promise<HealthStatus> {

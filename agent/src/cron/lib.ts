@@ -567,14 +567,17 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     expiry: claim.expiry,
     publicReleaseAt: claim.publicReleaseAt,
     createdAt: new Date().toISOString(),
-    // Public surface shows that the LLM persona used a model decision and
-    // whether it fell back, but not the prompt/reasoning — that lives in
-    // the encrypted private blob until publicReleaseAt.
+    // Public surface shows the model decision shape — provider, strategy
+    // choice, mechanical on-chain confidence, and the model's own
+    // confidence call. The prompt/reasoning stays in the encrypted
+    // private blob until publicReleaseAt.
     llm: llmDecisionRecord
       ? {
           provider: llmDecisionRecord.provider,
+          strategy: llmDecisionRecord.strategy,
           fellBack: llmDecisionRecord.fellBack,
           confidenceBps: llmDecisionRecord.confidenceBps,
+          modelConfidenceBps: llmDecisionRecord.modelConfidenceBps,
         }
       : undefined,
   };
