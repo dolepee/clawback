@@ -698,85 +698,101 @@ export async function collectClaims(): Promise<void> {
   const agentEntries = await Promise.all(personaKeys().map(async (key) => {
     const persona = getPersona(key);
     const account = personaAccount(persona);
-    const agentId = await client.readContract({
+    const agentId = await withRetry(() => client.readContract({
       address: addrs.agentRegistry,
       abi: AGENT_REGISTRY_ABI,
       functionName: "agentIdByOwner",
       args: [account.address],
-    });
+    }), 3, 800);
     return { persona, account, agentId, wallet: walletClient(account) };
   }));
   let completed = 0;
   let skipped = 0;
 
-  for (const claimId of await claimIds(client)) {
-    // Mantle Sepolia public RPC intermittently reverts on accounting reads
-    // for arbitrary claim IDs (root cause unclear, suspected upstream node
-    // staleness across geographies). Without this guard, a single flaky
-    // read aborts the whole collect loop and stalls every downstream
-    // refund / earnings claim. Retry briefly, then log and continue so
-    // other claims still get collected on this run.
-    let accounting: AccountingView;
+  const ids = await withRetry(() => claimIds(client), 3, 800);
+  for (const claimId of ids) {
+    // Mantle Sepolia public RPC intermittently reverts on view reads
+    // (accounting / paidAmount / claimableRefund / refundClaimed / etc.)
+    // for arbitrary claim IDs, even when the same call succeeds moments
+    // earlier in the settle step. Isolate every per-claim read so one
+    // flaky upstream node response can't kill the whole loop and stall
+    // refunds / earnings for every other claim.
     try {
-      accounting = await withRetry(() => readAccounting(claimId, client), 3, 1000);
+      await processClaimForCollect(claimId, client, addrs, payer, payerWallet, agentEntries, () => completed++);
     } catch (e) {
       skipped++;
-      console.log(`CLAWBACK_COLLECT_SKIP claimId=${claimId} reason=accounting_read_failed err=${(e as Error).message.slice(0, 120)}`);
-      continue;
-    }
-    if (!accounting.settled) continue;
-    if (accounting.agentRight) {
-      const already = await client.readContract({
-        address: addrs.clawbackEscrow,
-        abi: ESCROW_ABI,
-        functionName: "earningsClaimed",
-        args: [claimId],
-      });
-      if (already) continue;
-      const entry = agentEntries.find((candidate) => candidate.agentId === accounting.agentId);
-      if (!entry) continue;
-      const txHash = await entry.wallet.writeContract({
-        address: addrs.clawbackEscrow,
-        abi: ESCROW_ABI,
-        functionName: "claimAgentEarnings",
-        args: [entry.agentId, claimId],
-        account: entry.account,
-        chain: mantleSepolia,
-      });
-      const receipt = await client.waitForTransactionReceipt({ hash: txHash });
-      completed++;
-      console.log("CLAWBACK_EARNINGS_CLAIMED");
-      console.log(`claimId=${claimId}`);
-      console.log(`recipient=${entry.account.address}`);
-      console.log(`tx=${txHash}`);
-      console.log(`block=${receipt.blockNumber}`);
-    } else {
-      const [already, paid, claimable] = await Promise.all([
-        client.readContract({ address: addrs.clawbackEscrow, abi: ESCROW_ABI, functionName: "refundClaimed", args: [claimId, payer.address] }),
-        client.readContract({ address: addrs.clawbackEscrow, abi: ESCROW_ABI, functionName: "paidAmount", args: [payer.address, claimId] }),
-        client.readContract({ address: addrs.clawbackEscrow, abi: ESCROW_ABI, functionName: "claimableRefund", args: [payer.address, claimId] }),
-      ]);
-      if (already || paid === 0n || (claimable[0] === 0n && claimable[1] === 0n)) continue;
-      const txHash = await payerWallet.writeContract({
-        address: addrs.clawbackEscrow,
-        abi: ESCROW_ABI,
-        functionName: "claimRefund",
-        args: [claimId],
-        account: payer,
-        chain: mantleSepolia,
-      });
-      const receipt = await client.waitForTransactionReceipt({ hash: txHash });
-      completed++;
-      console.log("CLAWBACK_REFUND_CLAIMED");
-      console.log(`claimId=${claimId}`);
-      console.log(`recipient=${payer.address}`);
-      console.log(`amount=${claimable[0] + claimable[1]}`);
-      console.log(`tx=${txHash}`);
-      console.log(`block=${receipt.blockNumber}`);
+      console.log(`CLAWBACK_COLLECT_SKIP claimId=${claimId} reason=read_or_tx_failed err=${(e as Error).message.slice(0, 160)}`);
     }
   }
   if (completed === 0 && skipped === 0) console.log("CLAWBACK_COLLECTED none");
   if (skipped > 0) console.log(`CLAWBACK_COLLECT_SKIPPED count=${skipped}`);
+}
+
+type CollectAgentEntry = {
+  persona: PersonaConfig;
+  account: PrivateKeyAccount;
+  agentId: bigint;
+  wallet: ReturnType<typeof walletClient>;
+};
+
+async function processClaimForCollect(
+  claimId: bigint,
+  client: PublicClient,
+  addrs: ReturnType<typeof addresses>,
+  payer: PrivateKeyAccount,
+  payerWallet: ReturnType<typeof walletClient>,
+  agentEntries: CollectAgentEntry[],
+  onCompleted: () => void,
+): Promise<void> {
+  const accounting = await withRetry(() => readAccounting(claimId, client), 3, 800);
+  if (!accounting.settled) return;
+  if (accounting.agentRight) {
+    const already = await withRetry(() => client.readContract({
+      address: addrs.clawbackEscrow,
+      abi: ESCROW_ABI,
+      functionName: "earningsClaimed",
+      args: [claimId],
+    }), 3, 800);
+    if (already) return;
+    const entry = agentEntries.find((candidate) => candidate.agentId === accounting.agentId);
+    if (!entry) return;
+    const txHash = await entry.wallet.writeContract({
+      address: addrs.clawbackEscrow,
+      abi: ESCROW_ABI,
+      functionName: "claimAgentEarnings",
+      args: [entry.agentId, claimId],
+      account: entry.account,
+      chain: mantleSepolia,
+    });
+    const receipt = await client.waitForTransactionReceipt({ hash: txHash });
+    onCompleted();
+    console.log("CLAWBACK_EARNINGS_CLAIMED");
+    console.log(`claimId=${claimId}`);
+    console.log(`recipient=${entry.account.address}`);
+    console.log(`tx=${txHash}`);
+    console.log(`block=${receipt.blockNumber}`);
+  } else {
+    const already = await withRetry(() => client.readContract({ address: addrs.clawbackEscrow, abi: ESCROW_ABI, functionName: "refundClaimed", args: [claimId, payer.address] }), 3, 800);
+    const paid = await withRetry(() => client.readContract({ address: addrs.clawbackEscrow, abi: ESCROW_ABI, functionName: "paidAmount", args: [payer.address, claimId] }), 3, 800);
+    const claimable = await withRetry(() => client.readContract({ address: addrs.clawbackEscrow, abi: ESCROW_ABI, functionName: "claimableRefund", args: [payer.address, claimId] }), 3, 800);
+    if (already || paid === 0n || (claimable[0] === 0n && claimable[1] === 0n)) return;
+    const txHash = await payerWallet.writeContract({
+      address: addrs.clawbackEscrow,
+      abi: ESCROW_ABI,
+      functionName: "claimRefund",
+      args: [claimId],
+      account: payer,
+      chain: mantleSepolia,
+    });
+    const receipt = await client.waitForTransactionReceipt({ hash: txHash });
+    onCompleted();
+    console.log("CLAWBACK_REFUND_CLAIMED");
+    console.log(`claimId=${claimId}`);
+    console.log(`recipient=${payer.address}`);
+    console.log(`amount=${claimable[0] + claimable[1]}`);
+    console.log(`tx=${txHash}`);
+    console.log(`block=${receipt.blockNumber}`);
+  }
 }
 
 async function withRetry<T>(fn: () => Promise<T>, attempts: number, baseMs: number): Promise<T> {
