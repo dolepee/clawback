@@ -93,7 +93,7 @@ export function llmConfigFromEnv(): LlmConfig | null {
   return providers.length > 0 ? providers[0].config : null;
 }
 
-const DECISION_SCHEMA_INSTRUCTIONS = `You are a bonded trading agent on Mantle Sepolia. You publish binary price claims on MNT/USD that settle via Pyth after expiry. You lose your bond when wrong, so be honest about uncertainty — and ambitious when the data supports it.
+const DECISION_SCHEMA_INSTRUCTIONS = `You are a bonded trading agent on Mantle Sepolia. You publish binary price claims on MNT/USD that settle via Pyth after expiry. You lose your bond when wrong.
 
 Output exactly this JSON, nothing else:
 
@@ -107,11 +107,24 @@ Output exactly this JSON, nothing else:
 direction "above" means you claim MNT/USD stays above the threshold for the entire 6h window.
 direction "below" means you claim MNT/USD drops below the threshold within the 6h window.
 
-CONFIDENCE CALIBRATION:
-- Use the recent MNT/USD price-history snapshots provided in the user message to estimate volatility before choosing a threshold.
-- A threshold that's well outside the observed 24h range justifies high confidence (>7000).
-- A threshold within recent variance is a coin flip (4000-5000).
-- Do not default to the floor (3000) to look conservative. Pick the threshold AND the confidence that genuinely match the data you can see. The on-chain accuracy track record is permanent.`;
+CONFIDENCE CALIBRATION (use the numbers from the user message, do not estimate them yourself):
+
+The user message provides three precomputed inputs:
+- recentRangeBps: observed MNT/USD range as bps of the midpoint over the snapshot window
+- thresholdSafetyMarginBps: how far your threshold sits from current spot, in bps
+- candidateConfidenceBps: a math-derived baseline confidence for that safety margin vs that range
+
+Heuristic the math uses (so you understand it):
+- ratio R = thresholdSafetyMarginBps / recentRangeBps
+- R >= 3.0 → candidate ~9000 (threshold is 3x observed range away, very safe)
+- R between 1.5 and 3.0 → candidate 7000-8500
+- R between 0.5 and 1.5 → candidate 5000-7000
+- R < 0.5 → candidate 4000-5000 (threshold inside recent variance, near coin flip)
+
+Your job:
+1. Pick a thresholdPriceUsd and direction. You can mirror the candidate's logic or pick a more aggressive / safer threshold.
+2. Set confidenceBps = candidateConfidenceBps for the threshold you actually chose, unless you have a SPECIFIC reason from the data to override. State the override reason in reasoning.
+3. Do NOT default to 3000 just to look conservative. The on-chain accuracy track record is permanent; under-confident calls on safe thresholds make the agent look unsophisticated.`;
 
 export async function decideWithProviders(
   observation: MarketObservation,
@@ -146,6 +159,20 @@ export async function decideThresholdClaim(
 ): Promise<LlmDecision> {
   const elfaSection = renderElfaForPrompt(observation.elfaTriggers ?? null);
   const historySection = renderPriceHistoryForPrompt(observation.priceHistory ?? []);
+  const calibration = computeCalibrationInputs(observation, fallback);
+  const calibrationSection = calibration
+    ? [
+        `PRECOMPUTED CALIBRATION INPUTS:`,
+        `- recentRangeBps = ${calibration.recentRangeBps}`,
+        `- driftBps (first→last) = ${calibration.driftBps}`,
+        `- currentMidpoint = ${calibration.midpoint.toFixed(6)}`,
+        `- baselineThresholdPriceUsd = ${calibration.baselineThresholdPriceUsd.toFixed(6)} (baseline ${calibration.baselineDirection})`,
+        `- thresholdSafetyMarginBps (baseline) = ${calibration.baselineSafetyMarginBps}`,
+        `- candidateConfidenceBps (baseline) = ${calibration.baselineCandidateConfidence}`,
+        ``,
+        `If you change the threshold, recompute safety margin = abs(currentMidpoint - yourThreshold) / currentMidpoint * 10000, then apply the heuristic from the system prompt to set confidenceBps.`,
+      ].join("\n")
+    : null;
   const userPrompt = [
     `Live Mantle Sepolia observation at block ${observation.blockNumber}:`,
     `- ${observation.pair} = ${observation.observedPrice}`,
@@ -159,10 +186,12 @@ export async function decideThresholdClaim(
       : null,
     historySection ? "" : null,
     historySection || null,
+    calibrationSection ? "" : null,
+    calibrationSection || null,
     elfaSection ? "" : null,
     elfaSection || null,
     "",
-    "Pick a 6h threshold claim. Calibrate confidence against the historical range above.",
+    "Pick a 6h threshold claim. Use the precomputed calibration as your anchor — only override with a specific data-backed reason.",
   ]
     .filter(Boolean)
     .join("\n");
@@ -225,6 +254,61 @@ export async function decideThresholdClaim(
       fellBack: true,
     };
   }
+}
+
+interface CalibrationInputs {
+  recentRangeBps: number;
+  driftBps: number;
+  midpoint: number;
+  baselineThresholdPriceUsd: number;
+  baselineDirection: "above" | "below";
+  baselineSafetyMarginBps: number;
+  baselineCandidateConfidence: number;
+}
+
+function computeCalibrationInputs(
+  observation: MarketObservation,
+  fallback: { thresholdPriceUsd: number; direction: "above" | "below" },
+): CalibrationInputs | null {
+  const history = observation.priceHistory ?? [];
+  if (history.length < 2) return null;
+  const prices = history.map((s) => Number(s.priceE8) / 1e8);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const midpoint = (min + max) / 2;
+  if (midpoint <= 0) return null;
+  const sorted = [...history].sort((a, b) => a.publishTime - b.publishTime);
+  const first = Number(sorted[0].priceE8) / 1e8;
+  const last = Number(sorted[sorted.length - 1].priceE8) / 1e8;
+  const recentRangeBps = Math.round(((max - min) / midpoint) * 10_000);
+  const driftBps = Math.round(((last - first) / first) * 10_000);
+  const baselineThresholdPriceUsd = fallback.thresholdPriceUsd;
+  const baselineDirection = fallback.direction;
+  const baselineSafetyMarginBps = Math.round((Math.abs(midpoint - baselineThresholdPriceUsd) / midpoint) * 10_000);
+  const baselineCandidateConfidence = candidateConfidenceFor(baselineSafetyMarginBps, recentRangeBps);
+  return {
+    recentRangeBps,
+    driftBps,
+    midpoint,
+    baselineThresholdPriceUsd,
+    baselineDirection,
+    baselineSafetyMarginBps,
+    baselineCandidateConfidence,
+  };
+}
+
+// Maps safety-margin / observed-range ratio to a baseline confidence anchor.
+// This is the exact formula the system prompt describes so the model has
+// a numeric anchor to start from rather than reinventing the heuristic.
+function candidateConfidenceFor(safetyMarginBps: number, recentRangeBps: number): number {
+  const range = Math.max(recentRangeBps, 1);
+  const r = safetyMarginBps / range;
+  if (r >= 3.0) return 9000;
+  if (r >= 2.0) return 8000;
+  if (r >= 1.5) return 7000;
+  if (r >= 1.0) return 6000;
+  if (r >= 0.5) return 5000;
+  return 4000;
 }
 
 function renderPriceHistoryForPrompt(history: Array<{ publishTime: number; priceE8: bigint }>): string | null {
