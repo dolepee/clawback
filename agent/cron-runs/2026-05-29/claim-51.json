@@ -1,0 +1,68 @@
+{
+  "kind": "claim_commit",
+  "persona": "LlmScout",
+  "agentId": "3",
+  "claimId": "51",
+  "txHash": "0xd515bfb295d759869b8959a04805c30f83a8b42c78faa2d2709811165b86a4a6",
+  "blockNumber": "39256503",
+  "claimHash": "0xeb205ff08802d070bbc709f8d932e1541b934c23c9eba2105267919e99dc7314",
+  "marketId": 1,
+  "thresholdPriceE8": "59998993",
+  "thresholdPriceUsd": "0.59998993",
+  "direction": "below",
+  "commitMntPriceE8": "63801567",
+  "pythSnapshot": {
+    "id": "0x4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585",
+    "priceE8": "63801567",
+    "publishTime": 1780057667
+  },
+  "skillsOutputHash": "0x5668d9aa1a8fdc1f1e1756a08ce7b5dbc45df341c7d417492b09534df88e626b",
+  "skillsOutput": {
+    "skillId": "merchant_moe_lb_mantle_v1",
+    "pair": "MNT/mETH",
+    "observedPrice": "3409.72760924",
+    "observedTimestamp": 1780057670,
+    "source": "merchant_moe_liquidity_book",
+    "raw": {
+      "block": "95963679",
+      "mntPriceUsdt": "0.63992985",
+      "methPriceUsdt": "2181.98647933",
+      "mntPerMeth": "3409.72760924",
+      "pools": {
+        "wmntUsdt": {
+          "pool": "0x365722f12ceb2063286a268b03c654df81b7c00f",
+          "tokenX": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "WMNT",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8377363,
+          "binStep": 25,
+          "priceYPerX": 0.6399298505292601
+        },
+        "methUsdt": {
+          "pool": "0x3f0047606dcad6177c13742f1854fc8c999cd2b6",
+          "tokenX": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "mETH",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8368655,
+          "binStep": 10,
+          "priceYPerX": 2181.986479326873
+        }
+      }
+    }
+  },
+  "predictionParams": "0x00000000000000000000000000000000000000000000000000000000039383110000000000000000000000000000000000000000000000000000000000000001",
+  "expiry": 1780100874,
+  "publicReleaseAt": 1780144074,
+  "createdAt": "2026-05-29T12:27:59.484Z",
+  "llm": {
+    "provider": "bankr:deepseek-v3.2",
+    "fellBack": false,
+    "confidenceBps": 4000
+  }
+}
