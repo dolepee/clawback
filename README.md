@@ -2,17 +2,17 @@
 
 # Clawback
 
-**AI calls that pay you back when they are wrong.**
+**The bonded execution layer for AI agent claims on Mantle.**
 
-Clawback is a bonded, slashable accountability market for AI agent price calls on Mantle. CatScout and LobsterRogue publish binary price claims, lock USDC behind each commit, and accept paid unlock receipts via a Q402 style EIP-712 sign once flow. After expiry, a Pyth pull oracle update settles the outcome on chain. If the agent is right, it earns the unlock payments and keeps its bond. If wrong, payers can claim their unlock price back plus a pro rata bonus from the slashed bond.
+Autonomous agents trade and predict without skin in the game. Clawback fixes that: an agent locks USDC behind every market call it publishes. Users pay a small fee to unlock the call. After expiry, Pyth settles the outcome on chain. If the agent is right, it keeps the bond and earns the unlock fees. If wrong, every payer is refunded their fee plus a bonus from the slashed bond. The trust assumption shifts from "trust the model" to "the model is cryptoeconomically liable for being wrong."
 
-Example: CatScout bonds 5 USDC on a claim that MNT/USD stays above a Pyth price threshold for 12h. A payer locks an unlock receipt for 0.25 USDC. After the window closes, Pyth settles the claim. The outcome becomes a public RIGHT or WRONG receipt on Mantle.
+CatScout and LobsterRogue are two rule-based personas wired into this layer as control baselines. They run live on Mantle Sepolia every day so the lifecycle (commit → unlock → settle → refund or payout) has a continuous receipt trail judges can replay. The same persona interface accepts an LLM-driven agent, which is the natural next step.
 
 The product loop:
 
-1. Agent reads live Mantle market data (Merchant Moe Liquidity Book pools).
-2. Agent commits a sealed price call on Mantle with `claimHash` and `skillsOutputHash`.
-3. Payer locks an unlock receipt via the Q402 adapter (EIP-712 sign once, off chain witness).
+1. Agent reads live Mantle market data (Merchant Moe Liquidity Book pools) and a Pyth price snapshot.
+2. Agent commits a sealed price call on Mantle with `claimHash` and `skillsOutputHash`. USDC bond is locked.
+3. Payer locks an unlock receipt via the custom EIP-712 witness payment flow (sign once off chain, facilitator submits on chain).
 4. Pyth pull oracle resolves the claim after expiry, on chain.
 5. RIGHT pays the agent. WRONG refunds the payer plus a bonus from the slashed bond.
 
@@ -22,7 +22,7 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 9 contracts deployed and verified. 2 agents registered. **27 claims posted, 26 paid unlocks, 19 settled by Pyth, 10 WRONG settlements, 9 RIGHT settlements, 9 payer refunds claimed, and 9 agent payouts claimed.** CatScout 9W 1L (90%), LobsterRogue 0W 9L. **6.375 USDC clawed back to payers, 47.25 USDC earned by agents.** Live stats at [/api/stats](https://clawback-bay.vercel.app/api/stats).
+* **Status:** 9 contracts deployed and verified. 2 agents registered, with daily commits via GitHub Actions. CatScout is 14W 2L (88%); LobsterRogue is 0W 15L. Every accepted call ends in a verifiable RIGHT or WRONG receipt on Mantle, refunding payers from the slashed bond when the agent is wrong. Live counts and the most recent receipts are at [/api/stats](https://clawback-bay.vercel.app/api/stats).
 
 ## Live receipts
 
@@ -82,12 +82,14 @@ function commitClaim(
 
 Contract: [`ClaimMarket.sol`](contracts/src/ClaimMarket.sol). The agent runtime that produces a real call lives in [`agent/src/personas.ts`](agent/src/personas.ts) and observes Merchant Moe Liquidity Book pools on Mantle mainnet plus Pyth Hermes for the commit time price snapshot. After expiry, [`PythSettlementAdapter`](contracts/src/PythSettlementAdapter.sol) decodes `predictionParams` against a fresh Pyth pull oracle update, so settlement is trustless and reproducible.
 
+CatScout and LobsterRogue are deterministic baselines: they consume the same Pyth + Merchant Moe observations and emit a structured claim through a fixed strategy template. Their accuracy split (CatScout right, LobsterRogue wrong) is intentional — it lets judges see both RIGHT and WRONG settlement and refund flows on the same live infrastructure. The same persona contract accepts a model-driven agent; that drop-in is the V2 upgrade tracked in [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
 ## Tracks
 
 * **Primary:** Alpha & Data Track Path B (AI driven trading strategy).
 * **Other tags:** Grand Champion, UI/UX, Community Voting, 20 Project Deployment Award.
 
-Clawback fits Alpha & Data naturally because every claim is generated from live Mantle on chain market data, bonded with USDC, and verifiably settled by an on chain price oracle.
+Clawback fits Alpha & Data because the layer turns a model's call into a bonded onchain commitment that pays the user back when the model is wrong. The control personas demonstrate the layer; the layer itself is what's reusable across model providers and prediction surfaces.
 
 ## How a claim works
 

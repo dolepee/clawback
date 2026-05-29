@@ -145,6 +145,31 @@ async function readAccounting(claimId: bigint): Promise<Accounting> {
   };
 }
 
+// Batch contract reads in small groups so we do not overwhelm Mantle Sepolia's
+// public RPC. 6 concurrent reads × a few rounds keeps the call tree inside
+// Vercel's 10s window without flooding the upstream. Failed reads return
+// null and are filtered by the caller, so a single bad batch element does
+// not collapse the entire feed.
+const READ_BATCH_SIZE = 6;
+
+async function batchedMapSafe<I, O>(
+  items: I[],
+  fn: (i: I) => Promise<O>,
+): Promise<Array<O | null>> {
+  const out: Array<O | null> = [];
+  for (let i = 0; i < items.length; i += READ_BATCH_SIZE) {
+    const slice = items.slice(i, i + READ_BATCH_SIZE);
+    const results = await Promise.allSettled(slice.map(fn));
+    for (const r of results) out.push(r.status === "fulfilled" ? r.value : null);
+  }
+  return out;
+}
+
+async function batchedMap<I, O>(items: I[], fn: (i: I) => Promise<O>): Promise<O[]> {
+  const settled = await batchedMapSafe(items, fn);
+  return settled.filter((v): v is O => v !== null);
+}
+
 export async function listClaims(): Promise<Claim[]> {
   const next = (await publicClient.readContract({
     address: ADDRESSES.claimMarket,
@@ -154,7 +179,7 @@ export async function listClaims(): Promise<Claim[]> {
   if (next <= 1n) return [];
   const ids: bigint[] = [];
   for (let i = 1n; i < next; i++) ids.push(i);
-  const claims = await Promise.all(ids.map(readClaim));
+  const claims = await batchedMap(ids, readClaim);
   return claims.reverse();
 }
 
@@ -172,12 +197,13 @@ export async function listAgents(): Promise<Agent[]> {
 
 export async function loadFeed(): Promise<{ claims: Claim[]; agents: Map<string, Agent> }> {
   const claims = await listClaims();
+  return { claims, agents: await loadAgentsForClaims(claims) };
+}
+
+async function loadAgentsForClaims(claims: Claim[]): Promise<Map<string, Agent>> {
   const uniqueAgentIds = Array.from(new Set(claims.map((c) => c.agentId.toString())));
-  const agentList = await Promise.all(
-    uniqueAgentIds.map((idStr) => readAgent(BigInt(idStr))),
-  );
-  const agents = new Map(agentList.map((a) => [a.id.toString(), a]));
-  return { claims, agents };
+  const agentList = await batchedMap(uniqueAgentIds, (idStr) => readAgent(BigInt(idStr)));
+  return new Map(agentList.map((a) => [a.id.toString(), a]));
 }
 
 export type FeedStats = {
@@ -188,9 +214,9 @@ export type FeedStats = {
   totalUsdcPaidIn: bigint;
 };
 
-export async function loadFeedStats(): Promise<FeedStats> {
-  const claims = await listClaims();
-  const accountings = await Promise.all(claims.map((c) => readAccounting(c.id)));
+export async function loadFeedStats(preloadedClaims?: Claim[]): Promise<FeedStats> {
+  const claims = preloadedClaims ?? (await listClaims());
+  const accountings = await batchedMap(claims, (c) => readAccounting(c.id));
   let settledRight = 0;
   let settledWrong = 0;
   let totalUsdcPaidIn = 0n;

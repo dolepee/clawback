@@ -102,19 +102,24 @@ const CLAIM_STATE_SETTLED = 1;
 const CLAIM_STATE_PUBLICLY_REVEALED = 2;
 const MAX_UINT = 2n ** 256n - 1n;
 
-export type PersonaKey = "cat-scout" | "lobster-rogue";
+export type PersonaKey = "cat-scout" | "lobster-rogue" | "llm-scout";
 
 type Direction = "above" | "below";
 
 type PersonaConfig = {
   key: PersonaKey;
-  handle: "CatScout" | "LobsterRogue";
+  handle: "CatScout" | "LobsterRogue" | "LlmScout";
   faction: 0 | 1;
   envKeys: string[];
   bondAmount: bigint;
   unlockPrice: bigint;
   direction: Direction;
   thresholdMultiplierBps: bigint;
+  // When set, the cron asks an LLM to decide the threshold direction and
+  // multiplier at commit time instead of using the static defaults above.
+  // The LLM prompt + response is captured in the encrypted reveal blob so
+  // judges can audit the model's reasoning after publicReleaseAt.
+  useLlm?: boolean;
 };
 
 const PERSONAS: Record<PersonaKey, PersonaConfig> = {
@@ -137,6 +142,21 @@ const PERSONAS: Record<PersonaKey, PersonaConfig> = {
     unlockPrice: 500_000n,
     direction: "below",
     thresholdMultiplierBps: 9_700n,
+  },
+  // V2 model-driven persona. direction and thresholdMultiplierBps below are
+  // used only as the fallback when every LLM provider fails. When the LLM
+  // responds, those fields are overridden at commit time from the model's
+  // structured decision.
+  "llm-scout": {
+    key: "llm-scout",
+    handle: "LlmScout",
+    faction: 0,
+    envKeys: ["LLM_AGENT_PRIVATE_KEY", "LLMSCOUT_PRIVATE_KEY"],
+    bondAmount: 5_000_000n,
+    unlockPrice: 250_000n,
+    direction: "above",
+    thresholdMultiplierBps: 9_700n,
+    useLlm: true,
   },
 };
 
@@ -165,11 +185,18 @@ export type AccountingView = {
 };
 
 export function personaKeys(): PersonaKey[] {
-  return ["cat-scout", "lobster-rogue"];
+  // llm-scout is opt-in via env: it only enters the rotation when both the
+  // wallet key and an LLM provider key are configured. This keeps the cron
+  // healthy on fresh clones that have not set up the LLM yet.
+  const keys: PersonaKey[] = ["cat-scout", "lobster-rogue"];
+  const llmReady = (process.env.LLM_AGENT_PRIVATE_KEY || process.env.LLMSCOUT_PRIVATE_KEY) &&
+    (process.env.ZAI_API_KEY || process.env.LLM_API_KEY || process.env.BANKR_LLM_KEY);
+  if (llmReady) keys.push("llm-scout");
+  return keys;
 }
 
 export function getPersona(key: string): PersonaConfig {
-  if (key !== "cat-scout" && key !== "lobster-rogue") {
+  if (key !== "cat-scout" && key !== "lobster-rogue" && key !== "llm-scout") {
     throw new Error(`unknown persona ${key}`);
   }
   return PERSONAS[key];
@@ -368,9 +395,50 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     runSkill("merchant_moe_lb_mantle_v1", { rpcUrl: process.env.MANTLE_RPC_URL ?? "https://rpc.mantle.xyz" }),
     fetchPythPriceE8(addrs.mntFeed),
   ]);
+
+  // LLM persona path: ask the model for a fresh direction + threshold.
+  // Falls back to the persona's static config when no provider responds.
+  let chosenDirection: Direction = persona.direction;
+  let chosenMultiplierBps: bigint = persona.thresholdMultiplierBps;
+  let llmDecisionRecord: Record<string, unknown> | undefined;
+  if (persona.useLlm) {
+    const { providersFromEnv, decideWithProviders } = await import("../llm.js");
+    const providers = providersFromEnv();
+    const currentUsdPreview = Number(pythSnapshot.priceE8) / 1e8;
+    const decision = await decideWithProviders(
+      {
+        pair: skillOutput.pair,
+        observedPrice: skillOutput.observedPrice,
+        mntPriceUsdt: String((skillOutput.raw as { mntPriceUsdt?: string }).mntPriceUsdt ?? ""),
+        methPriceUsdt: String((skillOutput.raw as { methPriceUsdt?: string }).methPriceUsdt ?? ""),
+        pythMntE8: pythSnapshot.priceE8,
+        blockNumber: String((skillOutput.raw as { block?: string }).block ?? ""),
+      },
+      providers,
+      {
+        thresholdPriceUsd: currentUsdPreview * Number(persona.thresholdMultiplierBps) / 10_000,
+        direction: persona.direction,
+        confidenceBps: 6000,
+      },
+    );
+    chosenDirection = decision.direction;
+    const thresholdPriceE8Llm = BigInt(Math.max(1, Math.round(decision.thresholdPriceUsd * 1e8)));
+    chosenMultiplierBps = (thresholdPriceE8Llm * 10_000n) / pythSnapshot.priceE8;
+    llmDecisionRecord = {
+      provider: decision.model,
+      direction: decision.direction,
+      thresholdPriceUsd: decision.thresholdPriceUsd,
+      confidenceBps: decision.confidenceBps,
+      reasoning: decision.reasoning,
+      providerCount: providers.length,
+      fellBack: decision.fellBack,
+    };
+    console.log(`[${persona.handle}] llm: ${decision.model} → ${decision.direction} $${decision.thresholdPriceUsd.toFixed(4)} (conf=${decision.confidenceBps}bps fellBack=${decision.fellBack})`);
+  }
+
   const skillsOutputHash = hashSkillsOutput(skillOutput);
-  const thresholdPriceE8 = (pythSnapshot.priceE8 * persona.thresholdMultiplierBps) / 10_000n;
-  const directionId = persona.direction === "below" ? 1 : 0;
+  const thresholdPriceE8 = (pythSnapshot.priceE8 * chosenMultiplierBps) / 10_000n;
+  const directionId = chosenDirection === "below" ? 1 : 0;
   const predictionParams = encodeAbiParameters(
     [{ type: "uint128" }, { type: "uint8" }],
     [thresholdPriceE8, directionId],
@@ -383,7 +451,7 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
   const thresholdUsd = Number(thresholdPriceE8) / 1e8;
   const currentUsd = Number(pythSnapshot.priceE8) / 1e8;
   const claimText =
-    `[${persona.handle}] MNT will be ${persona.direction} $${thresholdUsd.toFixed(4)} by ` +
+    `[${persona.handle}] MNT will be ${chosenDirection} $${thresholdUsd.toFixed(4)} by ` +
     `${new Date(Number(expiry) * 1000).toISOString()}. ` +
     `Commit price: $${currentUsd.toFixed(4)}. Skill source: Merchant Moe Liquidity Book.`;
   const claim = buildClaim({
@@ -432,7 +500,7 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     marketId: MARKET_ID_THRESHOLD,
     thresholdPriceE8: thresholdPriceE8.toString(),
     thresholdPriceUsd: thresholdUsd.toFixed(8),
-    direction: persona.direction,
+    direction: chosenDirection,
     commitMntPriceE8: pythSnapshot.priceE8.toString(),
     pythSnapshot: stringifyBigints(pythSnapshot),
     skillsOutputHash,
@@ -441,10 +509,32 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     expiry: claim.expiry,
     publicReleaseAt: claim.publicReleaseAt,
     createdAt: new Date().toISOString(),
+    // Public surface shows that the LLM persona used a model decision and
+    // whether it fell back, but not the prompt/reasoning — that lives in
+    // the encrypted private blob until publicReleaseAt.
+    llm: llmDecisionRecord
+      ? {
+          provider: llmDecisionRecord.provider,
+          fellBack: llmDecisionRecord.fellBack,
+          confidenceBps: llmDecisionRecord.confidenceBps,
+        }
+      : undefined,
   };
 
   await writeProvenance(claimId, persona, commonFields, { visibility: "public" });
-  await writeProvenance(claimId, persona, { ...commonFields, claimText, salt: claim.salt.toString() }, { visibility: "private" });
+  await writeProvenance(
+    claimId,
+    persona,
+    {
+      ...commonFields,
+      claimText,
+      salt: claim.salt.toString(),
+      // Full LLM decision (including reasoning) lives in the encrypted
+      // private blob so judges can audit it after publicReveal.
+      llmFull: llmDecisionRecord ?? null,
+    },
+    { visibility: "private" },
+  );
 
   console.log("CLAWBACK_CLAIM_COMMITTED");
   console.log(`persona=${persona.handle}`);
