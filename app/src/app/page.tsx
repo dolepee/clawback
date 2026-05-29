@@ -3,6 +3,9 @@ import { buildStats } from "@/lib/live-stats";
 import { EXPLORER } from "@/lib/addresses";
 import { formatDollar, formatUsdc, shortHex } from "@/lib/format";
 import AutoRefresh from "@/components/AutoRefresh";
+import SettlementTheater from "@/components/SettlementTheater";
+import JustNowToast from "@/components/JustNowToast";
+import CountUp from "@/components/CountUp";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 15;
@@ -625,6 +628,20 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-6xl">
       <AutoRefresh />
+      <SettlementTheater
+        receipts={stats.latestReceipts.map((r) => ({
+          claimId: r.claimId,
+          agent: r.agent,
+          outcome: r.outcome,
+        }))}
+      />
+      <JustNowToast
+        receipts={stats.latestReceipts.map((r) => ({
+          claimId: r.claimId,
+          agent: r.agent,
+          outcome: r.outcome,
+        }))}
+      />
       <section className="relative mb-12 overflow-hidden rounded-[2.25rem] border border-white/10 bg-black/35 p-5 md:p-8 lg:p-10 shadow-[0_40px_120px_rgba(0,0,0,0.35)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_20%,rgba(16,185,129,0.16),transparent_32rem),radial-gradient(circle_at_85%_18%,rgba(245,158,11,0.12),transparent_28rem)]" />
         <div className="relative grid gap-8 lg:grid-cols-[1fr_0.92fr] lg:items-center">
@@ -649,19 +666,29 @@ export default async function HomePage() {
             </div>
             <div className="mt-7 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.18em]">
               <span className="rounded-full border border-emerald-400/30 bg-emerald-400/[0.06] px-3 py-1 text-emerald-200/90">
-                <span className="font-black text-emerald-300 tabular-nums">{formatDollar(stats.totalRefundUsdc)}</span>
+                <CountUp
+                  className="font-black text-emerald-300"
+                  value={Number(stats.totalRefundUsdc) / 1e6}
+                  decimals={2}
+                  prefix="$"
+                />
                 <span className="ml-1.5 text-emerald-200/60">refunded to customers</span>
               </span>
               <span className="rounded-full border border-amber-400/30 bg-amber-400/[0.06] px-3 py-1 text-amber-200/90">
-                <span className="font-black text-amber-300 tabular-nums">{formatDollar(stats.totalEarningsUsdc)}</span>
+                <CountUp
+                  className="font-black text-amber-300"
+                  value={Number(stats.totalEarningsUsdc) / 1e6}
+                  decimals={2}
+                  prefix="$"
+                />
                 <span className="ml-1.5 text-amber-200/60">earned by bots</span>
               </span>
               <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-neutral-300">
-                <span className="font-black text-neutral-100 tabular-nums">{stats.totalClaims}</span>
+                <CountUp className="font-black text-neutral-100" value={stats.totalClaims} />
                 <span className="ml-1.5 text-neutral-400">total bets placed</span>
               </span>
               <span className="rounded-full border border-violet-400/30 bg-violet-400/[0.06] px-3 py-1 text-violet-200/90">
-                <span className="font-black text-violet-300 tabular-nums">{stats.settledRight + stats.settledWrong}</span>
+                <CountUp className="font-black text-violet-300" value={stats.settledRight + stats.settledWrong} />
                 <span className="ml-1.5 text-violet-200/60">scored by real-world price</span>
               </span>
             </div>
