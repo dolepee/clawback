@@ -282,6 +282,15 @@ export function settlerAccount(): PrivateKeyAccount {
   return accountFromPrivateKey(firstEnv(["SETTLER_PRIVATE_KEY", "PAYER_PRIVATE_KEY"]));
 }
 
+// Cap the reasoning fragment we put into claimText so the on-chain
+// reveal stays bounded (and so a chatty model can't blow up the
+// publicReveal calldata). 240 chars is generous for a 1-2 sentence
+// rationale and leaves room for the surrounding metadata.
+function truncateReasoning(text: string, maxLen = 240): string {
+  const clean = text.replace(/\s+/g, " ").replace(/"/g, "'").trim();
+  return clean.length <= maxLen ? clean : `${clean.slice(0, maxLen - 1)}…`;
+}
+
 // Minimum native MNT a cron actor must hold for the step to attempt any tx.
 // Below this, the step prints a clean skip marker and exits 0 so the
 // workflow stays green and no failure email is sent. Tune via env override.
@@ -460,10 +469,25 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
   const expiry = now + expirySeconds;
   const thresholdUsd = Number(thresholdPriceE8) / 1e8;
   const currentUsd = Number(pythSnapshot.priceE8) / 1e8;
-  const claimText =
+  // Build claimText. For the LLM persona, append the model identity,
+  // confidence, and a trimmed reasoning sentence so the full audit trail
+  // surfaces in the ClaimPubliclyRevealed event after publicReleaseAt.
+  // Judges read the reveal tx on Mantlescan and see the model's actual
+  // call without needing the encrypted vault key.
+  const baseClaimText =
     `[${persona.handle}] MNT will be ${chosenDirection} $${thresholdUsd.toFixed(4)} by ` +
     `${new Date(Number(expiry) * 1000).toISOString()}. ` +
     `Commit price: $${currentUsd.toFixed(4)}. Skill source: Merchant Moe Liquidity Book.`;
+  const llmAnnotation = llmDecisionRecord
+    ? ` Model: ${String(llmDecisionRecord.provider ?? "unknown")} ` +
+      `conf=${String(llmDecisionRecord.confidenceBps ?? 0)}bps ` +
+      `fellBack=${String(llmDecisionRecord.fellBack ?? false)} ` +
+      `reasoning: "${truncateReasoning(String(llmDecisionRecord.reasoning ?? ""))}".` +
+      (elfaSnapshot
+        ? ` Elfa triggers: ${elfaSnapshot.signals.length} signals (source=${elfaSnapshot.source}).`
+        : "")
+    : "";
+  const claimText = baseClaimText + llmAnnotation;
   const claim = buildClaim({
     agentId,
     marketId: MARKET_ID_THRESHOLD,
