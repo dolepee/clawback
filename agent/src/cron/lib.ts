@@ -455,12 +455,19 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
       provider: decision.model,
       direction: decision.direction,
       thresholdPriceUsd: decision.thresholdPriceUsd,
+      // On-chain confidence is mechanically calibrated from the chosen
+      // threshold's safety margin. The model's own confidence call is
+      // kept alongside for audit (encrypted reveal vault).
       confidenceBps: decision.confidenceBps,
+      modelConfidenceBps: decision.modelConfidenceBps,
       reasoning: decision.reasoning,
       providerCount: providers.length,
       fellBack: decision.fellBack,
     };
-    console.log(`[${persona.handle}] llm: ${decision.model} → ${decision.direction} $${decision.thresholdPriceUsd.toFixed(4)} (conf=${decision.confidenceBps}bps fellBack=${decision.fellBack})`);
+    console.log(
+      `[${persona.handle}] llm: ${decision.model} → ${decision.direction} $${decision.thresholdPriceUsd.toFixed(4)} ` +
+      `(onChainConf=${decision.confidenceBps}bps modelConf=${decision.modelConfidenceBps}bps fellBack=${decision.fellBack})`,
+    );
   }
 
   const skillsOutputHash = hashSkillsOutput(skillOutput);

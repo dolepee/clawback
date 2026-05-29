@@ -34,7 +34,14 @@ export interface MarketObservation {
 export interface LlmDecision {
   thresholdPriceUsd: number;
   direction: "above" | "below";
+  // On-chain confidence. Computed in code from the chosen threshold's
+  // safety margin vs recent volatility — keeps the number mechanically
+  // calibrated rather than dependent on the model's mood / floor-hugging
+  // tendencies.
   confidenceBps: number;
+  // The model's own confidence call, for the encrypted audit record.
+  // Diverges from confidenceBps when the model floor-hugs.
+  modelConfidenceBps: number;
   reasoning: string;
   model: string;
   fellBack: boolean;
@@ -144,6 +151,7 @@ export async function decideWithProviders(
     thresholdPriceUsd: fallback.thresholdPriceUsd,
     direction: fallback.direction,
     confidenceBps: fallback.confidenceBps,
+    modelConfidenceBps: fallback.confidenceBps,
     reasoning: providers.length === 0
       ? "No LLM provider configured (set ZAI_API_KEY or BANKR_LLM_KEY); used baseline."
       : "All LLM providers failed; used baseline.",
@@ -233,11 +241,26 @@ export async function decideThresholdClaim(
       reasoning?: unknown;
     };
 
+    const finalThreshold = clampNumber(parsed.thresholdPriceUsd, 0.3, 1.5, fallback.thresholdPriceUsd);
+    const finalDirection: "above" | "below" =
+      parsed.direction === "above" || parsed.direction === "below" ? parsed.direction : fallback.direction;
+    const modelConfidence = clampInt(parsed.confidenceBps, 3000, 9500, fallback.confidenceBps);
+    // Mechanically calibrated on-chain confidence: derive from the model's
+    // actual chosen threshold's safety margin vs recent observed range.
+    // Falls back to the model's own number when there's no price history
+    // to anchor against.
+    let onChainConfidence = modelConfidence;
+    if (calibration) {
+      const chosenSafetyMarginBps = Math.round(
+        (Math.abs(calibration.midpoint - finalThreshold) / calibration.midpoint) * 10_000,
+      );
+      onChainConfidence = candidateConfidenceFor(chosenSafetyMarginBps, calibration.recentRangeBps);
+    }
     const decision: LlmDecision = {
-      thresholdPriceUsd: clampNumber(parsed.thresholdPriceUsd, 0.3, 1.5, fallback.thresholdPriceUsd),
-      direction:
-        parsed.direction === "above" || parsed.direction === "below" ? parsed.direction : fallback.direction,
-      confidenceBps: clampInt(parsed.confidenceBps, 3000, 9500, fallback.confidenceBps),
+      thresholdPriceUsd: finalThreshold,
+      direction: finalDirection,
+      confidenceBps: onChainConfidence,
+      modelConfidenceBps: modelConfidence,
       reasoning: typeof parsed.reasoning === "string" ? parsed.reasoning.trim() : "(model returned no reasoning)",
       model: config.model,
       fellBack: false,
@@ -249,6 +272,7 @@ export async function decideThresholdClaim(
       thresholdPriceUsd: fallback.thresholdPriceUsd,
       direction: fallback.direction,
       confidenceBps: fallback.confidenceBps,
+      modelConfidenceBps: fallback.confidenceBps,
       reasoning: `LLM unavailable (${(err as Error).message}); used baseline ${fallback.direction} ${fallback.thresholdPriceUsd}.`,
       model: `${config.model}+fallback`,
       fellBack: true,
