@@ -1,3 +1,4 @@
+export const maxDuration = 60;
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -37,20 +38,27 @@ type CharacterMeta = {
   emoji: string;
 };
 
-const CHARACTERS: Record<"CatScout" | "LobsterRogue", CharacterMeta> = {
+const CHARACTERS: Record<"CatScout" | "LobsterRogue" | "LlmScout", CharacterMeta> = {
   CatScout: {
     tagline: "Reads MNT charts like a tabby reads sunbeams.",
     bio: "Patient predator. Stalks threshold breaks on MNT/USDT, locks in when momentum aligns.",
-    strategy: "Threshold reads — calls MNT crossing a price line, settles trustlessly via Pyth after expiry.",
+    strategy: "Threshold reads, calls MNT crossing a price line, settles trustlessly via Pyth after expiry.",
     vibe: "calm, methodical, allergic to overbets",
     emoji: "🐈",
   },
   LobsterRogue: {
     tagline: "Snips at MNT/USD downside thresholds like prey.",
     bio: "Contrarian degen. Bets MNT will pierce below a Pyth threshold in tight windows.",
-    strategy: "Downside threshold reads — MNT must close below a Pyth price line by the deadline, settled trustlessly after expiry.",
+    strategy: "Downside threshold reads, MNT must close below a Pyth price line by the deadline, settled trustlessly after expiry.",
     vibe: "loud, fast, allergic to easy money",
     emoji: "🦞",
+  },
+  LlmScout: {
+    tagline: "Reasons about the next 12 hours before locking the bond.",
+    bio: "Model-driven agent. Observes Pyth + Merchant Moe, then asks an LLM (Bankr deepseek-v3.2, with Z.ai primary when credits are available) for a fresh direction, threshold, and confidence per commit. The prompt and the model's reasoning go into the encrypted reveal vault for post-publicReleaseAt audit.",
+    strategy: "LLM-derived threshold reads, structured output gets hashed into skillsOutputHash, settles trustlessly via Pyth after expiry.",
+    vibe: "structured, auditable, fallible-on-purpose",
+    emoji: "🧠",
   },
 };
 
@@ -135,14 +143,36 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
   const data = await loadAgentDetail(agentId!);
   if (!data) notFound();
   const { agent, score, identity } = data;
-  const character = CHARACTERS[agent.handle as "CatScout" | "LobsterRogue"];
+  const character = CHARACTERS[agent.handle as "CatScout" | "LobsterRogue" | "LlmScout"];
   const isCat = agent.faction === 0;
   const accent: "cat" | "lobster" = isCat ? "cat" : "lobster";
   const borderTint = isCat ? "border-cat/40" : "border-lobster/40";
   const textAccent = isCat ? "text-cat" : "text-lobster";
   const total = score.wins + score.losses;
   const accuracyPct = total === 0n ? "—" : (score.accuracyBps / 100).toFixed(1) + "%";
-  const receiptsData = await loadAgentReceipts(agentId!);
+  // Best-effort receipts. Identity + score come from contract state and
+  // always render; the curve and per-claim history may be empty when RPC
+  // is overloaded. Judges can still navigate to /claim/[id] for receipts.
+  const emptyReceiptsData = {
+    receipts: [],
+    curve: [],
+    totalRefundCaused: 0n,
+    refundCount: 0,
+    payoutCount: 0,
+  } satisfies Awaited<ReturnType<typeof loadAgentReceipts>>;
+  // Hard 4s budget on receipt aggregation. Identity + score above always
+  // render from cheap contract reads. The receipt history is best-effort.
+  let receiptsData: Awaited<ReturnType<typeof loadAgentReceipts>> = emptyReceiptsData;
+  try {
+    receiptsData = await Promise.race([
+      loadAgentReceipts(agentId!),
+      new Promise<Awaited<ReturnType<typeof loadAgentReceipts>>>((resolve) =>
+        setTimeout(() => resolve(emptyReceiptsData), 4_000),
+      ),
+    ]);
+  } catch (err) {
+    console.warn(`loadAgentReceipts(${agentId!.toString()}) failed:`, err);
+  }
 
   return (
     <div className="max-w-5xl mx-auto">

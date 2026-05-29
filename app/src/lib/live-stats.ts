@@ -8,6 +8,12 @@ import {
   reputationLedgerAbi,
 } from "./abi";
 
+export type AgentHandle = "CatScout" | "LobsterRogue" | "LlmScout";
+const KNOWN_HANDLES: readonly AgentHandle[] = ["CatScout", "LobsterRogue", "LlmScout"];
+function isKnownHandle(h: string): h is AgentHandle {
+  return (KNOWN_HANDLES as readonly string[]).includes(h);
+}
+
 export type LiveStats = {
   totalClaims: number;
   totalUnlocks: number;
@@ -17,22 +23,26 @@ export type LiveStats = {
   earningsClaimed: number;
   catAccuracy: number;
   lobsterAccuracy: number;
+  llmAccuracy: number;
   catAgentId: number;
   lobsterAgentId: number;
+  llmAgentId: number;
   catWins: number;
   catLosses: number;
   lobsterWins: number;
   lobsterLosses: number;
+  llmWins: number;
+  llmLosses: number;
   totalRefundUsdc: bigint;
   totalEarningsUsdc: bigint;
   latestRefund?: { claimId: number; tx: `0x${string}`; paidBack: bigint; bonus: bigint; user: `0x${string}` };
-  latestPayout?: { claimId: number; tx: `0x${string}`; amount: bigint; agent: "CatScout" | "LobsterRogue" };
+  latestPayout?: { claimId: number; tx: `0x${string}`; amount: bigint; agent: AgentHandle };
   lastClaimAt: number;
   lastSettleAt: number;
   generatedAt: number;
   latestReceipts: Array<{
     claimId: number;
-    agent: "CatScout" | "LobsterRogue";
+    agent: AgentHandle;
     outcome: "pending" | "right" | "wrong";
     commitTx: `0x${string}`;
     settleTx?: `0x${string}`;
@@ -63,24 +73,48 @@ const escrowEventsAbi = parseAbi([
 function makeClient(): PublicClient {
   return createPublicClient({
     chain: mantleSepolia,
-    transport: http(process.env.MANTLE_SEPOLIA_RPC_URL ?? RPC_URL),
+    transport: http(process.env.MANTLE_SEPOLIA_RPC_URL ?? RPC_URL, {
+      batch: true,
+      retryCount: 2,
+      retryDelay: 200,
+      timeout: 6_000,
+    }),
   }) as PublicClient;
 }
 
-// Mantle Sepolia caps eth_getLogs at 10000 blocks per call.
+// Mantle Sepolia caps eth_getLogs at 10000 blocks per call. Public RPC is
+// also slow and rate limited, so we cap the lookback to fit Vercel's
+// serverless timeout. The cron pushes new claims every hour, so a recent
+// window covers all active activity. Older history is read via contract
+// state, not logs.
+// Vercel serverless functions have a 10s default timeout. Each chunk takes
+// ~1s on Mantle Sepolia, so we cap lookback at roughly 4 chunks to keep
+// page renders fast. Recent activity (last ~24h) is fully covered; older
+// receipts render with an empty event timeline (the receipt page still
+// shows accounting, state, and contract addresses from contract reads).
+const LOG_CHUNK_CONCURRENCY = 6;
+const LOG_LOOKBACK_BLOCKS = 9_000n;
+
 export async function chunkedLogs<T>(
   client: PublicClient,
   fetch: (fromBlock: bigint, toBlock: bigint) => Promise<T[]>,
 ): Promise<T[]> {
   const latest = await client.getBlockNumber();
+  const startFloor = latest > LOG_LOOKBACK_BLOCKS ? latest - LOG_LOOKBACK_BLOCKS : 0n;
+  const start = startFloor > DEPLOY_BLOCK ? startFloor : DEPLOY_BLOCK;
   const chunkSize = 9999n;
   const ranges: Array<[bigint, bigint]> = [];
-  for (let from = DEPLOY_BLOCK; from <= latest; from = from + chunkSize + 1n) {
+  for (let from = start; from <= latest; from = from + chunkSize + 1n) {
     const to = from + chunkSize > latest ? latest : from + chunkSize;
     ranges.push([from, to]);
   }
-  const chunks = await Promise.all(ranges.map(([f, t]) => fetch(f, t)));
-  return chunks.flat();
+  const results: T[] = [];
+  for (let i = 0; i < ranges.length; i += LOG_CHUNK_CONCURRENCY) {
+    const batch = ranges.slice(i, i + LOG_CHUNK_CONCURRENCY);
+    const batchResults = await Promise.all(batch.map(([f, t]) => fetch(f, t)));
+    for (const chunk of batchResults) results.push(...chunk);
+  }
+  return results;
 }
 
 export async function buildStats(client: PublicClient = makeClient()): Promise<LiveStats> {
@@ -102,28 +136,28 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
     chunkedLogs(client, (fromBlock, toBlock) => client.getLogs({ address: ADDRESSES.clawbackEscrow, event: escrowEventsAbi[1], fromBlock, toBlock })),
   ]);
 
-  const agents = new Map<string, "CatScout" | "LobsterRogue">();
+  const agents = new Map<string, AgentHandle>();
   const scores = new Map<string, number>();
   const winsByHandle = new Map<string, bigint>();
   const lossesByHandle = new Map<string, bigint>();
-  const agentIdByHandle = new Map<"CatScout" | "LobsterRogue", number>();
+  const agentIdByHandle = new Map<AgentHandle, number>();
   for (let id = 1n; id < nextAgentId; id++) {
     const [agent, score] = await Promise.all([
       client.readContract({ address: ADDRESSES.agentRegistry, abi: agentRegistryAbi, functionName: "agents", args: [id] }),
       client.readContract({ address: ADDRESSES.reputationLedger, abi: reputationLedgerAbi, functionName: "scores", args: [id] }),
     ]);
     const handle = agent[1];
-    if (handle === "CatScout" || handle === "LobsterRogue") {
+    if (isKnownHandle(handle)) {
       agents.set(id.toString(), handle);
       scores.set(handle, Number(score[5]) / 10_000);
       winsByHandle.set(handle, score[0] as bigint);
       lossesByHandle.set(handle, score[1] as bigint);
-      agentIdByHandle.set(handle as "CatScout" | "LobsterRogue", Number(id));
+      agentIdByHandle.set(handle, Number(id));
     }
   }
 
   const commitByClaim = new Map<string, `0x${string}`>();
-  const agentByClaim = new Map<string, "CatScout" | "LobsterRogue">();
+  const agentByClaim = new Map<string, AgentHandle>();
   for (const log of commitLogs) {
     const claimId = log.args.claimId?.toString();
     const agentId = log.args.agentId?.toString();
@@ -215,12 +249,16 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
     earningsClaimed: earningLogs.length,
     catAccuracy: scores.get("CatScout") ?? 0,
     lobsterAccuracy: scores.get("LobsterRogue") ?? 0,
+    llmAccuracy: scores.get("LlmScout") ?? 0,
     catAgentId: agentIdByHandle.get("CatScout") ?? 0,
     lobsterAgentId: agentIdByHandle.get("LobsterRogue") ?? 0,
+    llmAgentId: agentIdByHandle.get("LlmScout") ?? 0,
     catWins: Number(winsByHandle.get("CatScout") ?? 0n),
     catLosses: Number(lossesByHandle.get("CatScout") ?? 0n),
     lobsterWins: Number(winsByHandle.get("LobsterRogue") ?? 0n),
     lobsterLosses: Number(lossesByHandle.get("LobsterRogue") ?? 0n),
+    llmWins: Number(winsByHandle.get("LlmScout") ?? 0n),
+    llmLosses: Number(lossesByHandle.get("LlmScout") ?? 0n),
     totalRefundUsdc,
     totalEarningsUsdc,
     latestRefund,
@@ -256,7 +294,7 @@ async function blockTimestamp(client: PublicClient, blockNumber?: bigint): Promi
 export type ReplayClaim = {
   claimId: number;
   agentId: number;
-  agentHandle: "CatScout" | "LobsterRogue";
+  agentHandle: AgentHandle;
   marketId: number;
   predictionParams: `0x${string}`;
   bondAmount: bigint;
@@ -286,7 +324,7 @@ export async function loadReplayClaims(
     client.readContract({ address: ADDRESSES.agentRegistry, abi: agentRegistryAbi, functionName: "nextAgentId" }),
   ]);
 
-  const handleByAgent = new Map<string, "CatScout" | "LobsterRogue">();
+  const handleByAgent = new Map<string, AgentHandle>();
   for (let id = 1n; id < nextAgentId; id++) {
     const agent = await client.readContract({
       address: ADDRESSES.agentRegistry,
@@ -295,7 +333,7 @@ export async function loadReplayClaims(
       args: [id],
     });
     const handle = agent[1];
-    if (handle === "CatScout" || handle === "LobsterRogue") {
+    if (isKnownHandle(handle)) {
       handleByAgent.set(id.toString(), handle);
     }
   }
