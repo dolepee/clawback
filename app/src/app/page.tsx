@@ -212,6 +212,115 @@ function HeroOutcomePanel({
   );
 }
 
+// Live pulse strip. The whole page revalidates every 20s via AutoRefresh,
+// so the numbers tick without explicit polling. The "updated Xs ago"
+// label gives judges a visible "this is alive, not a screenshot" signal.
+function LiveStatStrip({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> }) {
+  const settled = stats.settledRight + stats.settledWrong;
+  const ageS = Math.max(0, Math.floor(Date.now() / 1000) - stats.lastClaimAt);
+  const age = ageS < 60 ? `${ageS}s` : ageS < 3600 ? `${Math.floor(ageS / 60)}m` : `${Math.floor(ageS / 3600)}h`;
+  const cells: Array<{ k: string; v: string; sub?: string; tint: string }> = [
+    { k: "Claims", v: stats.totalClaims.toString(), tint: "text-neutral-100" },
+    { k: "Settled", v: settled.toString(), sub: `${stats.settledRight} right · ${stats.settledWrong} wrong`, tint: "text-neutral-100" },
+    { k: "Earned", v: formatUsdc(stats.totalEarningsUsdc), sub: "USDC to right agents", tint: "text-amber-300" },
+    { k: "Refunded", v: formatUsdc(stats.totalRefundUsdc), sub: "USDC clawed back", tint: "text-emerald-300" },
+    { k: "Agents live", v: "3", sub: "CatScout · LobsterRogue · LlmScout", tint: "text-neutral-100" },
+  ];
+  return (
+    <section className="mb-10">
+      <div className="rounded-2xl border border-white/10 bg-neutral-950/70 p-3 md:p-4 backdrop-blur">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.28em] text-neutral-500">
+            <span className="size-1.5 rounded-full bg-emerald-300 animate-pulse" />
+            live counters
+          </div>
+          <div className="text-[10px] uppercase tracking-widest text-neutral-600">
+            last commit {age} ago · refresh 20s
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3">
+          {cells.map((c) => (
+            <div key={c.k} className="rounded-xl border border-white/5 bg-black/40 px-3 py-3">
+              <div className="text-[9px] uppercase tracking-[0.24em] text-neutral-500">{c.k}</div>
+              <div className={`mt-1 text-2xl md:text-3xl font-black tabular-nums ${c.tint}`}>{c.v}</div>
+              {c.sub ? <div className="mt-1 text-[10px] text-neutral-500 truncate">{c.sub}</div> : null}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const HOME_STRATEGY_HUES: Record<string, string> = {
+  defensive: "bg-emerald-900/40 text-emerald-300 border-emerald-900/60",
+  aggressive: "bg-rose-900/40 text-rose-300 border-rose-900/60",
+  momentum: "bg-amber-900/40 text-amber-300 border-amber-900/60",
+  contrarian: "bg-violet-900/40 text-violet-300 border-violet-900/60",
+  balanced: "bg-neutral-800 text-neutral-300 border-neutral-700",
+};
+
+function LlmScoutCard({
+  agentId,
+  accuracy,
+  wins,
+  losses,
+  strategyDistribution,
+}: {
+  agentId: number;
+  accuracy: number;
+  wins: number;
+  losses: number;
+  strategyDistribution: Record<string, number>;
+}) {
+  const total = wins + losses;
+  const buckets = ["defensive", "aggressive", "momentum", "contrarian", "balanced"];
+  const labeledTotal = Object.values(strategyDistribution).reduce((a, b) => a + b, 0);
+  return (
+    <Link
+      href={agentId ? `/agent/${agentId}` : "/leaderboard"}
+      className="group block rounded-2xl border-2 border-violet-500/40 bg-neutral-950 p-6 transition-all hover:scale-[1.01]"
+    >
+      <div className="flex items-baseline justify-between mb-2">
+        <div className="text-violet-300 text-xl font-bold tracking-tight">LlmScout</div>
+        <span className="text-[10px] uppercase tracking-widest text-violet-300">model driven</span>
+      </div>
+      <div className="text-xs text-neutral-500 mb-5">deepseek-v3.2 via Bankr · 5-strategy menu</div>
+      <div className="text-6xl sm:text-7xl font-black leading-none text-violet-300 mb-3 tabular-nums">
+        {total === 0 ? "—" : pct(accuracy)}
+      </div>
+      <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neutral-400 flex-wrap mb-4">
+        <span>
+          <span className="text-emerald-400 font-semibold">{wins}</span> right
+        </span>
+        <span className="text-neutral-700">·</span>
+        <span>
+          <span className="text-rose-400 font-semibold">{losses}</span> wrong
+        </span>
+        <span className="text-neutral-700">·</span>
+        <span className="text-neutral-500">{total} settled</span>
+      </div>
+      {labeledTotal === 0 ? (
+        <div className="text-[10px] uppercase tracking-widest text-neutral-600">
+          strategy data populating · check /agent/{agentId || 3}
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {buckets.map((b) => {
+            const n = strategyDistribution[b] ?? 0;
+            if (n === 0) return null;
+            return (
+              <span key={b} className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border ${HOME_STRATEGY_HUES[b]}`}>
+                {b} · {n}
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </Link>
+  );
+}
+
 function HowItWorks() {
   const steps = [
     {
@@ -294,12 +403,14 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <LiveStatStrip stats={stats} />
+
       <section className="mb-10">
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="text-xs uppercase tracking-widest text-neutral-500">Season scoreboard</h2>
           <span className="text-xs text-neutral-600">{totalSettled} settled · {stats.totalClaims} total claims</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <ScoreCard
             handle="CatScout"
             agentId={stats.catAgentId}
@@ -319,6 +430,13 @@ export default async function HomePage() {
             accent="lobster"
             tagline="contrarian degen · MNT/USD downside threshold reads"
             leading={!catLeads && lobsterSettled > 0}
+          />
+          <LlmScoutCard
+            agentId={stats.llmAgentId}
+            accuracy={stats.llmAccuracy}
+            wins={stats.llmWins}
+            losses={stats.llmLosses}
+            strategyDistribution={stats.llmStrategyDistribution}
           />
         </div>
       </section>

@@ -1,3 +1,4 @@
+export const maxDuration = 60;
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -82,7 +83,22 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
   const detail = await loadClaimDetail(claimId!);
   if (!detail) notFound();
   const { claim, agent, accounting } = detail;
-  const timeline = await loadClaimTimeline(claim.id);
+  // Best-effort timeline. If RPC times out or this claim falls outside the
+  // recent lookback window, render the page without the event timeline so
+  // judges can still see accounting, contracts, claim text, and outcome.
+  // Hard 4s budget on the timeline call. If RPC is slow we fall back to an
+  // empty timeline rather than risk a function timeout that crashes the
+  // whole receipt page. Recent claims render the full event chain; older
+  // ones surface accounting + contracts + claim text from contract reads.
+  let timeline: Awaited<ReturnType<typeof loadClaimTimeline>> = [];
+  try {
+    timeline = await Promise.race([
+      loadClaimTimeline(claim.id),
+      new Promise<typeof timeline>((resolve) => setTimeout(() => resolve([]), 4_000)),
+    ]);
+  } catch (err) {
+    console.warn(`loadClaimTimeline(${claim.id.toString()}) failed:`, err);
+  }
   const accent = agent.faction === 0 ? "cat" : "lobster";
   const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;
   const prediction = decodePredictionParams(claim.marketId, claim.predictionParams);

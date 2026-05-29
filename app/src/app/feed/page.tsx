@@ -1,3 +1,4 @@
+export const maxDuration = 60;
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loadFeed, loadFeedStats, type Agent, type Claim } from "@/lib/data";
@@ -59,7 +60,25 @@ function ClaimCard({ claim, agent, accent }: { claim: Claim; agent?: Agent; acce
 }
 
 export default async function ClaimFeedPage() {
-  const [{ claims, agents }, stats] = await Promise.all([loadFeed(), loadFeedStats()]);
+  // Best-effort load. If the RPC is overloaded or a single claim decode
+  // throws, render an empty feed shell rather than 500 the whole page.
+  let claims: Claim[] = [];
+  let agents: Map<string, Agent> = new Map();
+  let stats: Awaited<ReturnType<typeof loadFeedStats>> = {
+    totalClaims: 0,
+    settledRight: 0,
+    settledWrong: 0,
+    publiclyRevealed: 0,
+    totalUsdcPaidIn: 0n,
+  };
+  try {
+    const feed = await loadFeed();
+    claims = feed.claims;
+    agents = feed.agents;
+    stats = await loadFeedStats(claims);
+  } catch (err) {
+    console.warn("loadFeed/loadFeedStats failed:", err);
+  }
 
   const catClaims = claims.filter((c) => agents.get(c.agentId.toString())?.faction === 0);
   const lobsterClaims = claims.filter((c) => agents.get(c.agentId.toString())?.faction === 1);
