@@ -1,37 +1,42 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loadLeaderboard } from "@/lib/data";
-import { factionLabel, formatUsdc } from "@/lib/format";
+import { factionLabel, formatDollar } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 export const metadata: Metadata = {
   title: "Leaderboard · Clawback",
-  description: "CatScout vs LobsterRogue ranked by accuracy, bonded, slashed, and earned USDC on Mantle Sepolia.",
+  description: "Three bots ranked by their on-chain accuracy and how much customer money they have earned vs refunded.",
 };
 
 export default async function LeaderboardPage() {
   const rows = await loadLeaderboard();
-
-  const catRows = rows.filter((r) => r.agent.faction === 0);
-  const lobsterRows = rows.filter((r) => r.agent.faction === 1);
-  const catWins = catRows.reduce((s, r) => s + r.score.wins, 0n);
-  const lobsterWins = lobsterRows.reduce((s, r) => s + r.score.wins, 0n);
+  const catRow = rows.find((r) => r.agent.handle === "CatScout");
+  const lobsterRow = rows.find((r) => r.agent.handle === "LobsterRogue");
+  const llmRow = rows.find((r) => r.agent.handle === "LlmScout");
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <h1 className="text-2xl md:text-3xl font-bold mb-2">Leaderboard</h1>
-      <p className="text-neutral-400 mb-6 md:mb-8 text-sm md:text-base">Top agents by accuracy. Cat vs Lobster faction tally below.</p>
+      <p className="text-neutral-400 mb-6 md:mb-8 text-sm md:text-base">Three bots ranked by accuracy. Each one bets on MNT (Mantle's token) and has to put up its own money first.</p>
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
-        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
-          <div className="text-xs text-neutral-500">Cat faction wins</div>
-          <div className="text-2xl md:text-3xl font-bold text-cat">{catWins.toString()}</div>
+      <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6 md:mb-8">
+        <div className="border border-cat/30 rounded-lg p-3 md:p-4 bg-cat/[0.04]">
+          <div className="text-[10px] uppercase tracking-widest text-cat/80">🐈 CatScout</div>
+          <div className="text-2xl md:text-3xl font-bold text-cat tabular-nums">{catRow?.score.wins.toString() ?? "0"}</div>
+          <div className="text-[10px] uppercase tracking-widest text-neutral-500">right calls</div>
         </div>
-        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
-          <div className="text-xs text-neutral-500">Lobster faction wins</div>
-          <div className="text-2xl md:text-3xl font-bold text-lobster">{lobsterWins.toString()}</div>
+        <div className="border border-lobster/30 rounded-lg p-3 md:p-4 bg-lobster/[0.04]">
+          <div className="text-[10px] uppercase tracking-widest text-lobster/80">🦞 LobsterRogue</div>
+          <div className="text-2xl md:text-3xl font-bold text-lobster tabular-nums">{lobsterRow?.score.wins.toString() ?? "0"}</div>
+          <div className="text-[10px] uppercase tracking-widest text-neutral-500">right calls</div>
+        </div>
+        <div className="border border-violet-500/30 rounded-lg p-3 md:p-4 bg-violet-500/[0.04]">
+          <div className="text-[10px] uppercase tracking-widest text-violet-300/80">🧠 LlmScout</div>
+          <div className="text-2xl md:text-3xl font-bold text-violet-300 tabular-nums">{llmRow?.score.wins.toString() ?? "0"}</div>
+          <div className="text-[10px] uppercase tracking-widest text-neutral-500">right calls</div>
         </div>
       </div>
 
@@ -65,16 +70,24 @@ export default async function LeaderboardPage() {
                     <td className="px-4 py-3">
                       <Link
                         href={`/agent/${r.agent.id.toString()}`}
-                        className={r.agent.faction === 0 ? "text-cat hover:underline" : "text-lobster hover:underline"}
+                        className={
+                          r.agent.handle === "LlmScout"
+                            ? "text-violet-300 hover:underline"
+                            : r.agent.faction === 0
+                            ? "text-cat hover:underline"
+                            : "text-lobster hover:underline"
+                        }
                       >
                         {r.agent.handle}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-neutral-400">{factionLabel(r.agent.faction)}</td>
-                    <td className="px-4 py-3 text-right">{accuracy}</td>
-                    <td className="px-4 py-3 text-right text-emerald-400">{r.score.wins.toString()}</td>
-                    <td className="px-4 py-3 text-right text-rose-400">{r.score.losses.toString()}</td>
-                    <td className="px-4 py-3 text-right">{formatUsdc(r.score.totalEarned)}</td>
+                    <td className="px-4 py-3 text-neutral-400">
+                      {r.agent.handle === "LlmScout" ? "AI persona" : `${factionLabel(r.agent.faction)} faction`}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">{accuracy}</td>
+                    <td className="px-4 py-3 text-right text-emerald-400 tabular-nums">{r.score.wins.toString()}</td>
+                    <td className="px-4 py-3 text-right text-rose-400 tabular-nums">{r.score.losses.toString()}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{formatDollar(r.score.totalEarned)}</td>
                   </tr>
                 );
               })
