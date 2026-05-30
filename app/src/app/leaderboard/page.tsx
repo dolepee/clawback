@@ -12,7 +12,15 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaderboardPage() {
-  const rows = await loadLeaderboard();
+  // Mantle Sepolia public RPC frequently 5xxs under load. Soft-fail so a
+  // single flaky read doesn't 500 the whole leaderboard — render with an
+  // empty row set and let AutoRefresh retry on the next tick.
+  let rows: Awaited<ReturnType<typeof loadLeaderboard>> = [];
+  try {
+    rows = await loadLeaderboard();
+  } catch (err) {
+    console.warn("loadLeaderboard failed, rendering empty shell:", err);
+  }
   const catRow = rows.find((r) => r.agent.handle === "CatScout");
   const lobsterRow = rows.find((r) => r.agent.handle === "LobsterRogue");
   const llmRow = rows.find((r) => r.agent.handle === "LlmScout");

@@ -14,35 +14,46 @@ export const metadata: Metadata = {
 };
 
 export default async function SettlePage() {
-  const { claims, agents } = await loadFeed();
-
-  const accountings = await Promise.all(
-    claims.map((c) =>
-      publicClient.readContract({
-        address: ADDRESSES.clawbackEscrow as `0x${string}`,
-        abi: clawbackEscrowAbi,
-        functionName: "accounting",
-        args: [c.id],
-      }) as Promise<readonly [bigint, bigint, bigint, bigint, boolean, boolean, `0x${string}`]>,
-    ),
-  );
-
-  const rows: SettleClaim[] = claims.map((c, i) => {
-    const agent = agents.get(c.agentId.toString());
-    const acct = accountings[i];
-    return {
-      id: c.id.toString(),
-      agentId: c.agentId.toString(),
-      agentHandle: agent?.handle ?? `agent ${c.agentId.toString()}`,
-      marketId: c.marketId,
-      state: c.state,
-      expiry: c.expiry.toString(),
-      bondAmount: c.bondAmount.toString(),
-      unlockPrice: c.unlockPrice.toString(),
-      settled: acct[4],
-      agentRight: acct[5],
-    };
-  });
+  // Soft-fail wrapping: Mantle Sepolia public RPC frequently 5xxs under
+  // load and `accounting()` fans out N reads. One flaky read should not
+  // 500 the whole page. Use Promise.allSettled so individual failures
+  // skip their row, and wrap the whole load in try/catch so loadFeed
+  // failures render an empty shell instead of crashing the page.
+  let rows: SettleClaim[] = [];
+  try {
+    const { claims, agents } = await loadFeed();
+    const accountings = await Promise.allSettled(
+      claims.map((c) =>
+        publicClient.readContract({
+          address: ADDRESSES.clawbackEscrow as `0x${string}`,
+          abi: clawbackEscrowAbi,
+          functionName: "accounting",
+          args: [c.id],
+        }) as Promise<readonly [bigint, bigint, bigint, bigint, boolean, boolean, `0x${string}`]>,
+      ),
+    );
+    rows = claims
+      .map((c, i) => {
+        const a = accountings[i];
+        if (a.status !== "fulfilled") return null;
+        const agent = agents.get(c.agentId.toString());
+        return {
+          id: c.id.toString(),
+          agentId: c.agentId.toString(),
+          agentHandle: agent?.handle ?? `agent ${c.agentId.toString()}`,
+          marketId: c.marketId,
+          state: c.state,
+          expiry: c.expiry.toString(),
+          bondAmount: c.bondAmount.toString(),
+          unlockPrice: c.unlockPrice.toString(),
+          settled: a.value[4],
+          agentRight: a.value[5],
+        } satisfies SettleClaim;
+      })
+      .filter((r): r is SettleClaim => r !== null);
+  } catch (err) {
+    console.warn("settle page load failed, rendering empty shell:", err);
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
