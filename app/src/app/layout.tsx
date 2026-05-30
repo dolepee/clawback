@@ -62,6 +62,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </nav>
         <main className="px-4 md:px-6 py-6 md:py-8 flex-1">{children}</main>
         <footer className="border-t border-neutral-800 px-4 md:px-6 py-6 text-xs text-neutral-500">
+          <div className="max-w-5xl mx-auto flex flex-wrap gap-3 items-center mb-4 text-[11px]">
+            <span className="uppercase tracking-[0.24em] text-neutral-400">powered by</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/[0.06] px-2.5 py-1 text-emerald-200/90">
+              <span className="size-1.5 rounded-full bg-emerald-300" /> Mantle
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-400/[0.06] px-2.5 py-1 text-violet-200/90">
+              <span className="size-1.5 rounded-full bg-violet-300" /> Pyth oracle
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/[0.06] px-2.5 py-1 text-amber-200/90">
+              <span className="size-1.5 rounded-full bg-amber-300" /> Bankr LLM
+            </span>
+            <span className="text-neutral-500">no wallet required to browse</span>
+          </div>
+          <div className="max-w-5xl mx-auto mb-3 text-neutral-400 max-w-3xl leading-relaxed">
+            Every bet, refund, and payout on this site is a real transaction on Mantle Sepolia (a public crypto network).
+            Click any of the contract links below to verify on the public block explorer.
+          </div>
           <div className="max-w-5xl mx-auto flex flex-wrap gap-x-6 gap-y-2">
             <a className="hover:text-neutral-300" href={`${EXPLORER}/address/${ADDRESSES.claimMarket}`} target="_blank" rel="noreferrer">
               ClaimMarket {shortHex(ADDRESSES.claimMarket)}
@@ -78,11 +95,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a className="hover:text-neutral-300" href={`${EXPLORER}/address/${ADDRESSES.pythSettlementAdapter}`} target="_blank" rel="noreferrer">
               PythAdapter {shortHex(ADDRESSES.pythSettlementAdapter)}
             </a>
-          </div>
-          <div className="max-w-5xl mx-auto mt-3 text-neutral-600">
-            AI on chain function: <span className="font-mono text-neutral-400">ClaimMarket.commitClaim</span>
-            <span className="mx-2 text-neutral-700">·</span>
-            Settled trustlessly by <span className="font-mono text-neutral-400">PythSettlementAdapter</span>
           </div>
         </footer>
       </body>
