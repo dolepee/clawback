@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 import { buildStats } from "@/lib/live-stats";
-import { formatUsdc } from "@/lib/format";
+import { formatDollar } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const alt = "Clawback — AI calls that pay you back when they are wrong";
@@ -17,17 +17,25 @@ export default async function Image() {
 
   const cat = stats?.catAccuracy ?? 0;
   const lobster = stats?.lobsterAccuracy ?? 0;
+  const llm = stats?.llmAccuracy ?? 0;
   const catWins = stats?.catWins ?? 0;
   const catLosses = stats?.catLosses ?? 0;
   const lobsterWins = stats?.lobsterWins ?? 0;
   const lobsterLosses = stats?.lobsterLosses ?? 0;
+  const llmWins = stats?.llmWins ?? 0;
+  const llmLosses = stats?.llmLosses ?? 0;
   const catSettled = catWins + catLosses;
   const lobsterSettled = lobsterWins + lobsterLosses;
-  const catLeads =
-    catSettled + lobsterSettled === 0
-      ? false
-      : cat > lobster || (cat === lobster && catSettled > lobsterSettled);
-  const lobsterLeads = !catLeads && lobsterSettled > 0;
+  const llmSettled = llmWins + llmLosses;
+  const totals = [
+    { accuracy: cat, settled: catSettled },
+    { accuracy: lobster, settled: lobsterSettled },
+    { accuracy: llm, settled: llmSettled },
+  ];
+  const top = totals.reduce(
+    (best, cur, i) => (cur.settled > 0 && (best.idx === -1 || cur.accuracy > totals[best.idx].accuracy) ? { idx: i } : best),
+    { idx: -1 },
+  );
   const refundTotal = stats?.totalRefundUsdc ?? 0n;
   const earningsTotal = stats?.totalEarningsUsdc ?? 0n;
   const totalSettled = (stats?.settledRight ?? 0) + (stats?.settledWrong ?? 0);
@@ -126,7 +134,7 @@ export default async function Image() {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 20, marginBottom: 28 }}>
+        <div style={{ display: "flex", gap: 16, marginBottom: 28 }}>
           <Agent
             handle="CatScout"
             color="#f59e0b"
@@ -134,7 +142,7 @@ export default async function Image() {
             accuracy={catSettled === 0 ? "—" : pct(cat)}
             wins={catWins}
             losses={catLosses}
-            leading={catLeads}
+            leading={top.idx === 0}
           />
           <Agent
             handle="LobsterRogue"
@@ -143,7 +151,16 @@ export default async function Image() {
             accuracy={lobsterSettled === 0 ? "—" : pct(lobster)}
             wins={lobsterWins}
             losses={lobsterLosses}
-            leading={lobsterLeads}
+            leading={top.idx === 1}
+          />
+          <Agent
+            handle="LlmScout"
+            color="#a78bfa"
+            emoji="🧠"
+            accuracy={llmSettled === 0 ? "—" : pct(llm)}
+            wins={llmWins}
+            losses={llmLosses}
+            leading={top.idx === 2}
           />
         </div>
 
@@ -158,16 +175,16 @@ export default async function Image() {
         >
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
             <div style={{ display: "flex", color: "#34d399", fontWeight: 700 }}>
-              {formatUsdc(refundTotal)}
+              {formatDollar(refundTotal)}
             </div>
-            <div style={{ display: "flex" }}>USDC clawed back</div>
+            <div style={{ display: "flex" }}>refunded to customers</div>
           </div>
           <div style={{ display: "flex", color: "#3f3f46" }}>·</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
             <div style={{ display: "flex", color: "#fbbf24", fontWeight: 700 }}>
-              {formatUsdc(earningsTotal)}
+              {formatDollar(earningsTotal)}
             </div>
-            <div style={{ display: "flex" }}>earned by agents</div>
+            <div style={{ display: "flex" }}>earned by bots</div>
           </div>
           <div style={{ display: "flex", color: "#3f3f46" }}>·</div>
           <div style={{ display: "flex" }}>{totalSettled} settled</div>
