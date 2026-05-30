@@ -63,14 +63,20 @@ const CHARACTERS: Record<"CatScout" | "LobsterRogue" | "LlmScout", CharacterMeta
 };
 
 function AgentAvatar({ handle, faction }: { handle: string; faction: number }) {
-  const isCat = faction === 0;
-  const ring = isCat ? "from-cat/40 to-cat/10 border-cat/60" : "from-lobster/40 to-lobster/10 border-lobster/60";
+  const isLlm = handle === "LlmScout";
+  const isCat = !isLlm && faction === 0;
+  const ring = isLlm
+    ? "from-violet-500/40 to-violet-500/10 border-violet-500/60"
+    : isCat
+    ? "from-cat/40 to-cat/10 border-cat/60"
+    : "from-lobster/40 to-lobster/10 border-lobster/60";
+  const glyph = isLlm ? "🧠" : isCat ? "🐈" : "🦞";
   return (
     <div
       className={`size-20 md:size-28 rounded-2xl border-2 ${ring} bg-gradient-to-br grid place-items-center text-5xl md:text-6xl shrink-0`}
       aria-label={`${handle} portrait`}
     >
-      {isCat ? "🐈" : "🦞"}
+      {glyph}
     </div>
   );
 }
@@ -202,10 +208,19 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
   if (!data) notFound();
   const { agent, score, identity } = data;
   const character = CHARACTERS[agent.handle as "CatScout" | "LobsterRogue" | "LlmScout"];
-  const isCat = agent.faction === 0;
+  const isLlm = agent.handle === "LlmScout";
+  const isCat = !isLlm && agent.faction === 0;
+  // LlmScout reuses the cat accent for chart strokes since cat is the
+  // amber color palette and we have no llm-specific Tailwind accent yet.
+  // The header borders and text get a violet override so the page reads
+  // as the AI persona regardless of the on-chain faction integer.
   const accent: "cat" | "lobster" = isCat ? "cat" : "lobster";
-  const borderTint = isCat ? "border-cat/40" : "border-lobster/40";
-  const textAccent = isCat ? "text-cat" : "text-lobster";
+  const borderTint = isLlm
+    ? "border-violet-500/40"
+    : isCat
+    ? "border-cat/40"
+    : "border-lobster/40";
+  const textAccent = isLlm ? "text-violet-300" : isCat ? "text-cat" : "text-lobster";
   const total = score.wins + score.losses;
   const accuracyPct = total === 0n ? "—" : (score.accuracyBps / 100).toFixed(1) + "%";
   // Best-effort receipts. Identity + score come from contract state and
@@ -250,7 +265,7 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
               {agent.handle}
             </h1>
             <span className={`text-[10px] uppercase tracking-widest px-2 py-1 rounded border ${borderTint} ${textAccent}`}>
-              {factionLabel(agent.faction)} faction
+              {isLlm ? "AI persona" : `${factionLabel(agent.faction)} faction`}
             </span>
           </div>
           {character ? (
