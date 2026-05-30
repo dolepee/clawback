@@ -57,6 +57,16 @@ function ScoreCard({
       <div className={`text-6xl sm:text-7xl font-black leading-none text-${accent} mb-3`}>
         {total === 0 ? "—" : pct(accuracy)}
       </div>
+      {/* Accuracy bar — visual win/loss ratio. Grows on hover for a
+          subtle interactive moment beyond just numbers. */}
+      {total === 0 ? null : (
+        <div className="mb-3 h-1.5 w-full rounded-full bg-neutral-900 overflow-hidden">
+          <div
+            className={`h-full ${accent === "cat" ? "bg-cat" : "bg-lobster"} transition-[width] duration-700 ease-out`}
+            style={{ width: `${Math.max(2, Math.min(100, accuracy * 100))}%` }}
+          />
+        </div>
+      )}
       <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neutral-400 flex-wrap">
         <span>
           <span className="text-emerald-400 font-semibold">{wins}</span> right
@@ -244,6 +254,72 @@ function PlainEnglishExplainer() {
   );
 }
 
+// MobileMoneyFlow — vertical stacked layout for phones. Same story as
+// the SVG (bots → escrow → right/wrong sinks) but readable on a 375px
+// viewport. Animated CSS gradients on the connector pills provide the
+// 'money in motion' beat without needing the heavy SVG paths.
+function MobileMoneyFlow({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> }) {
+  const earned = stats.totalEarningsUsdc;
+  const refunded = stats.totalRefundUsdc;
+  const settled = stats.settledRight + stats.settledWrong;
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Three bots header row */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-xl border border-amber-400/35 bg-amber-400/10 p-2.5 text-center">
+          <div className="text-[10px] uppercase tracking-widest text-amber-300 font-bold">CatScout</div>
+        </div>
+        <div className="rounded-xl border border-rose-500/35 bg-rose-500/10 p-2.5 text-center">
+          <div className="text-[10px] uppercase tracking-widest text-rose-300 font-bold">Lobster</div>
+        </div>
+        <div className="rounded-xl border border-violet-400/35 bg-violet-400/10 p-2.5 text-center">
+          <div className="text-[10px] uppercase tracking-widest text-violet-300 font-bold">LlmScout</div>
+        </div>
+      </div>
+
+      {/* Connector down → escrow */}
+      <div className="flex justify-center">
+        <div className="h-6 w-px bg-gradient-to-b from-white/30 to-white/5 relative overflow-hidden">
+          <div className="absolute inset-x-0 h-2 bg-white/70" style={{ animation: "flow-down 1.6s linear infinite" }} />
+        </div>
+      </div>
+
+      {/* Escrow hub */}
+      <div className="rounded-xl border border-white/25 bg-white/[0.03] p-3 text-center">
+        <div className="text-[10px] uppercase tracking-[0.24em] text-neutral-400 font-bold mb-1">ESCROW</div>
+        <div className="text-2xl font-black text-neutral-50 tabular-nums">{settled}</div>
+        <div className="text-[10px] uppercase tracking-widest text-neutral-500 mt-0.5">SETTLED LOOPS</div>
+      </div>
+
+      {/* Connector down → sinks split */}
+      <div className="flex justify-center">
+        <div className="h-6 w-px bg-gradient-to-b from-white/30 to-white/5 relative overflow-hidden">
+          <div className="absolute inset-x-0 h-2 bg-white/70" style={{ animation: "flow-down 1.6s linear infinite" }} />
+        </div>
+      </div>
+
+      {/* Two sinks side by side */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-xl border border-amber-400/45 bg-amber-400/[0.08] p-3">
+          <div className="text-[10px] uppercase tracking-widest text-amber-300 font-bold mb-1">RIGHT → BOT KEEPS</div>
+          <div className="text-xl font-black text-amber-200 tabular-nums">{formatDollar(earned)}</div>
+        </div>
+        <div className="rounded-xl border border-emerald-400/45 bg-emerald-400/[0.08] p-3">
+          <div className="text-[10px] uppercase tracking-widest text-emerald-300 font-bold mb-1">WRONG → REFUND</div>
+          <div className="text-xl font-black text-emerald-200 tabular-nums">{formatDollar(refunded)}</div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes flow-down {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(220%); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 // MoneyFlow — Clawback's signature visual. Renders the bonded settlement
 // loop as a literal flowing diagram: agents stake bonds (left), escrow
 // holds them (center), payouts go up to right-correct agents and refunds
@@ -269,11 +345,18 @@ function MoneyFlow({ stats }: { stats: Awaited<ReturnType<typeof buildStats>> })
             bonded settlement loop
           </div>
         </div>
-        <div className="px-3 md:px-6 pb-5">
+
+        {/* Mobile-only stacked flow (under md). The SVG below is hidden on
+            phones because its 1000-wide viewBox squashes text to ~7px. */}
+        <div className="md:hidden px-4 pb-5">
+          <MobileMoneyFlow stats={stats} />
+        </div>
+
+        <div className="hidden md:block px-3 md:px-6 pb-5">
           <svg
             viewBox="0 0 1000 240"
             preserveAspectRatio="xMidYMid meet"
-            className="w-full h-[180px] md:h-[220px]"
+            className="w-full h-[220px]"
             aria-label="Money flow from agents to escrow to outcomes"
           >
             <defs>
@@ -513,6 +596,26 @@ function LlmScoutCard({
       <div className="text-6xl sm:text-7xl font-black leading-none text-violet-300 mb-3 tabular-nums">
         {total === 0 ? "—" : pct(accuracy)}
       </div>
+      {/* Strategy distribution bar — stacked segments showing the LLM's
+          actual mix of strategies, color coded per bucket. The closest
+          thing to "the bot's personality" we can show in a single line. */}
+      {labeledTotal > 0 ? (
+        <div className="mb-3 h-1.5 w-full rounded-full bg-neutral-900 overflow-hidden flex">
+          {buckets.map((b) => {
+            const n = strategyDistribution[b] ?? 0;
+            if (n === 0) return null;
+            const pct = (n / labeledTotal) * 100;
+            const colors: Record<string, string> = {
+              defensive: "bg-emerald-500",
+              aggressive: "bg-rose-500",
+              momentum: "bg-amber-500",
+              contrarian: "bg-violet-500",
+              balanced: "bg-neutral-500",
+            };
+            return <div key={b} className={`h-full ${colors[b]}`} style={{ width: `${pct}%` }} title={`${b}: ${n}`} />;
+          })}
+        </div>
+      ) : null}
       <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neutral-400 flex-wrap mb-4">
         <span>
           <span className="text-emerald-400 font-semibold">{wins}</span> right
@@ -650,8 +753,19 @@ export default async function HomePage() {
               <span className="size-1.5 rounded-full bg-emerald-300 animate-pulse" />
               live on Mantle Sepolia · chain 5003
             </div>
-            <h1 className="text-[3.25rem] font-black leading-[0.92] tracking-[-0.075em] text-neutral-50 sm:text-7xl lg:text-8xl">
-              Make AI calls refundable.
+            <h1 className="text-[3.25rem] font-black leading-[0.92] tracking-[-0.075em] sm:text-7xl lg:text-8xl">
+              <span className="text-neutral-50">Make AI calls </span>
+              <span
+                style={{
+                  backgroundImage:
+                    "linear-gradient(110deg,#fcd34d 0%,#34d399 45%,#a78bfa 90%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                refundable.
+              </span>
             </h1>
             <p className="mt-6 max-w-xl text-base leading-8 text-neutral-300 md:text-lg">
               Agents bond their own USDC before selling a price call. Pyth settles the result. If the call is wrong, escrow pays the user back with a bonus.
