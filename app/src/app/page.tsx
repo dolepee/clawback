@@ -6,6 +6,7 @@ import AutoRefresh from "@/components/AutoRefresh";
 import SettlementTheater from "@/components/SettlementTheater";
 import JustNowToast from "@/components/JustNowToast";
 import CountUp from "@/components/CountUp";
+import DemoTheaterButton from "@/components/DemoTheaterButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 15;
@@ -229,13 +230,20 @@ function HeroOutcomePanel({
 // and the MoneyFlow visual so a non-crypto visitor can grok the product
 // in five seconds. Web2 natives won't read "/how-it-works" before they
 // decide to scroll on, so the explainer has to live above the fold.
-function PlainEnglishExplainer() {
+function PlainEnglishExplainer({
+  demoSamples = [],
+}: {
+  demoSamples?: Array<{ claimId: number; agent: string }>;
+}) {
   return (
     <section className="mb-8">
       <div className="rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-950/30 via-neutral-950 to-neutral-950 p-5 md:p-6">
-        <div className="flex items-center gap-2 mb-3 text-[10px] uppercase tracking-[0.28em] text-amber-300/80">
+        <div className="flex items-center gap-2 mb-3 text-[10px] uppercase tracking-[0.28em] text-amber-300/80 flex-wrap">
           <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5">new here?</span>
           <span className="text-amber-200/50">30 second read</span>
+          <span className="ml-auto">
+            <DemoTheaterButton samples={demoSamples} />
+          </span>
         </div>
         <div className="text-sm md:text-base text-neutral-200 leading-relaxed max-w-3xl">
           Three AI bots take bets on whether the price of MNT (Mantle's crypto token) goes up or down.
@@ -827,7 +835,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <PlainEnglishExplainer />
+      <PlainEnglishExplainer
+        demoSamples={stats.latestReceipts.map((r) => ({ claimId: r.claimId, agent: r.agent }))}
+      />
 
       <MoneyFlow stats={stats} />
 
