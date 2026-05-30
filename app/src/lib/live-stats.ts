@@ -64,6 +64,10 @@ export type LiveStats = {
     provider: string;
     fellBack: boolean;
   }>;
+  // Live MNT/USD price (the asset all bots are betting on). Fetched from
+  // Pyth Hermes once per request. null when the fetch fails so the
+  // surface can hide the indicator cleanly.
+  mntUsd: number | null;
 };
 
 export type HealthStatus = {
@@ -283,7 +287,30 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
     generatedAt: Math.floor(Date.now() / 1000),
     latestReceipts,
     ...(await fetchLlmStrategySummary(latestReceipts.filter((r) => r.agent === "LlmScout").map((r) => r.claimId))),
+    mntUsd: await fetchPythMntUsd(),
   };
+}
+
+// Fetches the current MNT/USD price from Pyth Hermes. Cached for 60s
+// via Next's fetch cache so this doesn't fire on every request. Returns
+// null on failure so the UI can hide the indicator cleanly.
+async function fetchPythMntUsd(): Promise<number | null> {
+  const feedId = "4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585";
+  try {
+    const r = await fetch(
+      `https://hermes.pyth.network/v2/updates/price/latest?ids[]=${feedId}`,
+      { next: { revalidate: 60 } },
+    );
+    if (!r.ok) return null;
+    const j = (await r.json()) as {
+      parsed?: Array<{ price?: { price?: string; expo?: number } }>;
+    };
+    const p = j.parsed?.[0]?.price;
+    if (!p?.price || p?.expo == null) return null;
+    return Number(BigInt(p.price)) * Math.pow(10, p.expo);
+  } catch {
+    return null;
+  }
 }
 
 // Pulls strategy + threshold + confidence from the public provenance

@@ -710,6 +710,7 @@ const EMPTY_STATS: Awaited<ReturnType<typeof buildStats>> = {
   latestReceipts: [],
   llmStrategyDistribution: {},
   llmRecentDecisions: [],
+  mntUsd: null,
 };
 
 export default async function HomePage() {
@@ -749,9 +750,19 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_20%,rgba(16,185,129,0.16),transparent_32rem),radial-gradient(circle_at_85%_18%,rgba(245,158,11,0.12),transparent_28rem)]" />
         <div className="relative grid gap-8 lg:grid-cols-[1fr_0.92fr] lg:items-center">
           <div className="max-w-2xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-emerald-200">
-              <span className="size-1.5 rounded-full bg-emerald-300 animate-pulse" />
-              live on Mantle Sepolia · chain 5003
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 px-3 py-1 text-[10px] uppercase tracking-[0.28em] text-emerald-200">
+                <span className="size-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                live on Mantle Sepolia
+              </div>
+              {stats.mntUsd != null ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/[0.08] px-3 py-1 text-[11px] text-violet-200">
+                  <span className="uppercase tracking-[0.24em] text-violet-300/70">MNT now</span>
+                  <span className="font-black tabular-nums text-violet-100">
+                    ${stats.mntUsd.toFixed(4)}
+                  </span>
+                </div>
+              ) : null}
             </div>
             <h1 className="text-[3.25rem] font-black leading-[0.92] tracking-[-0.075em] sm:text-7xl lg:text-8xl">
               <span className="text-neutral-50">Make AI calls </span>
