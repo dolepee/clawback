@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buildStats } from "@/lib/live-stats";
+import { buildStats } from "@/lib/season-stats";
 import { EXPLORER } from "@/lib/addresses";
 import { formatDollar, formatUsdc, shortHex } from "@/lib/format";
 import AutoRefresh from "@/components/AutoRefresh";

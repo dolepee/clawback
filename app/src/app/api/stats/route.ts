@@ -1,6 +1,6 @@
 export const maxDuration = 60;
 import { NextResponse } from "next/server";
-import { buildStats } from "@/lib/live-stats";
+import { buildStats } from "@/lib/season-stats";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;

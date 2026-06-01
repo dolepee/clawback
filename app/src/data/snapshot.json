@@ -1,0 +1,153 @@
+{
+  "generatedAt": 1780322400,
+  "fromBlock": "38493730",
+  "toBlock": "39388842",
+  "chunksDropped": 0,
+  "explorer": "https://sepolia.mantlescan.xyz",
+  "totalClaims": 82,
+  "totalUnlocks": 80,
+  "settledRight": 27,
+  "settledWrong": 29,
+  "refundsClaimed": 28,
+  "earningsClaimed": 25,
+  "totalRefundUsdc": "18750000",
+  "totalEarningsUsdc": "131250000",
+  "agents": {
+    "1": "CatScout",
+    "2": "LobsterRogue",
+    "3": "LlmScout"
+  },
+  "perAgent": {
+    "CatScout": {
+      "wins": 25,
+      "losses": 2
+    },
+    "LobsterRogue": {
+      "wins": 0,
+      "losses": 23
+    },
+    "LlmScout": {
+      "wins": 2,
+      "losses": 4
+    }
+  },
+  "lastClaimAt": 1780225601,
+  "lastSettleAt": 1780178955,
+  "latestRefund": {
+    "claimId": 69,
+    "tx": "0xd3adf1fc9fe92aca2e63be13e99490a7ac0fce11c0e5ccb7e61ad4bdba483477",
+    "paidBack": "500000",
+    "bonus": "250000",
+    "user": "0xDe35D0EfBfB548B7B2aCa63598885e4628aAc01B"
+  },
+  "latestPayout": {
+    "claimId": 68,
+    "tx": "0x0fbb8e09a3ae24bb4fdaefd81ae643f8bd5cd4b853b8f4e767f2b8a382b4219f",
+    "amount": "5250000",
+    "agent": "CatScout"
+  },
+  "curatedWrong": {
+    "claimId": 69,
+    "agent": "LobsterRogue",
+    "outcome": "wrong",
+    "commitTx": "0xcc8b0707f37dffb094c2922cbeb0d6570c096003fd29e154f84223c5abfa33ff",
+    "settleTx": "0x9a984fd5f99670d96707a61e0eff5132ee755c23b154e5b2c5455ab847009900",
+    "refundTx": "0xd3adf1fc9fe92aca2e63be13e99490a7ac0fce11c0e5ccb7e61ad4bdba483477",
+    "payoutTx": null,
+    "paidBack": "500000",
+    "bonus": "250000",
+    "user": "0xDe35D0EfBfB548B7B2aCa63598885e4628aAc01B",
+    "amount": null,
+    "commitAt": 1780091891,
+    "settleAt": 1780178955
+  },
+  "curatedRight": {
+    "claimId": 68,
+    "agent": "CatScout",
+    "outcome": "right",
+    "commitTx": "0x199167ecba366c6b2983d70b136bbf19650937130e5278865c3c40a2fb4b42fa",
+    "settleTx": "0x76fb473167bf105aed18e762ca1f85321948f95afdf35864b835db8b6736dd4e",
+    "refundTx": null,
+    "payoutTx": "0x0fbb8e09a3ae24bb4fdaefd81ae643f8bd5cd4b853b8f4e767f2b8a382b4219f",
+    "paidBack": null,
+    "bonus": null,
+    "user": null,
+    "amount": "5250000",
+    "commitAt": 1780091879,
+    "settleAt": 1780178949
+  },
+  "latestReceipts": [
+    {
+      "claimId": 82,
+      "agent": "LlmScout",
+      "outcome": "pending",
+      "commitTx": "0xcdc8ab08fd4ced246f7d2239c329062d83ae0930791b9bf9bfdfd30a2f72360c",
+      "settleTx": null,
+      "payoutTx": null,
+      "refundTx": null
+    },
+    {
+      "claimId": 81,
+      "agent": "LobsterRogue",
+      "outcome": "pending",
+      "commitTx": "0x1439e873ff62f3db8638be4c1ac406dc8dc35754eb54acba9a89d99a7878fde3",
+      "settleTx": null,
+      "payoutTx": null,
+      "refundTx": null
+    },
+    {
+      "claimId": 80,
+      "agent": "CatScout",
+      "outcome": "pending",
+      "commitTx": "0x49b11b63f2ecc357d12a59a14eeb62227ac7c9b61002b9fce61f5eb8d799d8bc",
+      "settleTx": null,
+      "payoutTx": null,
+      "refundTx": null
+    },
+    {
+      "claimId": 79,
+      "agent": "LlmScout",
+      "outcome": "pending",
+      "commitTx": "0xd222bcdf96a70d13f6254e679928a695c8ec82fb77667e881e93626587b3c014",
+      "settleTx": null,
+      "payoutTx": null,
+      "refundTx": null
+    },
+    {
+      "claimId": 78,
+      "agent": "LobsterRogue",
+      "outcome": "pending",
+      "commitTx": "0xced901e7fd379676f98ef9bade596d26506a8747f20695029744545bc74f125b",
+      "settleTx": null,
+      "payoutTx": null,
+      "refundTx": null
+    },
+    {
+      "claimId": 77,
+      "agent": "CatScout",
+      "outcome": "pending",
+      "commitTx": "0x2b14a7b072fb56b72f4b853c744f18c6615a1d3f6a2bd459082aef0cafb9e686",
+      "settleTx": null,
+      "payoutTx": null,
+      "refundTx": null
+    },
+    {
+      "claimId": 76,
+      "agent": "LlmScout",
+      "outcome": "pending",
+      "commitTx": "0x2edc94c89b3d61e7db462ba128446c4b643afe7a24f3f5d6ee4b073e986ffdcf",
+      "settleTx": null,
+      "payoutTx": null,
+      "refundTx": null
+    },
+    {
+      "claimId": 75,
+      "agent": "LobsterRogue",
+      "outcome": "pending",
+      "commitTx": "0xf6a1460346145878c0bd8afffec8957d5d61109bc6c56f23077577852b9023d3",
+      "settleTx": null,
+      "payoutTx": null,
+      "refundTx": null
+    }
+  ]
+}

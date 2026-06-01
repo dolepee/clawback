@@ -298,7 +298,7 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
 // Fetches the current MNT/USD price from Pyth Hermes. Cached for 60s
 // via Next's fetch cache so this doesn't fire on every request. Returns
 // null on failure so the UI can hide the indicator cleanly.
-async function fetchPythMntUsd(): Promise<number | null> {
+export async function fetchPythMntUsd(): Promise<number | null> {
   const feedId = "4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585";
   try {
     const r = await fetch(

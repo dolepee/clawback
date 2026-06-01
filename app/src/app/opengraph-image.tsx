@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { buildStats } from "@/lib/live-stats";
+import { buildStats } from "@/lib/season-stats";
 import { formatDollar } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
