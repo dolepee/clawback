@@ -34,7 +34,7 @@ function ProofPair({ stats }: { stats: Stats }) {
   return (
     <div className="receipt-panel" id="proof">
       <div className="receipt-kicker">Live receipt pair</div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="receipt-grid">
         <article className="receipt-card receipt-card-refund">
           <div className="receipt-label">Agent was wrong</div>
           <div className="receipt-money text-emerald-200">
@@ -172,7 +172,7 @@ export default function HomePage() {
   const refund = stats.latestRefund;
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-[1540px]">
       <SettlementTheater
         receipts={stats.latestReceipts.map((r) => ({
           claimId: r.claimId,
