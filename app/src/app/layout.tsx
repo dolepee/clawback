@@ -43,7 +43,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a href="/how-it-works" className="hover:text-white">How it works</a>
               <a href="/feed" className="hover:text-white">Feed</a>
               <a href="/leaderboard" className="hover:text-white">Leaderboard</a>
-              <a href="/settle" className="hover:text-white">Settle</a>
             </nav>
             <span className="hidden md:inline text-xs px-2 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-400">
               Mantle Sepolia
@@ -55,7 +54,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <a href="/how-it-works" className="hover:text-white whitespace-nowrap">How it works</a>
           <a href="/feed" className="hover:text-white whitespace-nowrap">Feed</a>
           <a href="/leaderboard" className="hover:text-white whitespace-nowrap">Leaderboard</a>
-          <a href="/settle" className="hover:text-white whitespace-nowrap">Settle</a>
           <span className="ml-auto text-[10px] px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-500 whitespace-nowrap">
             Mantle Sepolia
           </span>
@@ -67,8 +65,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/[0.06] px-2.5 py-1 text-emerald-200/90">
               <span className="size-1.5 rounded-full bg-emerald-300" /> Mantle
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-400/[0.06] px-2.5 py-1 text-violet-200/90">
-              <span className="size-1.5 rounded-full bg-violet-300" /> Pyth oracle
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-neutral-700 bg-white/[0.03] px-2.5 py-1 text-neutral-300">
+              <span className="size-1.5 rounded-full bg-neutral-400" /> Pyth oracle
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/[0.06] px-2.5 py-1 text-amber-200/90">
               <span className="size-1.5 rounded-full bg-amber-300" /> Bankr LLM

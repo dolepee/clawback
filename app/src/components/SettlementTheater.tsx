@@ -137,13 +137,9 @@ export default function SettlementTheater({
         style={{ animation: "theater-backdrop 4.2s ease-out forwards" }}
       />
 
-      {/* Particles layer */}
-      {active.outcome === "right" ? <ConfettiBurst /> : <RefundBurst />}
-
-      {/* Headline card */}
       <div
         key={`${active.outcome}-${active.claimId}`}
-        className="relative z-10 rounded-3xl border px-8 py-7 md:px-14 md:py-10 shadow-[0_40px_120px_rgba(0,0,0,0.6)] max-w-[90vw]"
+        className="relative z-10 max-w-[90vw] rounded-3xl border px-8 py-7 shadow-[0_40px_120px_rgba(0,0,0,0.6)] md:px-14 md:py-10"
         style={{
           background:
             active.outcome === "right"
@@ -164,8 +160,8 @@ export default function SettlementTheater({
         </div>
         <div className="mt-3 text-sm md:text-base text-center text-neutral-300">
           {active.outcome === "right"
-            ? "kept its collateral and earned the customer's fee"
-            : "customer is being refunded with a bonus from the bot's collateral"}
+            ? "Agent was right. It kept the customer fee."
+            : "Agent was wrong. The customer got paid back from the stake."}
         </div>
       </div>
 
@@ -183,93 +179,7 @@ export default function SettlementTheater({
           80% { opacity: 1; transform: scale(1) translateY(0); }
           100% { opacity: 0; transform: scale(0.96) translateY(-12px); }
         }
-        @keyframes confetti-fall {
-          0% { transform: translate3d(0, -20vh, 0) rotate(0deg); opacity: 1; }
-          100% { transform: translate3d(var(--dx), 110vh, 0) rotate(var(--rot)); opacity: 0; }
-        }
-        @keyframes refund-rise {
-          0% { transform: translate3d(0, 30vh, 0) scale(0.6); opacity: 0; }
-          15% { opacity: 1; }
-          100% { transform: translate3d(var(--dx), -120vh, 0) scale(1); opacity: 0; }
-        }
       `}</style>
-    </div>
-  );
-}
-
-function ConfettiBurst() {
-  const COLORS = ["#fcd34d", "#fbbf24", "#f59e0b", "#fde68a", "#fef3c7"];
-  const N = 64;
-  const pieces = Array.from({ length: N }, (_, i) => {
-    const left = (i / N) * 100 + (Math.random() - 0.5) * 4;
-    const dx = (Math.random() - 0.5) * 240;
-    const rot = (Math.random() * 720 - 360) | 0;
-    const delay = Math.random() * 0.6;
-    const dur = 2.4 + Math.random() * 1.4;
-    const color = COLORS[i % COLORS.length];
-    const w = 5 + Math.random() * 5;
-    const h = 8 + Math.random() * 10;
-    return { left, dx, rot, delay, dur, color, w, h, key: i };
-  });
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {pieces.map((p) => (
-        <span
-          key={p.key}
-          style={{
-            position: "absolute",
-            left: `${p.left}%`,
-            top: 0,
-            width: p.w,
-            height: p.h,
-            background: p.color,
-            borderRadius: 2,
-            // CSS custom properties consumed by the keyframes
-            ["--dx" as string]: `${p.dx}px`,
-            ["--rot" as string]: `${p.rot}deg`,
-            animation: `confetti-fall ${p.dur}s cubic-bezier(0.2,0.7,0.3,1) ${p.delay}s forwards`,
-            boxShadow: `0 0 8px ${p.color}55`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function RefundBurst() {
-  const COLORS = ["#6ee7b7", "#34d399", "#10b981", "#a7f3d0"];
-  const N = 28;
-  const pieces = Array.from({ length: N }, (_, i) => {
-    const left = (i / N) * 100 + (Math.random() - 0.5) * 6;
-    const dx = (Math.random() - 0.5) * 160;
-    const delay = Math.random() * 0.7;
-    const dur = 2.8 + Math.random() * 1.2;
-    const color = COLORS[i % COLORS.length];
-    return { left, dx, delay, dur, color, key: i };
-  });
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {pieces.map((p) => (
-        <span
-          key={p.key}
-          style={{
-            position: "absolute",
-            left: `${p.left}%`,
-            bottom: 0,
-            width: 14,
-            height: 14,
-            color: p.color,
-            font: "900 13px ui-sans-serif, system-ui",
-            display: "grid",
-            placeItems: "center",
-            ["--dx" as string]: `${p.dx}px`,
-            animation: `refund-rise ${p.dur}s ease-in ${p.delay}s forwards`,
-            textShadow: `0 0 12px ${p.color}88`,
-          }}
-        >
-          $
-        </span>
-      ))}
     </div>
   );
 }

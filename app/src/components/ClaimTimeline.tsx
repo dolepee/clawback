@@ -11,10 +11,10 @@ type Style = {
 const STYLES: Record<TimelineEvent["kind"], Style> = {
   commit: { dot: "bg-emerald-400", ring: "ring-emerald-400/30", title: "text-emerald-200" },
   unlock: { dot: "bg-neutral-300", ring: "ring-neutral-300/30", title: "text-neutral-100" },
-  settle: { dot: "bg-violet-400", ring: "ring-violet-400/30", title: "text-violet-200" },
+  settle: { dot: "bg-neutral-300", ring: "ring-neutral-300/30", title: "text-neutral-100" },
   refund: { dot: "bg-emerald-400", ring: "ring-emerald-400/30", title: "text-emerald-200" },
   payout: { dot: "bg-amber-400", ring: "ring-amber-400/30", title: "text-amber-200" },
-  reveal: { dot: "bg-sky-400", ring: "ring-sky-400/30", title: "text-sky-200" },
+  reveal: { dot: "bg-neutral-500", ring: "ring-neutral-500/30", title: "text-neutral-200" },
 };
 
 function fmtClock(at: number): string {

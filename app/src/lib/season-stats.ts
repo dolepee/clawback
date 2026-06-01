@@ -112,6 +112,10 @@ function snapshotStats(): LiveStats {
   };
 }
 
+export function buildSnapshotStats(): LiveStats {
+  return snapshotStats();
+}
+
 export async function buildStats(): Promise<LiveStats> {
   const base = snapshotStats();
   try {
