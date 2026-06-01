@@ -262,8 +262,12 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
   return {
     totalClaims,
     totalUnlocks: unlockLogs.length,
-    settledRight: settleLogs.filter((log) => log.args.agentRight).length,
-    settledWrong: settleLogs.filter((log) => !log.args.agentRight).length,
+    // Settled counts come from ReputationLedger state (sum of agent wins/losses), not from
+    // settle logs: Mantle Sepolia is 2s/block, so the 9k-block (~5h) getLogs window misses the
+    // daily settle cadence and would read 0. Every settlement scores exactly one agent, so
+    // sum(wins) = right and sum(losses) = wrong, and these match the per-agent cards below.
+    settledRight: Number([...winsByHandle.values()].reduce((a, b) => a + b, 0n)),
+    settledWrong: Number([...lossesByHandle.values()].reduce((a, b) => a + b, 0n)),
     refundsClaimed: refundLogs.length,
     earningsClaimed: earningLogs.length,
     catAccuracy: scores.get("CatScout") ?? 0,
