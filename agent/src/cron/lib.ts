@@ -477,6 +477,11 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
       `[${persona.handle}] llm: ${decision.model} → ${decision.strategy} | ${decision.direction} $${decision.thresholdPriceUsd.toFixed(4)} ` +
       `(onChainConf=${decision.confidenceBps}bps modelConf=${decision.modelConfidenceBps}bps fellBack=${decision.fellBack})`,
     );
+    if (decision.fellBack && process.env.LLM_REQUIRE_PROVIDER_SUCCESS === "1") {
+      throw new Error(
+        `[${persona.handle}] LLM provider failed and LLM_REQUIRE_PROVIDER_SUCCESS=1; refusing to commit a baseline fallback claim`,
+      );
+    }
   }
 
   const skillsOutputHash = hashSkillsOutput(skillOutput);

@@ -26,6 +26,7 @@ jobs:
       BANKR_LLM_KEY: ${{ secrets.BANKR_LLM_KEY }}
       BANKR_LLM_MODEL: ${{ secrets.BANKR_LLM_MODEL }}
       ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+      LLM_REQUIRE_PROVIDER_SUCCESS: "1"
       # Elfa AI Phase II compute credit (sponsor). When ELFA_API_KEY is
       # set, agent/src/elfa.ts pulls real-time triggers into the LLM
       # prompt context. Without it, LlmScout falls back to Pyth +
