@@ -41,7 +41,13 @@ function writeSeen(s: Set<number>): void {
   }
 }
 
-export default function SettlementTheater({ receipts }: { receipts: Receipt[] }) {
+export default function SettlementTheater({
+  receipts,
+  autoplay,
+}: {
+  receipts: Receipt[];
+  autoplay?: { wrong: Settled | null; right: Settled | null };
+}) {
   const [active, setActive] = useState<Settled | null>(null);
   const [bootstrapped, setBootstrapped] = useState(false);
 
@@ -92,6 +98,32 @@ export default function SettlementTheater({ receipts }: { receipts: Receipt[] })
     return () => window.removeEventListener(DEMO_EVENT, handler);
   }, []);
 
+  // Once per session, autoplay the curated WRONG -> RIGHT pair so a judge sees the
+  // refund-then-payout moment in the first seconds without waiting for a live settle.
+  useEffect(() => {
+    if (!autoplay || typeof window === "undefined") return;
+    const KEY = "clawback.theaterAutoplayed.v1";
+    try {
+      if (window.sessionStorage.getItem(KEY)) return;
+      window.sessionStorage.setItem(KEY, "1");
+    } catch {
+      return;
+    }
+    const seq: Settled[] = [];
+    if (autoplay.wrong) seq.push(autoplay.wrong);
+    if (autoplay.right) seq.push(autoplay.right);
+    if (seq.length === 0) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let at = 700;
+    for (const s of seq) {
+      const show = s;
+      timers.push(setTimeout(() => setActive(show), at));
+      at += 4400;
+    }
+    timers.push(setTimeout(() => setActive(null), at));
+    return () => timers.forEach(clearTimeout);
+  }, [autoplay]);
+
   if (!active) return null;
 
   return (
@@ -110,6 +142,7 @@ export default function SettlementTheater({ receipts }: { receipts: Receipt[] })
 
       {/* Headline card */}
       <div
+        key={`${active.outcome}-${active.claimId}`}
         className="relative z-10 rounded-3xl border px-8 py-7 md:px-14 md:py-10 shadow-[0_40px_120px_rgba(0,0,0,0.6)] max-w-[90vw]"
         style={{
           background:

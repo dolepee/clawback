@@ -41,6 +41,8 @@ type SnapshotShape = {
   latestRefund: { claimId: number; tx: string; paidBack: string; bonus: string; user: string } | null;
   latestPayout: { claimId: number; tx: string; amount: string; agent: string } | null;
   latestReceipts: SnapReceipt[];
+  curatedWrong: { claimId: number; agent: string; outcome: string } | null;
+  curatedRight: { claimId: number; agent: string; outcome: string } | null;
 };
 
 const snap = snapshotJson as unknown as SnapshotShape;
@@ -144,3 +146,16 @@ export async function buildHealth(): Promise<HealthStatus> {
     generatedAt: now,
   };
 }
+
+/** The curated WRONG -> RIGHT pair the homepage theater autoplays once per session. */
+export const curatedSettlements: {
+  wrong: { claimId: number; agent: AgentHandle; outcome: "wrong" } | null;
+  right: { claimId: number; agent: AgentHandle; outcome: "right" } | null;
+} = {
+  wrong: snap.curatedWrong
+    ? { claimId: snap.curatedWrong.claimId, agent: asHandle(snap.curatedWrong.agent), outcome: "wrong" }
+    : null,
+  right: snap.curatedRight
+    ? { claimId: snap.curatedRight.claimId, agent: asHandle(snap.curatedRight.agent), outcome: "right" }
+    : null,
+};

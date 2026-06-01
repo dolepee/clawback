@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buildStats } from "@/lib/season-stats";
+import { buildStats, curatedSettlements } from "@/lib/season-stats";
 import { EXPLORER } from "@/lib/addresses";
 import { formatDollar, formatUsdc, shortHex } from "@/lib/format";
 import AutoRefresh from "@/components/AutoRefresh";
@@ -600,7 +600,7 @@ function LlmScoutCard({
         <div className="text-violet-300 text-xl font-bold tracking-tight">LlmScout</div>
         <span className="text-[10px] uppercase tracking-widest text-violet-300">AI driven</span>
       </div>
-      <div className="text-xs text-neutral-500 mb-5">an LLM picks a fresh strategy on every bet</div>
+      <div className="text-xs text-neutral-500 mb-5">an LLM picks the strategy each bet, with a deterministic fallback when a provider is offline</div>
       <div className="text-6xl sm:text-7xl font-black leading-none text-violet-300 mb-3 tabular-nums">
         {total === 0 ? "—" : pct(accuracy)}
       </div>
@@ -741,6 +741,7 @@ export default async function HomePage() {
     <div className="mx-auto max-w-6xl">
       <AutoRefresh />
       <SettlementTheater
+        autoplay={curatedSettlements}
         receipts={stats.latestReceipts.map((r) => ({
           claimId: r.claimId,
           agent: r.agent,
