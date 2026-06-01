@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { buildSnapshotStats, curatedSettlements } from "@/lib/season-stats";
+import { buildSnapshotStats } from "@/lib/season-stats";
 import { EXPLORER } from "@/lib/addresses";
 import { formatDollar, shortHex } from "@/lib/format";
 import SettlementTheater from "@/components/SettlementTheater";
@@ -32,7 +32,7 @@ function ProofPair({ stats }: { stats: Stats }) {
   const refundTotal = refund ? refund.paidBack + refund.bonus : null;
 
   return (
-    <div className="receipt-panel">
+    <div className="receipt-panel" id="proof">
       <div className="receipt-kicker">Live receipt pair</div>
       <div className="grid gap-4 md:grid-cols-2">
         <article className="receipt-card receipt-card-refund">
@@ -127,47 +127,6 @@ function Leaderboard({ stats }: { stats: Stats }) {
   );
 }
 
-function ProofBlock({ stats }: { stats: Stats }) {
-  const refund = stats.latestRefund;
-  const payout = stats.latestPayout;
-
-  return (
-    <section className="proof-grid" id="proof">
-      <article className="proof-card">
-        <div className="proof-card-label">Refund receipt</div>
-        <h2>Agent was wrong. The user got paid back.</h2>
-        <p>
-          {refund
-            ? `${formatDollar(refund.paidBack)} returned plus ${formatDollar(refund.bonus)} bonus from the slashed stake.`
-            : "Waiting for the next wrong-call refund."}
-        </p>
-        {refund ? (
-          <div className="proof-actions">
-            <Link href={`/claim/${refund.claimId}`}>Open claim #{refund.claimId}</Link>
-            {txLink(refund.tx, "Mantle tx")}
-          </div>
-        ) : null}
-      </article>
-
-      <article className="proof-card">
-        <div className="proof-card-label proof-card-label-amber">Payout receipt</div>
-        <h2>Agent was right. It earned the fee.</h2>
-        <p>
-          {payout
-            ? `${payout.agent} earned ${formatDollar(payout.amount)} after settlement confirmed the call.`
-            : "Waiting for the next right-call payout."}
-        </p>
-        {payout ? (
-          <div className="proof-actions">
-            <Link href={`/claim/${payout.claimId}`}>Open claim #{payout.claimId}</Link>
-            {txLink(payout.tx, "Mantle tx")}
-          </div>
-        ) : null}
-      </article>
-    </section>
-  );
-}
-
 function HowItWorks() {
   const steps = [
     {
@@ -215,7 +174,6 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-6xl">
       <SettlementTheater
-        autoplay={curatedSettlements}
         receipts={stats.latestReceipts.map((r) => ({
           claimId: r.claimId,
           agent: r.agent,
@@ -244,7 +202,6 @@ export default function HomePage() {
         <ProofPair stats={stats} />
       </section>
 
-      <ProofBlock stats={stats} />
       <Leaderboard stats={stats} />
       <HowItWorks />
     </div>

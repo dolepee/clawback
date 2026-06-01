@@ -65,7 +65,6 @@ body::before {
 .eyebrow,
 .receipt-kicker,
 .section-heading p,
-.proof-card-label,
 .receipt-label {
   font-size: 0.68rem;
   line-height: 1;
@@ -223,52 +222,12 @@ body::before {
   color: white;
 }
 
-.proof-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  margin-bottom: clamp(2.5rem, 6vw, 5rem);
-}
-
-.proof-card,
 .proof-section,
 .how-section {
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 1.6rem;
   background: rgb(14 14 14 / 0.72);
   padding: clamp(1.15rem, 2vw, 1.5rem);
-}
-
-.proof-card-label {
-  color: rgb(var(--emerald));
-  margin-bottom: 1.25rem;
-}
-
-.proof-card-label-amber {
-  color: rgb(var(--amber));
-}
-
-.proof-card h2 {
-  max-width: 520px;
-  color: rgb(var(--fg));
-  font-size: clamp(1.65rem, 3vw, 2.45rem);
-  line-height: 1.02;
-  letter-spacing: -0.055em;
-  font-weight: 950;
-}
-
-.proof-card p {
-  margin-top: 1rem;
-  color: rgb(190 190 190);
-  line-height: 1.65;
-}
-
-.proof-actions {
-  margin-top: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
 }
 
 .proof-section,
@@ -389,7 +348,6 @@ body::before {
     font-size: clamp(3.25rem, 15vw, 4.65rem);
   }
 
-  .proof-grid,
   .how-grid {
     grid-template-columns: 1fr;
   }
