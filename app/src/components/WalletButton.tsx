@@ -7,7 +7,7 @@ function short(addr: string) {
 }
 
 export function WalletButton() {
-  const { account, installed, onCorrectChain, connect, switchToMantleSepolia } = useWallet();
+  const { account, installed, onCorrectChain, connect, disconnect, switchToMantleSepolia } = useWallet();
 
   if (!installed) {
     return (
@@ -45,8 +45,16 @@ export function WalletButton() {
   }
 
   return (
-    <span className="text-xs px-3 py-1.5 rounded bg-emerald-900/40 border border-emerald-800 text-emerald-300 font-mono">
-      {short(account)}
-    </span>
+    <button
+      onClick={() => disconnect().catch((e) => alert(e.message))}
+      className="text-xs px-3 py-1.5 rounded bg-emerald-900/40 border border-emerald-800 text-emerald-300 hover:text-emerald-100 hover:border-emerald-500"
+      title={`Disconnect ${account}`}
+    >
+      <span className="hidden font-mono md:inline">
+        {short(account)}
+      </span>
+      <span className="hidden px-1 text-emerald-600 md:inline">·</span>
+      disconnect
+    </button>
   );
 }
