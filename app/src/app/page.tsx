@@ -410,7 +410,7 @@ export default function HomePage() {
         <div className="hero-left">
           <div className="status-pill">AI accountability. Onchain.</div>
           <h1>
-            When the AI is wrong, you get your <span>money back.</span>
+            When the AI is wrong,<br /> you get your <span>money back.</span>
           </h1>
           <p className="hero-subhead">
             AI agents stake their own USDC on every price call. Wrong calls pay users back

@@ -614,7 +614,7 @@ body::before {
 
 /* Best UI/UX reference pass: receipt-first, restrained, proof-visible. */
 .claw-page {
-  width: min(100%, 1500px);
+  width: min(100%, 1420px);
   margin: 0 auto;
 }
 
@@ -1791,10 +1791,12 @@ body::before {
 
 /* style-master.png source-of-truth pass */
 .receipt-hero {
-  grid-template-columns: minmax(0, 0.92fr) minmax(620px, 1.08fr);
-  gap: clamp(2.2rem, 4vw, 4.2rem);
+  grid-template-columns: minmax(0, 0.88fr) minmax(640px, 1.12fr);
+  gap: clamp(2rem, 3.1vw, 3.4rem);
   min-height: auto;
-  padding: clamp(2.4rem, 4.2vw, 4rem) 0 1.4rem;
+  margin-top: -1.6rem;
+  padding: clamp(1.2rem, 2.2vw, 2.1rem) 0 1rem;
+  align-items: start;
 }
 
 .hero-left {
@@ -1804,28 +1806,28 @@ body::before {
 .status-pill {
   border-color: rgba(110, 231, 183, 0.28);
   background: rgba(16, 185, 129, 0.035);
-  padding: 0.65rem 0.8rem;
+  padding: 0.58rem 0.78rem;
   color: rgb(160 255 201);
 }
 
 .hero-left h1 {
   max-width: 720px;
-  margin-top: 1.45rem;
-  font-size: clamp(3.7rem, 5.25vw, 6.15rem);
-  line-height: 0.98;
+  margin-top: 1.25rem;
+  font-size: clamp(2.85rem, 2.95vw, 3.5rem);
+  line-height: 1.02;
   letter-spacing: -0.075em;
 }
 
 .hero-left .hero-subhead {
   max-width: 620px;
-  margin-top: 1.35rem;
+  margin-top: 1.1rem;
   color: rgb(215 215 215);
-  font-size: clamp(1.03rem, 1.35vw, 1.18rem);
-  line-height: 1.55;
+  font-size: clamp(1rem, 1.2vw, 1.12rem);
+  line-height: 1.5;
 }
 
 .hero-cta-row {
-  margin-top: 1.55rem;
+  margin-top: 1.3rem;
 }
 
 .primary-action {
@@ -1865,7 +1867,7 @@ body::before {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
   width: min(100%, 680px);
-  margin-top: 1rem;
+  margin-top: 0.85rem;
   border: 0;
   background: transparent;
   padding: 0;
@@ -1875,7 +1877,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  min-height: 3.15rem;
+  min-height: 2.95rem;
   margin: 0;
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 0.62rem;
@@ -1908,7 +1910,7 @@ body::before {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   width: min(100%, 680px);
-  margin-top: 0.65rem;
+  margin-top: 0.58rem;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.65rem;
@@ -1916,7 +1918,7 @@ body::before {
 }
 
 .home-stat-row div {
-  min-height: 4.2rem;
+  min-height: 3.85rem;
   background: rgba(8, 10, 10, 0.76);
   padding: 0.8rem 1rem;
 }
@@ -1946,12 +1948,12 @@ body::before {
     radial-gradient(circle at 7% 0%, rgba(16, 185, 129, 0.14), transparent 19rem),
     linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
     rgba(11, 14, 15, 0.94);
-  padding: clamp(1rem, 2vw, 1.55rem);
+  padding: clamp(0.9rem, 1.45vw, 1.2rem);
   box-shadow: 0 36px 110px rgba(0, 0, 0, 0.32);
 }
 
 .receipt-card-head {
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.65rem;
 }
 
 .receipt-card-head .dot-label {
@@ -1961,13 +1963,13 @@ body::before {
 
 .style-receipt-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(310px, 1.05fr);
-  gap: clamp(1.1rem, 2vw, 1.55rem);
+  grid-template-columns: minmax(0, 0.92fr) minmax(315px, 1.08fr);
+  gap: clamp(0.9rem, 1.4vw, 1.15rem);
   align-items: stretch;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 0.72rem;
   background: rgba(255, 255, 255, 0.025);
-  padding: clamp(1rem, 2vw, 1.35rem);
+  padding: clamp(0.9rem, 1.35vw, 1.1rem);
 }
 
 .receipt-claim {
@@ -1978,16 +1980,16 @@ body::before {
 }
 
 .receipt-outcome-red {
-  margin-top: 0.65rem;
+  margin-top: 0.55rem;
   color: rgb(255 91 91);
-  font-size: clamp(1.8rem, 2.5vw, 2.45rem);
+  font-size: clamp(1.65rem, 2.15vw, 2.2rem);
   font-weight: 950;
   letter-spacing: -0.045em;
   line-height: 1;
 }
 
 .receipt-prediction {
-  margin-top: 0.8rem;
+  margin-top: 0.68rem;
   color: rgb(245 245 245);
   font-size: 1rem;
 }
@@ -1996,7 +1998,7 @@ body::before {
   display: grid;
   grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
   gap: 0.45rem;
-  margin-top: 1rem;
+  margin-top: 0.82rem;
 }
 
 .agent-model-chips div {
@@ -2050,7 +2052,7 @@ body::before {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
-  margin-top: 1.2rem;
+  margin-top: 0.9rem;
   overflow: hidden;
   border-radius: 0.55rem;
   background: rgba(255, 255, 255, 0.1);
@@ -2058,7 +2060,7 @@ body::before {
 
 .refund-metrics div {
   background: rgba(8, 12, 12, 0.76);
-  padding: 0.85rem 1rem;
+  padding: 0.72rem 0.85rem;
 }
 
 .refund-metrics span {
@@ -2069,7 +2071,7 @@ body::before {
 .refund-metrics strong {
   display: block;
   margin-top: 0.35rem;
-  font-size: clamp(1.75rem, 2.8vw, 2.6rem);
+  font-size: clamp(1.55rem, 2.25vw, 2.2rem);
   line-height: 1;
   font-weight: 950;
   letter-spacing: -0.055em;
@@ -2084,7 +2086,7 @@ body::before {
 
 .mini-price-chart {
   display: grid;
-  min-height: 270px;
+  min-height: 230px;
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   padding-left: 1rem;
 }
@@ -2120,7 +2122,7 @@ body::before {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 1.1rem;
   align-items: end;
-  margin-top: 1.25rem;
+  margin-top: 1rem;
 }
 
 .home-proof-rail {
@@ -2161,20 +2163,20 @@ body::before {
 
 .home-proof-step strong {
   color: rgb(245 245 245);
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   font-weight: 900;
 }
 
 .home-proof-step span {
   color: rgb(170 170 170);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
 }
 
 .receipt-view-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.95rem;
+  min-height: 2.75rem;
   white-space: nowrap;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 0.45rem;
@@ -2189,7 +2191,7 @@ body::before {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 0.39fr);
   gap: 1rem;
-  margin-top: 1rem;
+  margin-top: 0.72rem;
 }
 
 .latest-receipts-panel,
@@ -2199,7 +2201,7 @@ body::before {
   background:
     radial-gradient(circle at 5% 0%, rgba(16, 185, 129, 0.06), transparent 17rem),
     rgba(7, 10, 11, 0.76);
-  padding: 1rem;
+  padding: 0.9rem;
 }
 
 .home-panel-head {
@@ -2207,7 +2209,7 @@ body::before {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.62rem;
 }
 
 .home-panel-head p {
@@ -2408,6 +2410,10 @@ body::before {
   .hero-left {
     max-width: 780px;
   }
+
+  .receipt-hero {
+    margin-top: 0;
+  }
 }
 
 @media (max-width: 860px) {
@@ -2416,7 +2422,7 @@ body::before {
   }
 
   .hero-left h1 {
-    font-size: clamp(3rem, 12vw, 4.5rem);
+    font-size: clamp(3rem, 12vw, 4.35rem);
   }
 
   .trust-badges,
