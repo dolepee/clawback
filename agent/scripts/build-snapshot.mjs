@@ -123,6 +123,8 @@ function readClaimProvenance() {
           provider: json.llm?.provider ?? null,
           strategy: json.llm?.strategy ?? null,
           fellBack: typeof json.llm?.fellBack === "boolean" ? json.llm.fellBack : null,
+          direction: json.direction ?? null,
+          thresholdPriceUsd: json.thresholdPriceUsd ?? null,
         });
       } catch {
         // Provenance is presentation metadata only; never let a malformed file break
@@ -235,6 +237,8 @@ async function main() {
       provider: prov?.provider ?? null,
       strategy: prov?.strategy ?? null,
       fellBack: prov?.fellBack ?? null,
+      direction: prov?.direction ?? null,
+      thresholdPriceUsd: prov?.thresholdPriceUsd ?? null,
       commitAt: c ? await blockTs(c.block) : 0,
       settleAt: s ? await blockTs(s.block) : 0,
     };
@@ -258,6 +262,8 @@ async function main() {
       provider: prov?.provider ?? null,
       strategy: prov?.strategy ?? null,
       fellBack: prov?.fellBack ?? null,
+      direction: prov?.direction ?? null,
+      thresholdPriceUsd: prov?.thresholdPriceUsd ?? null,
     });
   }
 

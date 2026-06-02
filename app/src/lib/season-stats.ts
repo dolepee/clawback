@@ -25,6 +25,8 @@ type SnapReceipt = {
   refundTx: string | null;
   provider?: string | null;
   fellBack?: boolean | null;
+  direction?: "above" | "below" | null;
+  thresholdPriceUsd?: string | null;
 };
 
 type SnapMoneyReceipt = SnapReceipt & {
@@ -114,6 +116,8 @@ function snapshotStats(): LiveStats {
             agent: asHandle(snap.curatedWrong.agent),
             provider: snap.curatedWrong.provider ?? undefined,
             fellBack: snap.curatedWrong.fellBack ?? undefined,
+            direction: snap.curatedWrong.direction ?? undefined,
+            thresholdPriceUsd: snap.curatedWrong.thresholdPriceUsd ?? undefined,
           }
         : undefined,
     proofPayout:
@@ -125,6 +129,8 @@ function snapshotStats(): LiveStats {
             agent: asHandle(snap.curatedRight.agent),
             provider: snap.curatedRight.provider ?? undefined,
             fellBack: snap.curatedRight.fellBack ?? undefined,
+            direction: snap.curatedRight.direction ?? undefined,
+            thresholdPriceUsd: snap.curatedRight.thresholdPriceUsd ?? undefined,
           }
         : undefined,
     lastClaimAt: snap.lastClaimAt,
@@ -140,6 +146,8 @@ function snapshotStats(): LiveStats {
       refundTx: r.refundTx ? hx(r.refundTx) : undefined,
       provider: r.provider ?? undefined,
       fellBack: r.fellBack ?? undefined,
+      direction: r.direction ?? undefined,
+      thresholdPriceUsd: r.thresholdPriceUsd ?? undefined,
     })),
     llmStrategyDistribution: {},
     llmRecentDecisions: [],

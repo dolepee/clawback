@@ -46,6 +46,8 @@ export type LiveStats = {
     agent: AgentHandle;
     provider?: string;
     fellBack?: boolean;
+    direction?: "above" | "below";
+    thresholdPriceUsd?: string;
   };
   proofPayout?: {
     claimId: number;
@@ -54,6 +56,8 @@ export type LiveStats = {
     agent: AgentHandle;
     provider?: string;
     fellBack?: boolean;
+    direction?: "above" | "below";
+    thresholdPriceUsd?: string;
   };
   lastClaimAt: number;
   lastSettleAt: number;
@@ -68,6 +72,8 @@ export type LiveStats = {
     refundTx?: `0x${string}`;
     provider?: string;
     fellBack?: boolean;
+    direction?: "above" | "below";
+    thresholdPriceUsd?: string;
   }>;
   // LlmScout strategic identity: counts of each strategy across recent
   // LlmScout claims, plus the last few labeled claims for the agent page.

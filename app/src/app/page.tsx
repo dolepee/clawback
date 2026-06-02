@@ -31,11 +31,19 @@ function formatProvider(provider?: string): string {
   return provider.replace(/^bankr:/, "Bankr ");
 }
 
-function ProofPair({ stats }: { stats: Stats }) {
+function formatCall(direction?: "above" | "below", thresholdPriceUsd?: string): string {
+  if (!direction || !thresholdPriceUsd) return "MNT price call";
+  return `MNT ${direction} $${Number(thresholdPriceUsd).toFixed(4)}`;
+}
+
+function RefundReceiptHero({ stats }: { stats: Stats }) {
   const proofRefund = stats.proofRefund;
   const proofPayout = stats.proofPayout;
   const refund = proofRefund ?? stats.latestRefund;
   const payout = proofPayout ?? stats.latestPayout;
+  const refundReceipt = refund
+    ? stats.latestReceipts.find((r) => r.claimId === refund.claimId)
+    : undefined;
   const refundTotal = refund ? refund.paidBack + refund.bonus : null;
   let refundAgent: string | undefined;
   let refundProvider = "";
@@ -47,54 +55,97 @@ function ProofPair({ stats }: { stats: Stats }) {
   if (proofPayout && payout && proofPayout.claimId === payout.claimId) {
     payoutProvider = formatProvider(proofPayout.provider);
   }
+  const refundCall = formatCall(proofRefund?.direction, proofRefund?.thresholdPriceUsd);
+  const payoutCall = formatCall(proofPayout?.direction, proofPayout?.thresholdPriceUsd);
+  const refundHeadline = refundProvider ? "The model call failed. The refund cleared." : "The agent was wrong. The refund cleared.";
 
   return (
-    <div className="receipt-panel" id="proof">
-      <div className="receipt-kicker">Live receipt pair</div>
-      <div className="receipt-grid">
-        <article className="receipt-card receipt-card-refund">
-          <div className="receipt-label">
-            {refundProvider ? "Bankr-backed LlmScout was wrong" : "Agent was wrong"}
-          </div>
-          <div className="receipt-money text-emerald-200">
-            {refundTotal ? formatDollar(refundTotal) : "Refund pending"}
-          </div>
-          <p className="receipt-copy">
-            {refund && refundProvider
-              ? `${refundAgent ?? "LlmScout"} used ${refundProvider}. The call settled wrong, so ${shortHex(refund.user)} got paid back from the stake.`
-              : refund
-                ? `User ${shortHex(refund.user)} got paid back from the agent stake.`
+    <div className="receipt-panel receipt-ledger" id="proof">
+      <div className="receipt-kicker">Live refund receipt</div>
+      <article className="refund-receipt">
+        <div className="receipt-topline">
+          <span>{refund ? `claim #${refund.claimId}` : "claim pending"}</span>
+          <strong>paid</strong>
+        </div>
+        <h2>{refundHeadline}</h2>
+        <div className="refund-amount text-emerald-200">
+          {refundTotal ? formatDollar(refundTotal) : "Refund pending"}
+        </div>
+        <p className="receipt-copy receipt-copy-large">
+          {refund && refundProvider
+            ? `${refundAgent ?? "LlmScout"} used ${refundProvider} for a ${refundCall}. It settled wrong, so ${shortHex(refund.user)} was paid back from the agent stake.`
+            : refund
+              ? `User ${shortHex(refund.user)} got paid back from the agent stake.`
               : "No refund receipt is available yet."}
-          </p>
-          {refund ? (
-            <div className="receipt-meta">
-              <Link href={`/claim/${refund.claimId}`}>claim #{refund.claimId}</Link>
-              {txLink(refund.tx)}
-            </div>
-          ) : null}
-        </article>
+        </p>
 
-        <article className="receipt-card receipt-card-payout">
+        <dl className="receipt-details">
+          <div>
+            <dt>Agent</dt>
+            <dd>{refundAgent ?? "AI agent"}</dd>
+          </div>
+          <div>
+            <dt>Model route</dt>
+            <dd>{refundProvider || "Recorded on-chain"}</dd>
+          </div>
+          <div>
+            <dt>Call</dt>
+            <dd>{refundCall}</dd>
+          </div>
+          <div>
+            <dt>Outcome</dt>
+            <dd className="text-emerald-200">Wrong → refunded</dd>
+          </div>
+        </dl>
+
+        <div className="proof-timeline" aria-label="On-chain refund proof timeline">
+          <div className="timeline-row">
+            <span>01</span>
+            <p>Committed</p>
+            {refundReceipt?.commitTx ? txLink(refundReceipt.commitTx) : <em>pending</em>}
+          </div>
+          <div className="timeline-row">
+            <span>02</span>
+            <p>Settled by price</p>
+            {refundReceipt?.settleTx ? txLink(refundReceipt.settleTx) : <em>pending</em>}
+          </div>
+          <div className="timeline-row">
+            <span>03</span>
+            <p>Refund paid</p>
+            {refund ? txLink(refund.tx) : <em>pending</em>}
+          </div>
+        </div>
+
+        {refund ? (
+          <div className="receipt-meta receipt-meta-primary">
+            <Link href={`/claim/${refund.claimId}`}>Open claim receipt</Link>
+            {txLink(refund.tx, "refund tx")}
+          </div>
+        ) : null}
+      </article>
+
+      <div className="comparison-card">
+        <div>
           <div className="receipt-label">
-            {payoutProvider ? "Bankr-backed LlmScout was right" : "Agent was right"}
+            {payoutProvider ? "Same model, right call" : "Agent was right"}
           </div>
-          <div className="receipt-money text-amber-200">
-            {payout ? formatDollar(payout.amount) : "Payout pending"}
-          </div>
-          <p className="receipt-copy">
+          <p>
             {payout && payoutProvider
-              ? `${payout.agent} used ${payoutProvider} and kept the customer fee after settling right.`
+              ? `${payout.agent} used ${payoutProvider} for a ${payoutCall} and kept the customer fee.`
               : payout
-              ? `${payout.agent} kept the customer fee after the call settled right.`
-              : "No payout receipt is available yet."}
+                ? `${payout.agent} kept the customer fee after the call settled right.`
+                : "No payout receipt is available yet."}
           </p>
+        </div>
+        <div className="comparison-bottom">
+          <strong className="text-amber-200">{payout ? formatDollar(payout.amount) : "Payout pending"}</strong>
           {payout ? (
-            <div className="receipt-meta">
+            <span>
               <Link href={`/claim/${payout.claimId}`}>claim #{payout.claimId}</Link>
               {txLink(payout.tx)}
-            </div>
+            </span>
           ) : null}
-        </article>
+        </div>
       </div>
     </div>
   );
@@ -227,7 +278,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <ProofPair stats={stats} />
+        <RefundReceiptHero stats={stats} />
       </section>
 
       <Leaderboard stats={stats} />

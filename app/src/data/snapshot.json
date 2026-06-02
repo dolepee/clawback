@@ -1,7 +1,7 @@
 {
-  "generatedAt": 1780380819,
+  "generatedAt": 1780401807,
   "fromBlock": "38493730",
-  "toBlock": "39418053",
+  "toBlock": "39428548",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
   "totalClaims": 91,
@@ -61,6 +61,8 @@
     "provider": "bankr:deepseek-v3.2",
     "strategy": "momentum",
     "fellBack": false,
+    "direction": "above",
+    "thresholdPriceUsd": "0.63194835",
     "commitAt": 1780334103,
     "settleAt": 1780379457
   },
@@ -79,6 +81,8 @@
     "provider": "bankr:deepseek-v3.2",
     "strategy": null,
     "fellBack": false,
+    "direction": "below",
+    "thresholdPriceUsd": "0.64496311",
     "commitAt": 1780092497,
     "settleAt": 1780379181
   },
@@ -93,7 +97,9 @@
       "refundTx": "0xa8841343732570c731c4a715100948c9f3243a409f23748372559f4b258aa4a8",
       "provider": "bankr:deepseek-v3.2",
       "strategy": "momentum",
-      "fellBack": false
+      "fellBack": false,
+      "direction": "above",
+      "thresholdPriceUsd": "0.63194835"
     },
     {
       "claimId": 90,
@@ -105,7 +111,9 @@
       "refundTx": "0x00b9851fc6a9154ffc379a385f95bf9a11eca6b1b085ff9abdb1033ac0049468",
       "provider": null,
       "strategy": null,
-      "fellBack": null
+      "fellBack": null,
+      "direction": "below",
+      "thresholdPriceUsd": "0.61256933"
     },
     {
       "claimId": 89,
@@ -117,7 +125,9 @@
       "refundTx": null,
       "provider": null,
       "strategy": null,
-      "fellBack": null
+      "fellBack": null,
+      "direction": "above",
+      "thresholdPriceUsd": "0.61914326"
     },
     {
       "claimId": 88,
@@ -129,7 +139,9 @@
       "refundTx": null,
       "provider": "baseline:all-failed",
       "strategy": "balanced",
-      "fellBack": true
+      "fellBack": true,
+      "direction": "above",
+      "thresholdPriceUsd": "0.61127018"
     },
     {
       "claimId": 87,
@@ -141,7 +153,9 @@
       "refundTx": "0x0245abfbdf518b61f754f1ab35f307c7638690900f144a8227b859ea931ceb03",
       "provider": null,
       "strategy": null,
-      "fellBack": null
+      "fellBack": null,
+      "direction": "below",
+      "thresholdPriceUsd": "0.61115479"
     },
     {
       "claimId": 86,
@@ -153,7 +167,9 @@
       "refundTx": null,
       "provider": null,
       "strategy": null,
-      "fellBack": null
+      "fellBack": null,
+      "direction": "above",
+      "thresholdPriceUsd": "0.61727877"
     },
     {
       "claimId": 85,
@@ -165,7 +181,9 @@
       "refundTx": null,
       "provider": "baseline:all-failed",
       "strategy": "balanced",
-      "fellBack": true
+      "fellBack": true,
+      "direction": "above",
+      "thresholdPriceUsd": "0.61151913"
     },
     {
       "claimId": 84,
@@ -177,7 +195,9 @@
       "refundTx": "0x8465d0173fd587f548e47ccc9479dac603fad495292ed55b40c1c1d91b2c4208",
       "provider": null,
       "strategy": null,
-      "fellBack": null
+      "fellBack": null,
+      "direction": "below",
+      "thresholdPriceUsd": "0.61084998"
     }
   ]
 }
