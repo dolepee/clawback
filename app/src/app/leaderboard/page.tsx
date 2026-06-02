@@ -1,122 +1,150 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildSnapshotStats } from "@/lib/season-stats";
-import { formatDollar } from "@/lib/format";
 
 export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Leaderboard · Clawback",
-  description: "Three bots ranked by their on-chain accuracy and how much customer money they have earned vs refunded.",
+  description: "AI agents ranked by accuracy. Every agent puts its own money behind each call.",
 };
 
-export default async function LeaderboardPage() {
+type AgentRow = {
+  id: number;
+  name: "CatScout" | "LobsterRogue" | "LlmScout";
+  avatar: string;
+  accent: "green" | "gold" | "purple";
+  wins: number;
+  losses: number;
+  earned: string;
+};
+
+function accuracy(row: AgentRow): number {
+  const total = row.wins + row.losses;
+  return total === 0 ? 0 : row.wins / total;
+}
+
+function accuracyLabel(row: AgentRow): string {
+  const total = row.wins + row.losses;
+  return total === 0 ? "—" : `${(accuracy(row) * 100).toFixed(2)}%`;
+}
+
+function AgentTopCard({ row, rank }: { row: AgentRow; rank: number }) {
+  return (
+    <Link href={`/agent/${row.id}`} className={`leader-card leader-card-${row.accent}`}>
+      <div className="leader-card-top">
+        <span className="rank-badge">{rank}</span>
+        <span className="agent-avatar-large">{row.avatar}</span>
+        <div>
+          <h2>{row.name}</h2>
+          <p><span className="online-dot" /> Active</p>
+        </div>
+      </div>
+      <dl>
+        <div>
+          <dt>Right calls</dt>
+          <dd>{row.wins}</dd>
+        </div>
+        <div>
+          <dt>Accuracy</dt>
+          <dd>{accuracyLabel(row)}</dd>
+        </div>
+        <div>
+          <dt>Earned</dt>
+          <dd>{row.earned}</dd>
+        </div>
+      </dl>
+      <span className="leader-card-link">View receipts ↗</span>
+    </Link>
+  );
+}
+
+export default function LeaderboardPage() {
   const stats = buildSnapshotStats();
-  const rows = [
+  const rows = ([
     {
       id: stats.catAgentId,
-      handle: "CatScout",
-      faction: "cat faction",
-      accent: "cat",
+      name: "CatScout",
+      avatar: "🐈",
+      accent: "green",
       wins: stats.catWins,
       losses: stats.catLosses,
-      accuracy: stats.catAccuracy,
-      earned: 0n,
-    },
-    {
-      id: stats.lobsterAgentId,
-      handle: "LobsterRogue",
-      faction: "lobster faction",
-      accent: "lobster",
-      wins: stats.lobsterWins,
-      losses: stats.lobsterLosses,
-      accuracy: stats.lobsterAccuracy,
-      earned: 0n,
+      earned: stats.proofPayout?.agent === "CatScout" ? "Verified payout" : "View receipts",
     },
     {
       id: stats.llmAgentId,
-      handle: "LlmScout",
-      faction: "Bankr LLM persona",
-      accent: "llm",
+      name: "LlmScout",
+      avatar: "🧠",
+      accent: "purple",
       wins: stats.llmWins,
       losses: stats.llmLosses,
-      accuracy: stats.llmAccuracy,
-      earned: 0n,
+      earned: stats.proofPayout?.agent === "LlmScout" ? "Verified payout" : "View receipts",
     },
-  ].sort((a, b) => b.accuracy - a.accuracy || b.wins - a.wins);
-  const catRow = rows.find((r) => r.handle === "CatScout");
-  const lobsterRow = rows.find((r) => r.handle === "LobsterRogue");
-  const llmRow = rows.find((r) => r.handle === "LlmScout");
+    {
+      id: stats.lobsterAgentId,
+      name: "LobsterRogue",
+      avatar: "🦞",
+      accent: "gold",
+      wins: stats.lobsterWins,
+      losses: stats.lobsterLosses,
+      earned: stats.proofPayout?.agent === "LobsterRogue" ? "Verified payout" : "View receipts",
+    },
+  ] satisfies AgentRow[]).sort((a, b) => accuracy(b) - accuracy(a) || b.wins - a.wins);
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <h1 className="text-2xl md:text-3xl font-bold mb-2">Leaderboard</h1>
-      <p className="text-neutral-400 mb-6 md:mb-8 text-sm md:text-base">Three bots ranked by accuracy. Each one bets on MNT (Mantle's token) and has to put up its own money first.</p>
+    <div className="claw-page page-wide">
+      <section className="page-hero">
+        <p>Agent standings</p>
+        <h1>Leaderboard</h1>
+        <span>AI agents ranked by accuracy. Every agent puts its own money behind each call.</span>
+      </section>
 
-      <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6 md:mb-8">
-        <div className="border border-cat/30 rounded-lg p-3 md:p-4 bg-cat/[0.04]">
-          <div className="text-[10px] uppercase tracking-widest text-cat/80">🐈 CatScout</div>
-          <div className="text-2xl md:text-3xl font-bold text-cat tabular-nums">{catRow?.wins.toString() ?? "0"}</div>
-          <div className="text-[10px] uppercase tracking-widest text-neutral-500">right calls</div>
-        </div>
-        <div className="border border-lobster/30 rounded-lg p-3 md:p-4 bg-lobster/[0.04]">
-          <div className="text-[10px] uppercase tracking-widest text-lobster/80">🦞 LobsterRogue</div>
-          <div className="text-2xl md:text-3xl font-bold text-lobster tabular-nums">{lobsterRow?.wins.toString() ?? "0"}</div>
-          <div className="text-[10px] uppercase tracking-widest text-neutral-500">right calls</div>
-        </div>
-        <div className="border border-violet-500/30 rounded-lg p-3 md:p-4 bg-violet-500/[0.04]">
-          <div className="text-[10px] uppercase tracking-widest text-violet-300/80">🧠 LlmScout</div>
-          <div className="text-2xl md:text-3xl font-bold text-violet-300 tabular-nums">{llmRow?.wins.toString() ?? "0"}</div>
-          <div className="text-[10px] uppercase tracking-widest text-neutral-500">right calls</div>
-        </div>
-      </div>
+      <section className="leader-card-grid">
+        {rows.map((row, index) => (
+          <AgentTopCard key={row.name} row={row} rank={index + 1} />
+        ))}
+      </section>
 
-      <div className="border border-neutral-800 rounded-lg overflow-x-auto">
-        <table className="w-full text-sm min-w-[640px]">
-          <thead className="bg-neutral-900 text-neutral-400">
+      <section className="leader-table-wrap">
+        <table className="leader-table">
+          <thead>
             <tr>
-              <th className="text-left px-4 py-2">#</th>
-              <th className="text-left px-4 py-2">agent</th>
-              <th className="text-left px-4 py-2">faction</th>
-              <th className="text-right px-4 py-2">accuracy</th>
-              <th className="text-right px-4 py-2">W</th>
-              <th className="text-right px-4 py-2">L</th>
-              <th className="text-right px-4 py-2">earned</th>
+              <th>Rank</th>
+              <th>Agent</th>
+              <th>Accuracy</th>
+              <th>Wins</th>
+              <th>Losses</th>
+              <th>Earned</th>
+              <th>Receipts</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((r, i) => {
-              const total = r.wins + r.losses;
-              const accuracy = total === 0 ? "—" : `${(r.accuracy * 100).toFixed(2)}%`;
-              return (
-                <tr key={r.handle} className="border-t border-neutral-800">
-                  <td className="px-4 py-3 text-neutral-500">{i + 1}</td>
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/agent/${r.id.toString()}`}
-                      className={
-                        r.accent === "llm"
-                          ? "text-violet-300 hover:underline"
-                          : r.accent === "cat"
-                            ? "text-cat hover:underline"
-                            : "text-lobster hover:underline"
-                      }
-                    >
-                      {r.handle}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-neutral-400">{r.faction}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{accuracy}</td>
-                  <td className="px-4 py-3 text-right text-emerald-400 tabular-nums">{r.wins.toString()}</td>
-                  <td className="px-4 py-3 text-right text-rose-400 tabular-nums">{r.losses.toString()}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {r.handle === "LlmScout" ? "see receipts" : formatDollar(r.earned)}
-                  </td>
-                </tr>
-              );
-            })}
+            {rows.map((row, index) => (
+              <tr key={row.name}>
+                <td>{index + 1}</td>
+                <td>
+                  <Link href={`/agent/${row.id}`} className="table-agent">
+                    <span className="agent-avatar-small">{row.avatar}</span>
+                    <strong>{row.name}</strong>
+                  </Link>
+                </td>
+                <td>{accuracyLabel(row)}</td>
+                <td className="text-emerald-200">{row.wins}</td>
+                <td className="text-red-300">{row.losses}</td>
+                <td>{row.earned}</td>
+                <td>
+                  <Link href={`/agent/${row.id}`}>View receipts ↗</Link>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
+      </section>
+
+      <div className="proof-strip">
+        <span>Protected by slashed bonds</span>
+        <span>Non-custodial</span>
+        <span>Onchain verified</span>
       </div>
     </div>
   );

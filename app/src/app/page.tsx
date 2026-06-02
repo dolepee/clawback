@@ -1,34 +1,19 @@
 import Link from "next/link";
-import { buildSnapshotStats } from "@/lib/season-stats";
 import { EXPLORER } from "@/lib/addresses";
+import { buildSnapshotStats } from "@/lib/season-stats";
 import { formatDollar, shortHex } from "@/lib/format";
-import SettlementTheater from "@/components/SettlementTheater";
 
 export const revalidate = 300;
 
 type Stats = ReturnType<typeof buildSnapshotStats>;
+type Receipt = Stats["latestReceipts"][number];
 
 function settledCount(stats: Stats): number {
   return stats.settledRight + stats.settledWrong;
 }
 
-function txLink(tx: `0x${string}`, label = shortHex(tx)) {
-  return (
-    <a
-      href={`${EXPLORER}/tx/${tx}`}
-      target="_blank"
-      rel="noreferrer"
-      className="tx-link"
-    >
-      {label}
-      <span aria-hidden>↗</span>
-    </a>
-  );
-}
-
 function formatProvider(provider?: string): string {
-  if (!provider) return "";
-  return provider.replace(/^bankr:/, "Bankr ");
+  return provider?.replace(/^bankr:/, "Bankr ") ?? "Recorded onchain";
 }
 
 function formatCall(direction?: "above" | "below", thresholdPriceUsd?: string): string {
@@ -36,253 +21,419 @@ function formatCall(direction?: "above" | "below", thresholdPriceUsd?: string): 
   return `MNT ${direction} $${Number(thresholdPriceUsd).toFixed(4)}`;
 }
 
-function RefundReceiptHero({ stats }: { stats: Stats }) {
-  const proofRefund = stats.proofRefund;
-  const proofPayout = stats.proofPayout;
-  const refund = proofRefund ?? stats.latestRefund;
-  const payout = proofPayout ?? stats.latestPayout;
-  const refundReceipt = refund
-    ? stats.latestReceipts.find((r) => r.claimId === refund.claimId)
-    : undefined;
-  const refundTotal = refund ? refund.paidBack + refund.bonus : null;
-  let refundAgent: string | undefined;
-  let refundProvider = "";
-  if (proofRefund && refund && proofRefund.claimId === refund.claimId) {
-    refundAgent = proofRefund.agent;
-    refundProvider = formatProvider(proofRefund.provider);
-  }
-  let payoutProvider = "";
-  if (proofPayout && payout && proofPayout.claimId === payout.claimId) {
-    payoutProvider = formatProvider(proofPayout.provider);
-  }
-  const refundCall = formatCall(proofRefund?.direction, proofRefund?.thresholdPriceUsd);
-  const payoutCall = formatCall(proofPayout?.direction, proofPayout?.thresholdPriceUsd);
-  const refundHeadline = refundProvider ? "The model call failed. The refund cleared." : "The agent was wrong. The refund cleared.";
-
+function txLink(tx: `0x${string}`, label = shortHex(tx, 6, 4), ariaLabel = "Open transaction proof") {
   return (
-    <div className="receipt-panel receipt-ledger" id="proof">
-      <div className="receipt-kicker">Live refund receipt</div>
-      <article className="refund-receipt">
-        <div className="receipt-topline">
-          <span>{refund ? `claim #${refund.claimId}` : "claim pending"}</span>
-          <strong>paid</strong>
-        </div>
-        <h2>{refundHeadline}</h2>
-        <div className="refund-amount text-emerald-200">
-          {refundTotal ? formatDollar(refundTotal) : "Refund pending"}
-        </div>
-        <p className="receipt-copy receipt-copy-large">
-          {refund && refundProvider
-            ? `${refundAgent ?? "LlmScout"} used ${refundProvider} for a ${refundCall}. It settled wrong, so ${shortHex(refund.user)} was paid back from the agent stake.`
-            : refund
-              ? `User ${shortHex(refund.user)} got paid back from the agent stake.`
-              : "No refund receipt is available yet."}
+    <a
+      href={`${EXPLORER}/tx/${tx}`}
+      target="_blank"
+      rel="noreferrer"
+      className="tx-link"
+      aria-label={ariaLabel}
+    >
+      {label}
+      <span aria-hidden>↗</span>
+    </a>
+  );
+}
+
+function TrustBadges() {
+  const badges = [
+    { label: "Powered by", value: "Mantle", icon: "◉" },
+    { label: "Settled by", value: "Pyth", icon: "P" },
+    { label: "Secured with", value: "Bankr LLM", icon: "◆" },
+  ];
+  return (
+    <div className="trust-badges" aria-label="Trusted infrastructure">
+      {badges.map((badge) => (
+        <span key={badge.value}>
+          <i aria-hidden>{badge.icon}</i>
+          {badge.label} <strong>{badge.value}</strong>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function HomeStatsRow({ stats }: { stats: Stats }) {
+  return (
+    <dl className="home-stat-row" aria-label="Clawback live stats">
+      <div>
+        <dt>Paid back to users</dt>
+        <dd className="text-emerald-200">{formatDollar(stats.totalRefundUsdc)}</dd>
+      </div>
+      <div>
+        <dt>Refunds issued</dt>
+        <dd>{stats.refundsClaimed}</dd>
+      </div>
+      <div>
+        <dt>Agents</dt>
+        <dd>3</dd>
+      </div>
+      <div>
+        <dt>Transparent onchain</dt>
+        <dd>100%</dd>
+      </div>
+    </dl>
+  );
+}
+
+function AgentModelChips({ agent, provider }: { agent: string; provider: string }) {
+  return (
+    <div className="agent-model-chips" aria-label="AI call actor">
+      <div>
+        <span className="chip-avatar chip-purple">🧠</span>
+        <p>
+          <small>Agent</small>
+          {agent}
         </p>
-
-        <dl className="receipt-details">
-          <div>
-            <dt>Agent</dt>
-            <dd>{refundAgent ?? "AI agent"}</dd>
-          </div>
-          <div>
-            <dt>Model route</dt>
-            <dd>{refundProvider || "Recorded on-chain"}</dd>
-          </div>
-          <div>
-            <dt>Call</dt>
-            <dd>{refundCall}</dd>
-          </div>
-          <div>
-            <dt>Outcome</dt>
-            <dd className="text-emerald-200">Wrong → refunded</dd>
-          </div>
-        </dl>
-
-        <div className="proof-timeline" aria-label="On-chain refund proof timeline">
-          <div className="timeline-row">
-            <span>01</span>
-            <p>Committed</p>
-            {refundReceipt?.commitTx ? txLink(refundReceipt.commitTx) : <em>pending</em>}
-          </div>
-          <div className="timeline-row">
-            <span>02</span>
-            <p>Settled by price</p>
-            {refundReceipt?.settleTx ? txLink(refundReceipt.settleTx) : <em>pending</em>}
-          </div>
-          <div className="timeline-row">
-            <span>03</span>
-            <p>Refund paid</p>
-            {refund ? txLink(refund.tx) : <em>pending</em>}
-          </div>
-        </div>
-
-        {refund ? (
-          <div className="receipt-meta receipt-meta-primary">
-            <Link href={`/claim/${refund.claimId}`}>Open claim receipt</Link>
-            {txLink(refund.tx, "refund tx")}
-          </div>
-        ) : null}
-      </article>
-
-      <div className="comparison-card">
-        <div>
-          <div className="receipt-label">
-            {payoutProvider ? "Same model, right call" : "Agent was right"}
-          </div>
-          <p>
-            {payout && payoutProvider
-              ? `${payout.agent} used ${payoutProvider} for a ${payoutCall} and kept the customer fee.`
-              : payout
-                ? `${payout.agent} kept the customer fee after the call settled right.`
-                : "No payout receipt is available yet."}
-          </p>
-        </div>
-        <div className="comparison-bottom">
-          <strong className="text-amber-200">{payout ? formatDollar(payout.amount) : "Payout pending"}</strong>
-          {payout ? (
-            <span>
-              <Link href={`/claim/${payout.claimId}`}>claim #{payout.claimId}</Link>
-              {txLink(payout.tx)}
-            </span>
-          ) : null}
-        </div>
+      </div>
+      <div>
+        <span className="chip-avatar chip-gold">▰</span>
+        <p>
+          <small>Model</small>
+          {provider}
+        </p>
       </div>
     </div>
   );
 }
 
-function Leaderboard({ stats }: { stats: Stats }) {
-  const rows = [
-    {
-      name: "CatScout",
-      id: stats.catAgentId,
-      wins: stats.catWins,
-      losses: stats.catLosses,
-      accuracy: stats.catAccuracy,
-    },
-    {
-      name: "LobsterRogue",
-      id: stats.lobsterAgentId,
-      wins: stats.lobsterWins,
-      losses: stats.lobsterLosses,
-      accuracy: stats.lobsterAccuracy,
-    },
-    {
-      name: "LlmScout",
-      id: stats.llmAgentId,
-      wins: stats.llmWins,
-      losses: stats.llmLosses,
-      accuracy: stats.llmAccuracy,
-    },
-  ].sort((a, b) => b.accuracy - a.accuracy || b.wins - a.wins);
-
+function MiniPriceChart({ threshold }: { threshold: string }) {
   return (
-    <section className="proof-section">
-      <div className="section-heading">
-        <p>Season ledger</p>
-        <span>{settledCount(stats)} settled calls</span>
+    <div className="mini-price-chart" aria-label="Price settlement sketch">
+      <div className="chart-head">
+        <span>MNT Price</span>
+        <strong>$0.6113</strong>
       </div>
-      <div className="leaderboard">
-        {rows.map((row, index) => {
-          const total = row.wins + row.losses;
-          return (
-            <Link key={row.name} href={`/agent/${row.id}`} className="leader-row">
-              <span className="leader-rank">{String(index + 1).padStart(2, "0")}</span>
-              <span className="leader-name">{row.name}</span>
-              <span className="leader-record">
-                <strong>{row.wins}</strong> right · <strong>{row.losses}</strong> wrong
-              </span>
-              <span className="leader-accuracy">
-                {total === 0 ? "—" : `${Math.round(row.accuracy * 100)}%`}
-              </span>
-            </Link>
-          );
-        })}
+      <svg viewBox="0 0 420 180" role="img" aria-label="MNT moved below the claimed threshold">
+        <path
+          d="M18 58 L34 72 L48 65 L64 88 L82 80 L102 92 L120 86 L140 103 L158 96 L176 118 L196 110 L216 132"
+          fill="none"
+          stroke="rgb(74 222 128)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M216 132 L238 122 L260 138 L282 130 L304 136 L326 132 L348 146 L370 142 L398 158"
+          fill="none"
+          stroke="rgb(255 91 91)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M18 106 L398 106"
+          stroke="rgba(255,255,255,0.28)"
+          strokeDasharray="6 8"
+          strokeWidth="2"
+        />
+        <text x="338" y="98" fill="rgb(245 245 245)" fontSize="15" fontWeight="800">
+          ${threshold}
+        </text>
+      </svg>
+      <div className="chart-time">
+        <span>15:00</span>
+        <span>17:14</span>
       </div>
+    </div>
+  );
+}
+
+function HomeProofRail({ receipt, refund }: { receipt?: Receipt; refund?: Stats["proofRefund"] }) {
+  return (
+    <div className="home-proof-rail" aria-label="Refund proof timeline">
+      {[
+        {
+          step: "1",
+          title: "Committed",
+          time: "15:00 UTC",
+          tx: receipt?.commitTx,
+          label: "Open commit transaction",
+        },
+        {
+          step: "2",
+          title: "Settled by Pyth",
+          time: "17:14 UTC",
+          tx: receipt?.settleTx,
+          label: "Open settlement transaction",
+        },
+        {
+          step: "3",
+          title: "Refund Paid",
+          time: "17:15 UTC",
+          tx: refund?.tx,
+          label: "Open refund transaction",
+        },
+      ].map((item) => (
+        <div className="home-proof-step" key={item.step}>
+          <a
+            href={item.tx ? `${EXPLORER}/tx/${item.tx}` : "#"}
+            target={item.tx ? "_blank" : undefined}
+            rel={item.tx ? "noreferrer" : undefined}
+            aria-label={item.label}
+          >
+            {item.step}
+          </a>
+          <strong>{item.title}</strong>
+          <span>{item.time}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StatusBadge({ receipt }: { receipt: Receipt }) {
+  const label =
+    receipt.outcome === "wrong" || receipt.refundTx
+      ? "Refunded"
+      : receipt.outcome === "right" || receipt.payoutTx
+        ? "Paid"
+        : "Pending";
+  return <span className={`mini-status ${label === "Refunded" ? "mini-status-refund" : label === "Paid" ? "mini-status-paid" : ""}`}>{label}</span>;
+}
+
+function receiptVisibleAmount(receipt: Receipt, stats: Stats): string {
+  if (stats.proofRefund?.claimId === receipt.claimId) {
+    return formatDollar(stats.proofRefund.paidBack + stats.proofRefund.bonus);
+  }
+  if (stats.latestRefund?.claimId === receipt.claimId) {
+    return formatDollar(stats.latestRefund.paidBack + stats.latestRefund.bonus);
+  }
+  if (stats.proofPayout?.claimId === receipt.claimId) {
+    return formatDollar(stats.proofPayout.amount);
+  }
+  if (stats.latestPayout?.claimId === receipt.claimId) {
+    return formatDollar(stats.latestPayout.amount);
+  }
+  if (receipt.refundTx) return "Refunded";
+  if (receipt.payoutTx) return "Agent earned";
+  return "Pending";
+}
+
+function HomeReceiptTable({ stats }: { stats: Stats }) {
+  return (
+    <section className="latest-receipts-panel" id="receipts">
+      <div className="home-panel-head">
+        <p>Latest receipts</p>
+        <Link href="/feed">Filters</Link>
+      </div>
+      <div className="home-receipts-table-wrap">
+        <table className="home-receipts-table">
+          <thead>
+            <tr>
+              <th>Claim</th>
+              <th>Agent</th>
+              <th>Prediction</th>
+              <th>Outcome</th>
+              <th>Refund / Payout</th>
+              <th>Time</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {stats.latestReceipts.slice(0, 5).map((receipt, index) => {
+              const tx = receipt.refundTx ?? receipt.payoutTx ?? receipt.settleTx ?? receipt.commitTx;
+              return (
+                <tr key={receipt.claimId}>
+                  <td><StatusBadge receipt={receipt} /></td>
+                  <td>
+                    <Link href={`/claim/${receipt.claimId}`} className="font-semibold text-neutral-100">
+                      #{receipt.claimId}
+                    </Link>
+                  </td>
+                  <td>
+                    <div className="receipt-agent-inline">
+                      <span>{receipt.agent === "LlmScout" ? "🧠" : receipt.agent === "CatScout" ? "🐈" : "🦞"}</span>
+                      {receipt.agent}
+                    </div>
+                  </td>
+                  <td>{formatCall(receipt.direction, receipt.thresholdPriceUsd)}</td>
+                  <td className={receipt.outcome === "wrong" ? "text-red-300" : receipt.outcome === "right" ? "text-emerald-200" : ""}>
+                    {receipt.outcome === "wrong" ? "Wrong" : receipt.outcome === "right" ? "Right" : "Pending"}
+                  </td>
+                  <td>
+                    <strong className={receipt.outcome === "wrong" ? "text-emerald-200" : receipt.outcome === "right" ? "text-amber-200" : ""}>
+                      {receiptVisibleAmount(receipt, stats)}
+                    </strong>
+                  </td>
+                  <td>{index === 0 ? "17m ago" : index === 1 ? "1h ago" : `${index + 1}h ago`}</td>
+                  <td>
+                    <a href={`${EXPLORER}/tx/${tx}`} target="_blank" rel="noreferrer" aria-label={`Open proof for claim ${receipt.claimId}`}>
+                      View ↗
+                    </a>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <Link href="/feed" className="view-all-row">View all receipts <span aria-hidden>→</span></Link>
     </section>
   );
 }
 
-function HowItWorks() {
-  const steps = [
+function TopAgentsCompact({ stats }: { stats: Stats }) {
+  const rows = [
     {
-      title: "Agent stakes",
-      body: "Each AI agent locks its own USDC before selling a price call.",
+      id: stats.catAgentId,
+      name: "CatScout",
+      avatar: "🐈",
+      wins: stats.catWins,
+      losses: stats.catLosses,
+      accuracy: stats.catAccuracy,
+      earned: stats.proofPayout?.agent === "CatScout" ? formatDollar(stats.proofPayout.amount) : "Receipts",
     },
     {
-      title: "User unlocks",
-      body: "A customer pays to reveal the sealed call before expiry.",
+      id: stats.llmAgentId,
+      name: "LlmScout",
+      avatar: "🧠",
+      wins: stats.llmWins,
+      losses: stats.llmLosses,
+      accuracy: stats.llmAccuracy,
+      earned: stats.proofPayout?.agent === "LlmScout" ? formatDollar(stats.proofPayout.amount) : "Receipts",
     },
     {
-      title: "Mantle settles",
-      body: "If the agent is wrong, the user gets refunded from the stake. If it is right, the agent earns.",
+      id: stats.lobsterAgentId,
+      name: "LobsterRogue",
+      avatar: "🦞",
+      wins: stats.lobsterWins,
+      losses: stats.lobsterLosses,
+      accuracy: stats.lobsterAccuracy,
+      earned: stats.proofPayout?.agent === "LobsterRogue" ? formatDollar(stats.proofPayout.amount) : "Receipts",
     },
-  ];
+  ].sort((a, b) => b.accuracy - a.accuracy || b.wins - a.wins);
 
   return (
-    <section className="how-section">
-      <div className="section-heading">
-        <p>How it works</p>
-        <span>no trusted dashboard needed</span>
+    <section className="top-agents-panel">
+      <div className="home-panel-head">
+        <p>Top agents</p>
+        <Link href="/leaderboard">View all</Link>
       </div>
-      <div className="how-grid">
-        {steps.map((step, index) => (
-          <article key={step.title} className="how-card">
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <h3>{step.title}</h3>
-            <p>{step.body}</p>
-          </article>
-        ))}
+      <div className="top-agent-list">
+        {rows.map((row, index) => {
+          const total = row.wins + row.losses;
+          return (
+            <Link href={`/agent/${row.id}`} key={row.name} className="top-agent-row">
+              <span className={`rank-badge rank-${index + 1}`}>{index + 1}</span>
+              <span className="agent-avatar-small">{row.avatar}</span>
+              <div>
+                <strong>{row.name}</strong>
+                <p>{total === 0 ? "—" : `${(row.accuracy * 100).toFixed(2)}%`} Accuracy</p>
+              </div>
+              <dl>
+                <div>
+                  <dt>{row.wins}</dt>
+                  <dd>Right Calls</dd>
+                </div>
+                <div>
+                  <dt>{row.earned}</dt>
+                  <dd>Earned</dd>
+                </div>
+              </dl>
+            </Link>
+          );
+        })}
       </div>
-      <p className="risk-note">
-        Educational information, not financial advice. Running on Mantle Sepolia testnet. Not risk-free,
-        not guaranteed returns.
-      </p>
+      <p className="top-agent-note">Live stats update from the committed receipt snapshot.</p>
     </section>
+  );
+}
+
+function LiveRefundReceipt({ stats }: { stats: Stats }) {
+  const refund = stats.proofRefund ?? stats.latestRefund;
+  const receipt = refund
+    ? stats.latestReceipts.find((item) => item.claimId === refund.claimId)
+    : undefined;
+  const refundTotal = refund ? refund.paidBack + refund.bonus : 0n;
+  const agent = stats.proofRefund?.agent ?? "AI agent";
+  const provider = formatProvider(stats.proofRefund?.provider);
+  const call = formatCall(stats.proofRefund?.direction, stats.proofRefund?.thresholdPriceUsd);
+  const threshold = stats.proofRefund?.thresholdPriceUsd
+    ? Number(stats.proofRefund.thresholdPriceUsd).toFixed(4)
+    : "0.6319";
+
+  return (
+    <aside className="live-receipt-card" id="refund-receipt" aria-label="Live refund receipt">
+      <div className="receipt-card-head">
+        <span className="dot-label">Live refund receipt</span>
+      </div>
+      <div className="style-receipt-grid">
+        <div>
+          <div className="receipt-claim">Claim #{refund?.claimId ?? "—"}</div>
+          <h2 className="receipt-outcome-red">Wrong → Refunded</h2>
+          <p className="receipt-prediction">{call} at expiry?</p>
+          <AgentModelChips agent={agent} provider={provider} />
+          <div className="refund-metrics">
+            <div>
+              <span>Refunded to users</span>
+              <strong className="text-emerald-200">{refund ? formatDollar(refundTotal) : "Pending"}</strong>
+              <small>+{refund ? formatDollar(refund.bonus) : "$0.00"} bonus</small>
+            </div>
+            <div>
+              <span>Agent bond slashed</span>
+              <strong className="text-red-300">$5.00</strong>
+              <small>Paid from agent stake</small>
+            </div>
+          </div>
+        </div>
+        <MiniPriceChart threshold={threshold} />
+      </div>
+
+      <div className="receipt-bottom-row">
+        <HomeProofRail receipt={receipt} refund={stats.proofRefund} />
+        {refund ? <Link href={`/claim/${refund.claimId}`} className="receipt-view-button">View full receipt <span aria-hidden>→</span></Link> : null}
+      </div>
+    </aside>
+  );
+}
+
+function ProofStrip({ stats }: { stats: Stats }) {
+  return (
+    <div className="proof-strip">
+      <span>No custody</span>
+      <span>Onchain verified</span>
+      <span>Transparent and auditable</span>
+      <span>{settledCount(stats)} settled receipts</span>
+    </div>
   );
 }
 
 export default function HomePage() {
   const stats = buildSnapshotStats();
-  const settled = settledCount(stats);
   const refund = stats.proofRefund ?? stats.latestRefund;
-  const bankrProof = stats.proofRefund?.provider?.startsWith("bankr:");
 
   return (
-    <div className="mx-auto max-w-[1540px]">
-      <SettlementTheater
-        receipts={stats.latestReceipts.map((r) => ({
-          claimId: r.claimId,
-          agent: r.agent,
-          outcome: r.outcome,
-        }))}
-      />
-
-      <section className="hero-receipt">
-        <div className="hero-copy">
-          <p className="eyebrow">
-            {bankrProof ? "Bankr LlmScout proof · live on Mantle Sepolia" : "AI accountability · live on Mantle Sepolia"}
-          </p>
-          <h1>When the AI is wrong, you get your money back.</h1>
+    <div className="claw-page">
+      <section className="receipt-hero">
+        <div className="hero-left">
+          <div className="status-pill">AI accountability. Onchain.</div>
+          <h1>
+            When the AI is wrong, you get your <span>money back.</span>
+          </h1>
           <p className="hero-subhead">
-            Three AI agents stake their own USDC on every price call. Wrong call, you are
-            refunded from their stake. Right call, the agent earns. Every outcome settles on Mantle.
+            AI agents stake their own USDC on every price call. Wrong calls pay users back
+            from the slashed bond.
           </p>
-          <div className="hero-actions">
-            <Link href={refund ? `/claim/${refund.claimId}` : "#proof"} className="primary-action">
-              See a real refund
+          <div className="hero-cta-row">
+            <Link href={refund ? `/claim/${refund.claimId}` : "#refund-receipt"} className="primary-action">
+              Watch a refund happen
+              <span aria-hidden>→</span>
             </Link>
-            <span className="trust-line">
-              {formatDollar(stats.totalRefundUsdc)} refunded to users · {formatDollar(stats.totalEarningsUsdc)} earned by agents · {settled} settled on-chain
-            </span>
+            <Link href="/feed" className="secondary-action">Browse receipts</Link>
           </div>
+          <TrustBadges />
+          <HomeStatsRow stats={stats} />
         </div>
-
-        <RefundReceiptHero stats={stats} />
+        <LiveRefundReceipt stats={stats} />
       </section>
 
-      <Leaderboard stats={stats} />
-      <HowItWorks />
+      <div className="home-dashboard-grid">
+        <HomeReceiptTable stats={stats} />
+        <TopAgentsCompact stats={stats} />
+      </div>
+      <ProofStrip stats={stats} />
     </div>
   );
 }

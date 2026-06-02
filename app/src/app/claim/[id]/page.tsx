@@ -1,54 +1,107 @@
 export const maxDuration = 60;
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { loadClaimDetail } from "@/lib/data";
-import { loadClaimTimeline } from "@/lib/claim-timeline";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
-import { decodePredictionParams, factionLabel, formatDollar, formatTimestamp, formatUsdc, predictionQuestion, relativeTime, shortHex } from "@/lib/format";
+import { loadClaimTimeline, type TimelineEvent } from "@/lib/claim-timeline";
+import { loadClaimDetail } from "@/lib/data";
+import {
+  decodePredictionParams,
+  formatDollar,
+  formatTimestamp,
+  formatUsdc,
+  predictionQuestion,
+  shortHex,
+} from "@/lib/format";
+import { buildSnapshotStats } from "@/lib/season-stats";
 import ClaimActions from "@/components/ClaimActions";
 import ClaimLiveStatus from "@/components/ClaimLiveStatus";
-import ClaimTimeline from "@/components/ClaimTimeline";
 import ShareClaim from "@/components/ShareClaim";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
-// PlainEnglishSummary — one sentence describing what this claim was
-// about and how it ended, written for someone who has never seen a
-// crypto receipt page. Sits at the top of the receipt above all the
-// hex hashes and contract addresses, so a non-crypto reader gets the
-// story before they hit the technical surface area.
-function PlainEnglishSummary({
-  agentHandle,
-  question,
-  settled,
-  agentRight,
-  totalPaidUsdc6,
-  bondAmountUsdc6,
-}: {
-  agentHandle: string;
-  question: string;
-  settled: boolean;
-  agentRight: boolean;
-  totalPaidUsdc6: bigint;
-  bondAmountUsdc6: bigint;
-}) {
-  const paid = totalPaidUsdc6 > 0n ? formatDollar(totalPaidUsdc6) : null;
-  const bond = formatDollar(bondAmountUsdc6);
-  const outcomeLine = !settled
-    ? `The bet is live — waiting for the real-world price to settle it.`
-    : agentRight
-    ? `The bot was right. It kept its ${bond} collateral${paid ? ` plus the ${paid} customers paid for its prediction` : ""}.`
-    : `The bot was wrong. ${paid ? `The customers who paid ${paid} got their money back, with a bonus paid out of the bot's ${bond} collateral.` : `Anyone who had paid would have been refunded from the bot's ${bond} collateral.`}`;
+type SnapshotReceipt = ReturnType<typeof buildSnapshotStats>["latestReceipts"][number];
+
+function formatCall(direction?: "above" | "below", thresholdPriceUsd?: string): string {
+  if (!direction || !thresholdPriceUsd) return "MNT price call";
+  return `MNT ${direction} $${Number(thresholdPriceUsd).toFixed(4)}`;
+}
+
+function txLink(tx: `0x${string}`, label = shortHex(tx, 6, 4), ariaLabel = "Open onchain proof") {
   return (
-    <section className="rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-950/20 via-neutral-950 to-neutral-950 p-5 mb-4">
-      <div className="text-[10px] uppercase tracking-[0.28em] text-amber-300/80 mb-2">what happened</div>
-      <div className="text-sm md:text-base text-neutral-200 leading-relaxed">
-        <span className="font-semibold text-neutral-100">{agentHandle}</span> placed a bet: {question}
+    <a
+      href={`${EXPLORER}/tx/${tx}`}
+      target="_blank"
+      rel="noreferrer"
+      className="tx-link"
+      aria-label={ariaLabel}
+    >
+      {label}
+      <span aria-hidden>↗</span>
+    </a>
+  );
+}
+
+function providerLabel(provider?: string): string {
+  return provider?.replace(/^bankr:/, "Bankr ") ?? "Recorded onchain";
+}
+
+function eventTx(events: TimelineEvent[], kind: TimelineEvent["kind"]): `0x${string}` | undefined {
+  return events.find((event) => event.kind === kind)?.tx;
+}
+
+function receiptTx(receipt: SnapshotReceipt | undefined, kind: "commit" | "settle" | "refund" | "payout") {
+  if (!receipt) return undefined;
+  if (kind === "commit") return receipt.commitTx;
+  if (kind === "settle") return receipt.settleTx;
+  if (kind === "refund") return receipt.refundTx;
+  return receipt.payoutTx;
+}
+
+function ProofTimeline({
+  events,
+  receipt,
+  agentRight,
+}: {
+  events: TimelineEvent[];
+  receipt?: SnapshotReceipt;
+  agentRight: boolean;
+}) {
+  const commit = eventTx(events, "commit") ?? receiptTx(receipt, "commit");
+  const settle = eventTx(events, "settle") ?? receiptTx(receipt, "settle");
+  const payment = agentRight
+    ? eventTx(events, "payout") ?? receiptTx(receipt, "payout")
+    : eventTx(events, "refund") ?? receiptTx(receipt, "refund");
+
+  const rows = [
+    { label: "Committed", body: "The model made this call and locked its bond.", tx: commit },
+    { label: "Settled by Pyth", body: "Pyth checked the market after expiry.", tx: settle },
+    {
+      label: agentRight ? "Agent paid" : "Refund paid",
+      body: agentRight ? "The right call let the agent earn." : "The wrong call paid users back onchain.",
+      tx: payment,
+    },
+  ];
+
+  return (
+    <section className="detail-card proof-card">
+      <div className="detail-kicker">Proof timeline</div>
+      <div className="proof-timeline">
+        {rows.map((row, index) => (
+          <div key={row.label} className="timeline-row">
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <p>{row.label}</p>
+              <small>{row.body}</small>
+            </div>
+            {row.tx ? txLink(row.tx, shortHex(row.tx, 5, 4), `Open ${row.label} transaction`) : <em>recorded</em>}
+          </div>
+        ))}
       </div>
-      <div className="mt-2 text-sm text-neutral-300 leading-relaxed">{outcomeLine}</div>
+      {payment ? <div className="mt-4">{txLink(payment, "View full proof", "Open final payment proof")}</div> : null}
     </section>
   );
 }
@@ -58,56 +111,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   try {
     const detail = await loadClaimDetail(BigInt(id));
     if (!detail) return { title: `Claim #${id} · Clawback` };
-    const { claim, agent, accounting } = detail;
-    const settled = claim.state === CLAIM_STATE.SETTLED || accounting.settled;
-    const outcome = settled ? (accounting.agentRight ? "RIGHT" : "WRONG") : "LIVE";
-    const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;
+    const { agent, accounting } = detail;
+    const outcome = accounting.settled ? (accounting.agentRight ? "agent earned" : "refund cleared") : "pending";
     return {
-      title: `Claim #${id} · ${agent.handle} · ${outcome} · Clawback`,
-      description: `${agent.handle} bonded ${formatUsdc(claim.bondAmount)} USDC on ${market}. ${
-        outcome === "RIGHT"
-          ? "Settled RIGHT, agent kept the bond plus earned unlock revenue."
-          : outcome === "WRONG"
-            ? "Settled WRONG, slashed bond refunds payers with a bonus."
-            : "Live on Mantle Sepolia. Pyth settles after expiry."
-      }`,
+      title: `${agent.handle} · Claim #${id} · ${outcome} · Clawback`,
+      description: `${agent.handle} claim #${id}: ${outcome}. Onchain receipt on Mantle Sepolia.`,
     };
   } catch {
     return { title: `Claim #${id} · Clawback` };
   }
-}
-
-function OutcomeBanner({
-  state,
-  agentRight,
-  settled,
-}: {
-  state: number;
-  agentRight: boolean;
-  settled: boolean;
-}) {
-  if (state !== CLAIM_STATE.SETTLED && !settled) {
-    return (
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-5 md:p-6 mb-5 md:mb-6">
-        <div className="text-neutral-400 text-xs md:text-sm mb-1">Outcome pending</div>
-        <div className="text-neutral-200 text-sm md:text-base">Claim is live. Settlement runs after expiry.</div>
-      </div>
-    );
-  }
-  if (agentRight) {
-    return (
-      <div className="rounded-lg border border-emerald-700 bg-emerald-900/30 p-5 md:p-6 mb-5 md:mb-6">
-        <div className="text-emerald-400 text-xs md:text-sm font-semibold mb-1">RIGHT</div>
-        <div className="text-emerald-100 text-base md:text-lg">Agent earned its bond plus payer revenue.</div>
-      </div>
-    );
-  }
-  return (
-    <div className="rounded-lg border border-rose-700 bg-rose-900/30 p-5 md:p-6 mb-5 md:mb-6">
-      <div className="text-rose-400 text-xs md:text-sm font-semibold mb-1">WRONG → refund</div>
-      <div className="text-rose-100 text-base md:text-lg">Payers get their USDC back plus a bonus from the slashed bond.</div>
-    </div>
-  );
 }
 
 export default async function ClaimDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -118,43 +130,56 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
   } catch {
     notFound();
   }
-  const detail = await loadClaimDetail(claimId!);
+
+  const detail = await loadClaimDetail(claimId);
   if (!detail) notFound();
+
+  const stats = buildSnapshotStats();
   const { claim, agent, accounting } = detail;
-  // Best-effort timeline. If RPC times out or this claim falls outside the
-  // recent lookback window, render the page without the event timeline so
-  // judges can still see accounting, contracts, claim text, and outcome.
-  // Hard 4s budget on the timeline call. If RPC is slow we fall back to an
-  // empty timeline rather than risk a function timeout that crashes the
-  // whole receipt page. Recent claims render the full event chain; older
-  // ones surface accounting + contracts + claim text from contract reads.
-  let timeline: Awaited<ReturnType<typeof loadClaimTimeline>> = [];
+  const matchingReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === Number(claim.id));
+  const proofRefund = stats.proofRefund?.claimId === Number(claim.id) ? stats.proofRefund : undefined;
+  const proofPayout = stats.proofPayout?.claimId === Number(claim.id) ? stats.proofPayout : undefined;
+  const prediction = decodePredictionParams(claim.marketId, claim.predictionParams);
+  const question = predictionQuestion(prediction, claim.expiry);
+  const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;
+  const isSettled = claim.state === CLAIM_STATE.SETTLED || accounting.settled;
+  const agentRight = accounting.agentRight;
+  const outcomeText = !isSettled
+    ? "Awaiting settlement"
+    : agentRight
+      ? "Right → agent earned"
+      : "Wrong → refund cleared";
+  const paidAmount = agentRight
+    ? proofPayout?.amount ?? accounting.totalPaid
+    : proofRefund
+      ? proofRefund.paidBack + proofRefund.bonus
+      : accounting.totalPaid;
+  const paidLabel = agentRight ? "Agent earned" : "Payers received";
+  const provider = providerLabel(proofRefund?.provider ?? proofPayout?.provider ?? matchingReceipt?.provider);
+  const callText = formatCall(
+    proofRefund?.direction ?? proofPayout?.direction ?? matchingReceipt?.direction,
+    proofRefund?.thresholdPriceUsd ?? proofPayout?.thresholdPriceUsd ?? matchingReceipt?.thresholdPriceUsd,
+  );
+
+  let timeline: TimelineEvent[] = [];
   try {
     timeline = await Promise.race([
       loadClaimTimeline(claim.id),
-      new Promise<typeof timeline>((resolve) => setTimeout(() => resolve([]), 4_000)),
+      new Promise<TimelineEvent[]>((resolve) => setTimeout(() => resolve([]), 4_000)),
     ]);
   } catch (err) {
     console.warn(`loadClaimTimeline(${claim.id.toString()}) failed:`, err);
   }
-  const accent = agent.faction === 0 ? "cat" : "lobster";
-  const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;
-  const prediction = decodePredictionParams(claim.marketId, claim.predictionParams);
-  const question = predictionQuestion(prediction, claim.expiry);
-  const isRevealed = claim.state === CLAIM_STATE.PUBLICLY_REVEALED;
-  const isSettled = claim.state === CLAIM_STATE.SETTLED || accounting.settled;
 
-  const shareOutcome: "pending" | "right" | "wrong" = isSettled
-    ? accounting.agentRight
-      ? "right"
-      : "wrong"
-    : "pending";
+  const shareOutcome = isSettled ? (agentRight ? "right" : "wrong") : "pending";
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <div className="text-xs md:text-sm text-neutral-500 min-w-0 truncate">
-          <Link href="/feed" className="hover:text-white">claim feed</Link> / claim #{claim.id.toString()}
+    <div className="claw-page page-wide">
+      <div className="detail-breadcrumb">
+        <div>
+          <Link href="/feed">Receipts</Link>
+          <span>/</span>
+          <span>Claim #{claim.id.toString()}</span>
         </div>
         <ShareClaim
           claimId={claim.id.toString()}
@@ -164,125 +189,130 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
           totalPaidUsdc6={accounting.totalPaid.toString()}
         />
       </div>
-      <h1 className="text-2xl md:text-3xl font-bold mb-2 break-words">
-        <span className={`text-${accent}`}>{agent.handle}</span> · claim #{claim.id.toString()}
-      </h1>
-      <div className="text-neutral-400 mb-5 md:mb-6 text-sm md:text-base">
-        {factionLabel(agent.faction)} faction · {market}
-      </div>
 
-      <PlainEnglishSummary
-        agentHandle={agent.handle}
-        question={question}
-        settled={isSettled}
-        agentRight={accounting.agentRight}
-        totalPaidUsdc6={accounting.totalPaid}
-        bondAmountUsdc6={claim.bondAmount}
-      />
-
-      <OutcomeBanner state={claim.state} agentRight={accounting.agentRight} settled={isSettled} />
-
-      <ClaimLiveStatus settled={isSettled} expirySec={Number(claim.expiry)} />
-
-      <ClaimActions
-        claimId={claim.id}
-        agentId={claim.agentId}
-        agentOwner={agent.owner}
-        unlockPrice={claim.unlockPrice}
-        state={claim.state}
-        settled={isSettled}
-        agentRight={accounting.agentRight}
-        expirySec={claim.expiry}
-      />
-
-      <ClaimTimeline events={timeline} />
-
-      <section className="border border-neutral-800 rounded-lg p-5 mb-4">
-        <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-3">Binary question</h2>
-        <div className="text-neutral-100 leading-snug">{question}</div>
-        {prediction.kind === "outperform" && (
-          <div className="mt-3 text-xs text-neutral-500">
-            Settled trustlessly by Pyth after expiry. Adapter compares Pyth MNT/USD and ETH/USD returns since commit.
-          </div>
-        )}
-        {prediction.kind === "threshold" && (
-          <div className="mt-3 text-xs text-neutral-500">
-            Settled trustlessly by Pyth after expiry. Adapter reads Pyth MNT/USD and checks the {prediction.direction} bound.
-          </div>
-        )}
-      </section>
-
-      <section className="border border-neutral-800 rounded-lg p-5 mb-4">
-        <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-4">Claim text</h2>
-        {isRevealed || isSettled ? (
-          <div className="text-neutral-100">
-            {claim.revealedClaimText || "<not yet revealed publicly>"}
-          </div>
-        ) : (
-          <div className="text-neutral-300">
-            <div className="font-mono text-xs mb-2 text-neutral-500">commit hash</div>
-            <div className="font-mono text-sm break-all">{claim.claimHash}</div>
-            <div className="text-xs text-neutral-500 mt-3">
-              Sealed. Pay {formatUsdc(claim.unlockPrice)} USDC to unlock now, or wait until public release.
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section className="grid grid-cols-2 gap-3 md:gap-4 mb-4">
-        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
-          <div className="text-[10px] md:text-xs text-neutral-500 mb-1">Bond locked</div>
-          <div className="text-lg md:text-xl font-semibold">{formatUsdc(claim.bondAmount)} USDC</div>
+      <section className={`receipt-summary-card ${agentRight ? "receipt-summary-earned" : "receipt-summary-refund"}`}>
+        <div className="summary-copy">
+          <div className="dot-label">Outcome</div>
+          <h1>{outcomeText}</h1>
+          <p>
+            {agent.handle} predicted {callText === "MNT price call" ? question : callText}.{" "}
+            {isSettled
+              ? agentRight
+                ? "The call settled right, so the agent kept the earned payment."
+                : "The call settled wrong, so the slashed bond paid users back."
+              : "The call is still live and will settle after expiry."}
+          </p>
         </div>
-        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
-          <div className="text-[10px] md:text-xs text-neutral-500 mb-1">Unlock price</div>
-          <div className="text-lg md:text-xl font-semibold">{formatUsdc(claim.unlockPrice)} USDC</div>
-        </div>
-        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
-          <div className="text-[10px] md:text-xs text-neutral-500 mb-1">Total paid</div>
-          <div className="text-lg md:text-xl font-semibold">{formatUsdc(accounting.totalPaid)} USDC</div>
-        </div>
-        <div className="border border-neutral-800 rounded-lg p-3 md:p-4">
-          <div className="text-[10px] md:text-xs text-neutral-500 mb-1">Bond at stake</div>
-          <div className="text-lg md:text-xl font-semibold">{formatUsdc(accounting.bondAtStake)} USDC</div>
-        </div>
-      </section>
-
-      <section className="border border-neutral-800 rounded-lg p-4 md:p-5 mb-4">
-        <h2 className="text-xs md:text-sm uppercase tracking-wider text-neutral-500 mb-3 md:mb-4">Timing</h2>
-        <dl className="grid grid-cols-1 md:grid-cols-2 gap-y-2 text-xs md:text-sm">
-          <dt className="text-neutral-500">Expires</dt>
-          <dd className="text-neutral-200">{formatTimestamp(claim.expiry)} ({relativeTime(claim.expiry)})</dd>
-          <dt className="text-neutral-500 mt-2 md:mt-0">Public release</dt>
-          <dd className="text-neutral-200">{formatTimestamp(claim.publicReleaseAt)} ({relativeTime(claim.publicReleaseAt)})</dd>
+        <dl className="summary-metrics">
+          <div>
+            <dt>Prediction</dt>
+            <dd>{callText}</dd>
+          </div>
+          <div>
+            <dt>Actual result</dt>
+            <dd>{isSettled ? (agentRight ? "Right" : "Wrong") : "Pending"}</dd>
+          </div>
+          <div>
+            <dt>Paid to</dt>
+            <dd>{agentRight ? "Agent" : "Payers"}</dd>
+          </div>
+          <div>
+            <dt>Amount</dt>
+            <dd>{paidAmount > 0n ? formatDollar(paidAmount) : "Pending"}</dd>
+          </div>
         </dl>
       </section>
 
-      <section className="border border-neutral-800 rounded-lg p-5 mb-4">
-        <h2 className="text-sm uppercase tracking-wider text-neutral-500 mb-4">On chain</h2>
-        <dl className="grid grid-cols-[96px,1fr] md:grid-cols-[140px,1fr] gap-y-2 text-sm">
-          <dt className="text-neutral-500">Agent</dt>
-          <dd>
-            <Link href={`/agent/${claim.agentId.toString()}`} className={`text-${accent} hover:underline`}>
-              {agent.handle} (id {claim.agentId.toString()})
-            </Link>
-          </dd>
-          <dt className="text-neutral-500">Owner</dt>
-          <dd>
-            <a className="font-mono text-xs text-neutral-300 hover:underline" href={`${EXPLORER}/address/${agent.owner}`} target="_blank" rel="noreferrer">
-              {shortHex(agent.owner)}
-            </a>
-          </dd>
-          <dt className="text-neutral-500">claim hash</dt>
-          <dd className="font-mono text-xs break-all text-neutral-300">{claim.claimHash}</dd>
-          <dt className="text-neutral-500">skills hash</dt>
-          <dd className="font-mono text-xs break-all text-neutral-300">{claim.skillsOutputHash}</dd>
-          <dt className="text-neutral-500">contract</dt>
-          <dd>
-            <a className="font-mono text-xs text-neutral-300 hover:underline" href={`${EXPLORER}/address/${ADDRESSES.claimMarket}`} target="_blank" rel="noreferrer">
-              ClaimMarket {shortHex(ADDRESSES.claimMarket)}
-            </a>
-          </dd>
+      <ClaimLiveStatus settled={isSettled} expirySec={Number(claim.expiry)} />
+
+      <section className="detail-grid">
+        <ProofTimeline events={timeline} receipt={matchingReceipt} agentRight={agentRight} />
+        <section className="detail-card actions-card">
+          <div className="detail-kicker">Actions</div>
+          <p>
+            Wallet-free browsing is enabled. Connect only if you want to unlock a live claim,
+            claim a refund, or settle after expiry.
+          </p>
+          <ClaimActions
+            claimId={claim.id}
+            agentId={claim.agentId}
+            agentOwner={agent.owner}
+            unlockPrice={claim.unlockPrice}
+            state={claim.state}
+            settled={isSettled}
+            agentRight={agentRight}
+            expirySec={claim.expiry}
+          />
+        </section>
+        <section className={`detail-card payment-card ${agentRight ? "payment-earned" : "payment-refund"}`}>
+          <span>{isSettled ? (agentRight ? "Agent earned" : "Refunded") : "Pending"}</span>
+          <h2>{paidAmount > 0n ? formatDollar(paidAmount) : "—"}</h2>
+          <p>{paidLabel}</p>
+          <Link href={`/claim/${claim.id.toString()}`}>Claim #{claim.id.toString()}</Link>
+        </section>
+      </section>
+
+      <section className="detail-card claim-details-card">
+        <div className="detail-kicker">Claim details</div>
+        <div className="claim-detail-grid">
+          <div>
+            <span>Agent</span>
+            <strong>{agent.handle}</strong>
+          </div>
+          <div>
+            <span>Model route</span>
+            <strong>{provider}</strong>
+          </div>
+          <div>
+            <span>Market</span>
+            <strong>{market}</strong>
+          </div>
+          <div>
+            <span>Bond locked</span>
+            <strong>{formatUsdc(claim.bondAmount)} USDC</strong>
+          </div>
+          <div>
+            <span>Unlock price</span>
+            <strong>{formatUsdc(claim.unlockPrice)} USDC</strong>
+          </div>
+          <div>
+            <span>Expires</span>
+            <strong>{formatTimestamp(claim.expiry)}</strong>
+          </div>
+        </div>
+        <div className="claim-question">
+          <span>Call / question</span>
+          <p>{claim.revealedClaimText || question}</p>
+        </div>
+      </section>
+
+      <section className="detail-card technical-card">
+        <div className="detail-kicker">Onchain proof</div>
+        <dl>
+          <div>
+            <dt>Claim hash</dt>
+            <dd>{claim.claimHash}</dd>
+          </div>
+          <div>
+            <dt>Reasoning / skills hash</dt>
+            <dd>{claim.skillsOutputHash}</dd>
+          </div>
+          <div>
+            <dt>ClaimMarket</dt>
+            <dd>
+              <a href={`${EXPLORER}/address/${ADDRESSES.claimMarket}`} target="_blank" rel="noreferrer">
+                {shortHex(ADDRESSES.claimMarket)} ↗
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt>Agent</dt>
+            <dd>
+              <Link href={`/agent/${claim.agentId.toString()}`}>
+                {agent.handle} (id {claim.agentId.toString()})
+              </Link>
+            </dd>
+          </div>
         </dl>
       </section>
     </div>

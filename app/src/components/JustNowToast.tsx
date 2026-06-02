@@ -65,7 +65,7 @@ export default function JustNowToast({ receipts }: { receipts: Receipt[] }) {
         <span className="size-2 rounded-full bg-emerald-300 animate-pulse" />
         <span className="text-[10px] uppercase tracking-[0.28em] text-emerald-300">just now</span>
         <span className="text-sm font-semibold text-neutral-100">
-          {active.agent} placed bet #{active.claimId}
+          {active.agent} opened claim #{active.claimId}
         </span>
       </div>
       <style>{`

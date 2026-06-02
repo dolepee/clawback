@@ -15,9 +15,9 @@ export function WalletButton() {
         href="https://metamask.io/download/"
         target="_blank"
         rel="noreferrer"
-        className="text-xs px-3 py-1.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white"
+        className="min-h-10 rounded-lg border border-emerald-300/45 bg-white/[0.025] px-4 py-2 text-sm font-semibold text-neutral-100 transition-colors hover:border-emerald-200 hover:text-white"
       >
-        install wallet
+        Install wallet
       </a>
     );
   }
@@ -26,9 +26,9 @@ export function WalletButton() {
     return (
       <button
         onClick={() => connect().catch((e) => alert(e.message))}
-        className="text-xs px-3 py-1.5 rounded bg-amber-600 text-black font-semibold hover:bg-amber-500"
+        className="min-h-10 rounded-lg border border-emerald-300/45 bg-emerald-300 px-4 py-2 text-sm font-bold text-black transition-colors hover:bg-emerald-200"
       >
-        connect wallet
+        Connect wallet
       </button>
     );
   }
@@ -37,9 +37,9 @@ export function WalletButton() {
     return (
       <button
         onClick={() => switchToMantleSepolia().catch((e) => alert(e.message))}
-        className="text-xs px-3 py-1.5 rounded bg-rose-700 text-white hover:bg-rose-600"
+        className="min-h-10 rounded-lg border border-red-400/45 bg-red-500/15 px-4 py-2 text-sm font-semibold text-red-100 hover:bg-red-500/25"
       >
-        switch to Mantle Sepolia
+        Switch to Mantle Sepolia
       </button>
     );
   }
@@ -47,14 +47,14 @@ export function WalletButton() {
   return (
     <button
       onClick={() => disconnect().catch((e) => alert(e.message))}
-      className="text-xs px-3 py-1.5 rounded bg-emerald-900/40 border border-emerald-800 text-emerald-300 hover:text-emerald-100 hover:border-emerald-500"
+      className="min-h-10 rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-200 hover:border-emerald-300/60 hover:text-emerald-100"
       title={`Disconnect ${account}`}
     >
       <span className="hidden font-mono md:inline">
         {short(account)}
       </span>
       <span className="hidden px-1 text-emerald-600 md:inline">·</span>
-      disconnect
+      Disconnect
     </button>
   );
 }

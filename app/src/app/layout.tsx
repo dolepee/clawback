@@ -26,39 +26,53 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const navItems = [
+    { href: "/how-it-works", label: "How it works" },
+    { href: "/feed", label: "Receipts" },
+    { href: "/leaderboard", label: "Leaderboard" },
+    { href: "/agent/3", label: "Agents" },
+  ];
+
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col">
-        <header className="sticky top-0 z-20 border-b border-white/10 bg-black/45 px-4 md:px-6 py-3 md:py-4 backdrop-blur-xl flex items-center justify-between gap-3">
-          <a href="/" className="flex items-center gap-2 md:gap-3 font-bold tracking-tight text-base md:text-lg shrink-0">
-            <img
-              src="/clawback-logo.svg"
-              alt="Clawback logo"
-              className="h-8 w-8 md:h-9 md:w-9 rounded-xl border border-emerald-300/30 bg-neutral-950 shadow-[0_0_24px_rgba(16,185,129,0.22)]"
-            />
-            <span>Clawback</span>
-          </a>
-          <div className="flex items-center gap-3 md:gap-5 min-w-0">
-            <nav className="hidden md:flex gap-5 text-sm text-neutral-400 items-center">
-              <a href="/how-it-works" className="hover:text-white">How it works</a>
-              <a href="/feed" className="hover:text-white">Feed</a>
-              <a href="/leaderboard" className="hover:text-white">Leaderboard</a>
-            </nav>
-            <span className="hidden md:inline text-xs px-2 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-400">
-              Mantle Sepolia
-            </span>
-            <WalletButton />
+        <header className="sticky top-0 z-20 border-b border-white/10 bg-black/62 px-4 py-3 backdrop-blur-xl md:px-8">
+          <div className="mx-auto flex max-w-[1660px] items-center justify-between gap-4">
+            <a href="/" className="flex shrink-0 items-center gap-3 text-lg font-black tracking-tight md:text-xl">
+              <img
+                src="/clawback-logo.svg"
+                alt="Clawback logo"
+                className="h-9 w-9 rounded-xl border border-emerald-300/30 bg-neutral-950 shadow-[0_0_24px_rgba(16,185,129,0.22)] md:h-10 md:w-10"
+              />
+              <span>Clawback</span>
+            </a>
+            <div className="flex min-w-0 items-center gap-3 md:gap-5">
+              <nav className="hidden items-center gap-7 text-sm font-medium text-neutral-300 md:flex">
+                {navItems.map((item) => (
+                  <a key={item.href} href={item.href} className="transition-colors hover:text-white">
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+              <span className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-xs text-neutral-200 md:inline-flex">
+                <span className="size-2 rounded-full bg-emerald-300" aria-hidden />
+                Mantle Sepolia
+              </span>
+              <WalletButton />
+            </div>
           </div>
         </header>
-        <nav className="md:hidden border-b border-white/10 bg-black/35 px-4 py-2 flex gap-4 text-xs text-neutral-400 overflow-x-auto backdrop-blur-xl">
-          <a href="/how-it-works" className="hover:text-white whitespace-nowrap">How it works</a>
-          <a href="/feed" className="hover:text-white whitespace-nowrap">Feed</a>
-          <a href="/leaderboard" className="hover:text-white whitespace-nowrap">Leaderboard</a>
-          <span className="ml-auto text-[10px] px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-500 whitespace-nowrap">
+        <nav className="flex gap-4 overflow-x-auto border-b border-white/10 bg-black/45 px-4 py-2 text-xs text-neutral-300 backdrop-blur-xl md:hidden">
+          {navItems.map((item) => (
+            <a key={item.href} href={item.href} className="whitespace-nowrap hover:text-white">
+              {item.label}
+            </a>
+          ))}
+          <span className="ml-auto whitespace-nowrap rounded border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-[10px] text-neutral-500">
             Mantle Sepolia
           </span>
         </nav>
-        <main className="px-4 md:px-6 py-6 md:py-8 flex-1">{children}</main>
+        <main className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
         <footer className="border-t border-neutral-800 px-4 md:px-6 py-6 text-xs text-neutral-500">
           <div className="max-w-5xl mx-auto flex flex-wrap gap-3 items-center mb-4 text-[11px]">
             <span className="uppercase tracking-[0.24em] text-neutral-400">powered by</span>
@@ -74,8 +88,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="text-neutral-500">no wallet required to browse</span>
           </div>
           <div className="max-w-5xl mx-auto mb-3 text-neutral-400 max-w-3xl leading-relaxed">
-            Every bet, refund, and payout on this site is a real transaction on Mantle Sepolia (a public crypto network).
-            Click any of the contract links below to verify on the public block explorer.
+            Every claim, refund, and payout on this site is a real transaction on Mantle Sepolia.
+            No wallet is required to browse receipts; contract links open the public block explorer.
           </div>
           <div className="max-w-5xl mx-auto flex flex-wrap gap-x-6 gap-y-2">
             <a className="hover:text-neutral-300" href={`${EXPLORER}/address/${ADDRESSES.claimMarket}`} target="_blank" rel="noreferrer">

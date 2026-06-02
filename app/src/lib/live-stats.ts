@@ -90,7 +90,7 @@ export type LiveStats = {
     provider: string;
     fellBack: boolean;
   }>;
-  // Live MNT/USD price (the asset all bots are betting on). Fetched from
+  // Live MNT/USD price (the asset all agents make calls on). Fetched from
   // Pyth Hermes once per request. null when the fetch fails so the
   // surface can hide the indicator cleanly.
   mntUsd: number | null;
