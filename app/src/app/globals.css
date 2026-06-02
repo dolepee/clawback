@@ -55,12 +55,12 @@ body::before {
   grid-template-columns: minmax(0, 0.78fr) minmax(480px, 1.02fr);
   gap: clamp(2rem, 4.2vw, 4rem);
   align-items: start;
-  padding: clamp(1.35rem, 3.2vw, 3.2rem) 0 clamp(3rem, 5vw, 4.5rem);
+  padding: clamp(0rem, 1vw, 0.75rem) 0 clamp(3rem, 5vw, 4.5rem);
 }
 
 .hero-copy {
   max-width: 610px;
-  padding-top: clamp(1.5rem, 8vw, 7.5rem);
+  padding-top: clamp(0.35rem, 2.2vw, 2rem);
 }
 
 .eyebrow,
