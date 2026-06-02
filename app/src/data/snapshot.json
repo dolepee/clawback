@@ -1,17 +1,17 @@
 {
-  "generatedAt": 1780364487,
+  "generatedAt": 1780380819,
   "fromBlock": "38493730",
-  "toBlock": "39409887",
+  "toBlock": "39418053",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
   "totalClaims": 91,
   "totalUnlocks": 89,
-  "settledRight": 27,
-  "settledWrong": 29,
-  "refundsClaimed": 28,
-  "earningsClaimed": 25,
-  "totalRefundUsdc": "18750000",
-  "totalEarningsUsdc": "131250000",
+  "settledRight": 37,
+  "settledWrong": 41,
+  "refundsClaimed": 40,
+  "earningsClaimed": 37,
+  "totalRefundUsdc": "25500000",
+  "totalEarningsUsdc": "199500000",
   "agents": {
     "1": "CatScout",
     "2": "LobsterRogue",
@@ -19,135 +19,165 @@
   },
   "perAgent": {
     "CatScout": {
-      "wins": 25,
-      "losses": 2
+      "wins": 30,
+      "losses": 4
     },
     "LobsterRogue": {
-      "wins": 0,
-      "losses": 23
+      "wins": 1,
+      "losses": 29
     },
     "LlmScout": {
-      "wins": 2,
-      "losses": 4
+      "wins": 6,
+      "losses": 8
     }
   },
   "lastClaimAt": 1780334103,
-  "lastSettleAt": 1780178955,
+  "lastSettleAt": 1780379457,
   "latestRefund": {
-    "claimId": 69,
-    "tx": "0xd3adf1fc9fe92aca2e63be13e99490a7ac0fce11c0e5ccb7e61ad4bdba483477",
-    "paidBack": "500000",
-    "bonus": "250000",
+    "claimId": 91,
+    "tx": "0xa8841343732570c731c4a715100948c9f3243a409f23748372559f4b258aa4a8",
+    "paidBack": "250000",
+    "bonus": "125000",
     "user": "0xDe35D0EfBfB548B7B2aCa63598885e4628aAc01B"
   },
   "latestPayout": {
-    "claimId": 68,
-    "tx": "0x0fbb8e09a3ae24bb4fdaefd81ae643f8bd5cd4b853b8f4e767f2b8a382b4219f",
+    "claimId": 89,
+    "tx": "0x8f55ee81001089c6daf9b78d6fc22b8f99c2e01a1457407c8a566821f9fa492b",
     "amount": "5250000",
     "agent": "CatScout"
   },
   "curatedWrong": {
-    "claimId": 69,
-    "agent": "LobsterRogue",
+    "claimId": 91,
+    "agent": "LlmScout",
     "outcome": "wrong",
-    "commitTx": "0xcc8b0707f37dffb094c2922cbeb0d6570c096003fd29e154f84223c5abfa33ff",
-    "settleTx": "0x9a984fd5f99670d96707a61e0eff5132ee755c23b154e5b2c5455ab847009900",
-    "refundTx": "0xd3adf1fc9fe92aca2e63be13e99490a7ac0fce11c0e5ccb7e61ad4bdba483477",
+    "commitTx": "0xa0ded7c0cdf33d3eba0fc6f75a1d0839740b0de47643915f3c7370e677cc4ef5",
+    "settleTx": "0xf11a594fe4cc8bc575264e8faa9eff2d663172ef148cfae8710500244d751e9a",
+    "refundTx": "0xa8841343732570c731c4a715100948c9f3243a409f23748372559f4b258aa4a8",
     "payoutTx": null,
-    "paidBack": "500000",
-    "bonus": "250000",
+    "paidBack": "250000",
+    "bonus": "125000",
     "user": "0xDe35D0EfBfB548B7B2aCa63598885e4628aAc01B",
     "amount": null,
-    "commitAt": 1780091891,
-    "settleAt": 1780178955
+    "provider": "bankr:deepseek-v3.2",
+    "strategy": "momentum",
+    "fellBack": false,
+    "commitAt": 1780334103,
+    "settleAt": 1780379457
   },
   "curatedRight": {
-    "claimId": 68,
-    "agent": "CatScout",
+    "claimId": 73,
+    "agent": "LlmScout",
     "outcome": "right",
-    "commitTx": "0x199167ecba366c6b2983d70b136bbf19650937130e5278865c3c40a2fb4b42fa",
-    "settleTx": "0x76fb473167bf105aed18e762ca1f85321948f95afdf35864b835db8b6736dd4e",
+    "commitTx": "0x46292c9d77707130e171682c626390011689d526f8c06124c34368a57c8cd1ea",
+    "settleTx": "0x767ce022c144a86095650d082faea6656becb8d785d378ae4c8759cebd4b6b8a",
     "refundTx": null,
-    "payoutTx": "0x0fbb8e09a3ae24bb4fdaefd81ae643f8bd5cd4b853b8f4e767f2b8a382b4219f",
+    "payoutTx": "0xfb818d548ea12dc4654c02df8280c95ea4e97e61cabb046d8367e1b12aa06621",
     "paidBack": null,
     "bonus": null,
     "user": null,
     "amount": "5250000",
-    "commitAt": 1780091879,
-    "settleAt": 1780178949
+    "provider": "bankr:deepseek-v3.2",
+    "strategy": null,
+    "fellBack": false,
+    "commitAt": 1780092497,
+    "settleAt": 1780379181
   },
   "latestReceipts": [
     {
       "claimId": 91,
       "agent": "LlmScout",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0xa0ded7c0cdf33d3eba0fc6f75a1d0839740b0de47643915f3c7370e677cc4ef5",
-      "settleTx": null,
+      "settleTx": "0xf11a594fe4cc8bc575264e8faa9eff2d663172ef148cfae8710500244d751e9a",
       "payoutTx": null,
-      "refundTx": null
+      "refundTx": "0xa8841343732570c731c4a715100948c9f3243a409f23748372559f4b258aa4a8",
+      "provider": "bankr:deepseek-v3.2",
+      "strategy": "momentum",
+      "fellBack": false
     },
     {
       "claimId": 90,
       "agent": "LobsterRogue",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0x6779c8f71f472a5ffb4a9005d9b319a91d891dddaef5bc60f006e01a64872430",
-      "settleTx": null,
+      "settleTx": "0x9a2b1024f0cf5bf8b51b19fdf8a712bd0e7417a1018020a70c38994d4b3be164",
       "payoutTx": null,
-      "refundTx": null
+      "refundTx": "0x00b9851fc6a9154ffc379a385f95bf9a11eca6b1b085ff9abdb1033ac0049468",
+      "provider": null,
+      "strategy": null,
+      "fellBack": null
     },
     {
       "claimId": 89,
       "agent": "CatScout",
-      "outcome": "pending",
+      "outcome": "right",
       "commitTx": "0xe20d134e471b21365aa806960090038b12e792b19761091faeecf71de0fe8fad",
-      "settleTx": null,
-      "payoutTx": null,
-      "refundTx": null
+      "settleTx": "0xe6b9fb3722b17ed88aaf23e1fa1788fd8a0c457f32e97431a4e5dcb2a483598d",
+      "payoutTx": "0x8f55ee81001089c6daf9b78d6fc22b8f99c2e01a1457407c8a566821f9fa492b",
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null
     },
     {
       "claimId": 88,
       "agent": "LlmScout",
-      "outcome": "pending",
+      "outcome": "right",
       "commitTx": "0x607d41f56fde7f2d0a0eea5ee132cf74905bb7ef74fbdc6e2b23f1e0e19c87b6",
-      "settleTx": null,
-      "payoutTx": null,
-      "refundTx": null
+      "settleTx": "0x54934e68632b522b9cb615b160e6f214a70cd6e41bb5588184ec7fe49e4b57d3",
+      "payoutTx": "0xfb345bf30ed51b4e31d83f862c00fe1bdd804a25c8deab175aa2b31719535030",
+      "refundTx": null,
+      "provider": "baseline:all-failed",
+      "strategy": "balanced",
+      "fellBack": true
     },
     {
       "claimId": 87,
       "agent": "LobsterRogue",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0x805b21218cb68b1453f5478e0f4a70287014d49a39d36e19faebeecacb966f9a",
-      "settleTx": null,
+      "settleTx": "0x51128c584b8e7d6b486ebe6118cb36cc7600a9ba992ff30f4439d49d231b10f0",
       "payoutTx": null,
-      "refundTx": null
+      "refundTx": "0x0245abfbdf518b61f754f1ab35f307c7638690900f144a8227b859ea931ceb03",
+      "provider": null,
+      "strategy": null,
+      "fellBack": null
     },
     {
       "claimId": 86,
       "agent": "CatScout",
-      "outcome": "pending",
+      "outcome": "right",
       "commitTx": "0x39a84b9195fda14e3bc9be62d39ca2ba743bf6866a3e82c96bac69f9f4a161e9",
-      "settleTx": null,
-      "payoutTx": null,
-      "refundTx": null
+      "settleTx": "0x249f2f6af70b34c8a1fa7a57388748389234269c98114d7515e9de08ee8d7594",
+      "payoutTx": "0x9c23028dec412098b447e08cf754c0695d60fc96722880e7a6a18e5a68e1ed08",
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null
     },
     {
       "claimId": 85,
       "agent": "LlmScout",
-      "outcome": "pending",
+      "outcome": "right",
       "commitTx": "0xa8c03815795230ec43b7537be46549291997ac2cf2d79d8aeb129f2c5e6fdb79",
-      "settleTx": null,
-      "payoutTx": null,
-      "refundTx": null
+      "settleTx": "0x9870db8d46b70f19aff19ab100d17eb2d3dd3f879087395423f85c09fde0b1c5",
+      "payoutTx": "0xd893a4aad686fa8852f6843d1289e0cc20ccb1f8058e03efbb37347825b0fd55",
+      "refundTx": null,
+      "provider": "baseline:all-failed",
+      "strategy": "balanced",
+      "fellBack": true
     },
     {
       "claimId": 84,
       "agent": "LobsterRogue",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0xaa18d2e92b625be042dcd5f030738a56bcd904bbf72c23138d1a3f33c6dfef43",
-      "settleTx": null,
+      "settleTx": "0x26e990d4c180f3305e7bab58f49e86b1ff2c648d82a6058c55ce2ebcca15a9e2",
       "payoutTx": null,
-      "refundTx": null
+      "refundTx": "0x8465d0173fd587f548e47ccc9479dac603fad495292ed55b40c1c1d91b2c4208",
+      "provider": null,
+      "strategy": null,
+      "fellBack": null
     }
   ]
 }

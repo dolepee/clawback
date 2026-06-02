@@ -9,12 +9,13 @@
 //
 // Run: node agent/scripts/build-snapshot.mjs   (viem resolves from agent/node_modules)
 import { createPublicClient, http, parseAbi, formatUnits } from "viem";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, "../../app/src/data/snapshot.json");
+const CRON_RUNS = resolve(__dirname, "../cron-runs");
 
 const RPC = process.env.MANTLE_SEPOLIA_RPC_URL ?? "https://rpc.sepolia.mantle.xyz";
 const EXPLORER = "https://sepolia.mantlescan.xyz";
@@ -97,11 +98,48 @@ async function blockTs(blockNumber) {
 
 const usdc = (v) => v.toString(); // store raw 6dp integer as string
 
+function readClaimProvenance() {
+  const byClaim = new Map();
+  const walk = (dir) => {
+    let entries = [];
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const path = resolve(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(path);
+        continue;
+      }
+      if (!/^claim-\d+\.json$/.test(entry.name)) continue;
+      try {
+        const json = JSON.parse(readFileSync(path, "utf8"));
+        const claimId = json.claimId?.toString();
+        if (!claimId) continue;
+        byClaim.set(claimId, {
+          persona: json.persona ?? null,
+          provider: json.llm?.provider ?? null,
+          strategy: json.llm?.strategy ?? null,
+          fellBack: typeof json.llm?.fellBack === "boolean" ? json.llm.fellBack : null,
+        });
+      } catch {
+        // Provenance is presentation metadata only; never let a malformed file break
+        // the onchain snapshot.
+      }
+    }
+  };
+  walk(CRON_RUNS);
+  return byClaim;
+}
+
 async function main() {
   console.log(`Scanning Mantle Sepolia from block ${DEPLOY_BLOCK} ...`);
   const market = await scan(ADDR.claimMarket, marketEvents);
   const escrow = await scan(ADDR.clawbackEscrow, escrowEvents);
   const latest = market.latest;
+  const provenanceByClaim = readClaimProvenance();
 
   const commits = market.logs.filter((l) => l.eventName === "ClaimCommitted");
   const settles = market.logs.filter((l) => l.eventName === "ClaimSettled");
@@ -160,11 +198,18 @@ async function main() {
   const latestRefundId = refundByClaim.size ? maxKey(refundByClaim) : null;
   const latestPayoutId = payoutByClaim.size ? maxKey(payoutByClaim) : null;
 
-  // curated: a WRONG settle that has a refund, a RIGHT settle that has a payout (most recent)
+  const isBankrLlmClaim = (id) => {
+    const p = provenanceByClaim.get(String(id));
+    return p?.persona === "LlmScout" && p?.provider?.startsWith("bankr:") && p.fellBack === false;
+  };
+
+  // Curated proof pair: prefer real, non-fallback Bankr LlmScout receipts. If none
+  // exist, fall back to the most recent settled WRONG/RIGHT receipts with money
+  // movement so the page never goes empty.
   const wrongIds = [...settleByClaim.entries()].filter(([id, s]) => !s.right && refundByClaim.has(id)).map(([id]) => Number(id)).sort((a, b) => b - a);
   const rightIds = [...settleByClaim.entries()].filter(([id, s]) => s.right && payoutByClaim.has(id)).map(([id]) => Number(id)).sort((a, b) => b - a);
-  const curatedWrongId = wrongIds[0] ?? null;
-  const curatedRightId = rightIds[0] ?? null;
+  const curatedWrongId = wrongIds.find(isBankrLlmClaim) ?? wrongIds[0] ?? null;
+  const curatedRightId = rightIds.find(isBankrLlmClaim) ?? rightIds[0] ?? null;
 
   const lastClaimAt = await blockTs(commits.at(-1)?.blockNumber);
   const lastSettleAt = await blockTs(settles.at(-1)?.blockNumber);
@@ -174,6 +219,7 @@ async function main() {
     const key = String(id);
     const c = commitByClaim.get(key), s = settleByClaim.get(key);
     const rf = refundByClaim.get(key), po = payoutByClaim.get(key);
+    const prov = provenanceByClaim.get(key);
     return {
       claimId: id,
       agent: agentByClaim.get(key) ?? "CatScout",
@@ -186,6 +232,9 @@ async function main() {
       bonus: rf ? usdc(rf.bonus) : null,
       user: rf?.user ?? null,
       amount: po ? usdc(po.amount) : null,
+      provider: prov?.provider ?? null,
+      strategy: prov?.strategy ?? null,
+      fellBack: prov?.fellBack ?? null,
       commitAt: c ? await blockTs(c.block) : 0,
       settleAt: s ? await blockTs(s.block) : 0,
     };
@@ -197,6 +246,7 @@ async function main() {
   for (const id of ids) {
     const key = String(id);
     const s = settleByClaim.get(key);
+    const prov = provenanceByClaim.get(key);
     latestReceipts.push({
       claimId: id,
       agent: agentByClaim.get(key) ?? "CatScout",
@@ -205,6 +255,9 @@ async function main() {
       settleTx: s?.tx ?? null,
       payoutTx: payoutByClaim.get(key)?.tx ?? null,
       refundTx: refundByClaim.get(key)?.tx ?? null,
+      provider: prov?.provider ?? null,
+      strategy: prov?.strategy ?? null,
+      fellBack: prov?.fellBack ?? null,
     });
   }
 

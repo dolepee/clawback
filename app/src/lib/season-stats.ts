@@ -23,6 +23,15 @@ type SnapReceipt = {
   settleTx: string | null;
   payoutTx: string | null;
   refundTx: string | null;
+  provider?: string | null;
+  fellBack?: boolean | null;
+};
+
+type SnapMoneyReceipt = SnapReceipt & {
+  paidBack?: string | null;
+  bonus?: string | null;
+  user?: string | null;
+  amount?: string | null;
 };
 
 type SnapshotShape = {
@@ -41,8 +50,8 @@ type SnapshotShape = {
   latestRefund: { claimId: number; tx: string; paidBack: string; bonus: string; user: string } | null;
   latestPayout: { claimId: number; tx: string; amount: string; agent: string } | null;
   latestReceipts: SnapReceipt[];
-  curatedWrong: { claimId: number; agent: string; outcome: string } | null;
-  curatedRight: { claimId: number; agent: string; outcome: string } | null;
+  curatedWrong: SnapMoneyReceipt | null;
+  curatedRight: SnapMoneyReceipt | null;
 };
 
 const snap = snapshotJson as unknown as SnapshotShape;
@@ -94,6 +103,30 @@ function snapshotStats(): LiveStats {
           agent: asHandle(snap.latestPayout.agent),
         }
       : undefined,
+    proofRefund:
+      snap.curatedWrong?.refundTx && snap.curatedWrong.paidBack && snap.curatedWrong.bonus && snap.curatedWrong.user
+        ? {
+            claimId: snap.curatedWrong.claimId,
+            tx: hx(snap.curatedWrong.refundTx),
+            paidBack: BigInt(snap.curatedWrong.paidBack),
+            bonus: BigInt(snap.curatedWrong.bonus),
+            user: hx(snap.curatedWrong.user),
+            agent: asHandle(snap.curatedWrong.agent),
+            provider: snap.curatedWrong.provider ?? undefined,
+            fellBack: snap.curatedWrong.fellBack ?? undefined,
+          }
+        : undefined,
+    proofPayout:
+      snap.curatedRight?.payoutTx && snap.curatedRight.amount
+        ? {
+            claimId: snap.curatedRight.claimId,
+            tx: hx(snap.curatedRight.payoutTx),
+            amount: BigInt(snap.curatedRight.amount),
+            agent: asHandle(snap.curatedRight.agent),
+            provider: snap.curatedRight.provider ?? undefined,
+            fellBack: snap.curatedRight.fellBack ?? undefined,
+          }
+        : undefined,
     lastClaimAt: snap.lastClaimAt,
     lastSettleAt: snap.lastSettleAt,
     generatedAt: snap.generatedAt,
@@ -105,6 +138,8 @@ function snapshotStats(): LiveStats {
       settleTx: r.settleTx ? hx(r.settleTx) : undefined,
       payoutTx: r.payoutTx ? hx(r.payoutTx) : undefined,
       refundTx: r.refundTx ? hx(r.refundTx) : undefined,
+      provider: r.provider ?? undefined,
+      fellBack: r.fellBack ?? undefined,
     })),
     llmStrategyDistribution: {},
     llmRecentDecisions: [],

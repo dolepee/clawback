@@ -26,23 +26,44 @@ function txLink(tx: `0x${string}`, label = shortHex(tx)) {
   );
 }
 
+function formatProvider(provider?: string): string {
+  if (!provider) return "";
+  return provider.replace(/^bankr:/, "Bankr ");
+}
+
 function ProofPair({ stats }: { stats: Stats }) {
-  const refund = stats.latestRefund;
-  const payout = stats.latestPayout;
+  const proofRefund = stats.proofRefund;
+  const proofPayout = stats.proofPayout;
+  const refund = proofRefund ?? stats.latestRefund;
+  const payout = proofPayout ?? stats.latestPayout;
   const refundTotal = refund ? refund.paidBack + refund.bonus : null;
+  let refundAgent: string | undefined;
+  let refundProvider = "";
+  if (proofRefund && refund && proofRefund.claimId === refund.claimId) {
+    refundAgent = proofRefund.agent;
+    refundProvider = formatProvider(proofRefund.provider);
+  }
+  let payoutProvider = "";
+  if (proofPayout && payout && proofPayout.claimId === payout.claimId) {
+    payoutProvider = formatProvider(proofPayout.provider);
+  }
 
   return (
     <div className="receipt-panel" id="proof">
       <div className="receipt-kicker">Live receipt pair</div>
       <div className="receipt-grid">
         <article className="receipt-card receipt-card-refund">
-          <div className="receipt-label">Agent was wrong</div>
+          <div className="receipt-label">
+            {refundProvider ? "Bankr-backed LlmScout was wrong" : "Agent was wrong"}
+          </div>
           <div className="receipt-money text-emerald-200">
             {refundTotal ? formatDollar(refundTotal) : "Refund pending"}
           </div>
           <p className="receipt-copy">
-            {refund
-              ? `User ${shortHex(refund.user)} got paid back from the agent stake.`
+            {refund && refundProvider
+              ? `${refundAgent ?? "LlmScout"} used ${refundProvider}. The call settled wrong, so ${shortHex(refund.user)} got paid back from the stake.`
+              : refund
+                ? `User ${shortHex(refund.user)} got paid back from the agent stake.`
               : "No refund receipt is available yet."}
           </p>
           {refund ? (
@@ -54,12 +75,16 @@ function ProofPair({ stats }: { stats: Stats }) {
         </article>
 
         <article className="receipt-card receipt-card-payout">
-          <div className="receipt-label">Agent was right</div>
+          <div className="receipt-label">
+            {payoutProvider ? "Bankr-backed LlmScout was right" : "Agent was right"}
+          </div>
           <div className="receipt-money text-amber-200">
             {payout ? formatDollar(payout.amount) : "Payout pending"}
           </div>
           <p className="receipt-copy">
-            {payout
+            {payout && payoutProvider
+              ? `${payout.agent} used ${payoutProvider} and kept the customer fee after settling right.`
+              : payout
               ? `${payout.agent} kept the customer fee after the call settled right.`
               : "No payout receipt is available yet."}
           </p>
@@ -169,7 +194,8 @@ function HowItWorks() {
 export default function HomePage() {
   const stats = buildSnapshotStats();
   const settled = settledCount(stats);
-  const refund = stats.latestRefund;
+  const refund = stats.proofRefund ?? stats.latestRefund;
+  const bankrProof = stats.proofRefund?.provider?.startsWith("bankr:");
 
   return (
     <div className="mx-auto max-w-[1540px]">
@@ -183,7 +209,9 @@ export default function HomePage() {
 
       <section className="hero-receipt">
         <div className="hero-copy">
-          <p className="eyebrow">AI accountability · live on Mantle Sepolia</p>
+          <p className="eyebrow">
+            {bankrProof ? "Bankr LlmScout proof · live on Mantle Sepolia" : "AI accountability · live on Mantle Sepolia"}
+          </p>
           <h1>When the AI is wrong, you get your money back.</h1>
           <p className="hero-subhead">
             Three AI agents stake their own USDC on every price call. Wrong call, you are

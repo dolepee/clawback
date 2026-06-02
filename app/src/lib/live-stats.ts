@@ -37,6 +37,24 @@ export type LiveStats = {
   totalEarningsUsdc: bigint;
   latestRefund?: { claimId: number; tx: `0x${string}`; paidBack: bigint; bonus: bigint; user: `0x${string}` };
   latestPayout?: { claimId: number; tx: `0x${string}`; amount: bigint; agent: AgentHandle };
+  proofRefund?: {
+    claimId: number;
+    tx: `0x${string}`;
+    paidBack: bigint;
+    bonus: bigint;
+    user: `0x${string}`;
+    agent: AgentHandle;
+    provider?: string;
+    fellBack?: boolean;
+  };
+  proofPayout?: {
+    claimId: number;
+    tx: `0x${string}`;
+    amount: bigint;
+    agent: AgentHandle;
+    provider?: string;
+    fellBack?: boolean;
+  };
   lastClaimAt: number;
   lastSettleAt: number;
   generatedAt: number;
@@ -48,6 +66,8 @@ export type LiveStats = {
     settleTx?: `0x${string}`;
     payoutTx?: `0x${string}`;
     refundTx?: `0x${string}`;
+    provider?: string;
+    fellBack?: boolean;
   }>;
   // LlmScout strategic identity: counts of each strategy across recent
   // LlmScout claims, plus the last few labeled claims for the agent page.
