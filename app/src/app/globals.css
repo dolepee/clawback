@@ -2402,7 +2402,6 @@ body::before {
 }
 
 @media (max-width: 1280px) {
-  .receipt-hero,
   .home-dashboard-grid {
     grid-template-columns: 1fr;
   }
@@ -2412,12 +2411,24 @@ body::before {
   }
 
   .receipt-hero {
-    margin-top: 0;
+    grid-template-columns: minmax(0, 0.92fr) minmax(480px, 1.08fr);
+    gap: 1.5rem;
+    margin-top: -0.8rem;
+  }
+
+  .style-receipt-grid {
+    grid-template-columns: minmax(0, 0.82fr) minmax(260px, 1.18fr);
+  }
+
+  .agent-model-chips {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 860px) {
   .receipt-hero {
+    grid-template-columns: 1fr;
+    margin-top: 0;
     padding-top: 1.45rem;
   }
 
