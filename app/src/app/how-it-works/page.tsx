@@ -3,7 +3,8 @@ import Link from "next/link";
 import { loadReplayClaims, type ReplayClaim } from "@/lib/live-stats";
 import { EXPLORER } from "@/lib/addresses";
 import { MARKET_LABEL } from "@/lib/abi";
-import { decodePredictionParams, formatUsdc, predictionQuestion, shortHex } from "@/lib/format";
+import { decodePredictionParams, formatDollar, formatUsdc, predictionQuestion, shortHex } from "@/lib/format";
+import { buildSnapshotStats } from "@/lib/season-stats";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 30;
@@ -162,6 +163,78 @@ function Walkthrough({ replay, tone }: { replay: ReplayClaim; tone: "wrong" | "r
   );
 }
 
+type Stats = ReturnType<typeof buildSnapshotStats>;
+
+function snapshotQuestion(direction?: "above" | "below", thresholdPriceUsd?: string): string {
+  if (!direction || !thresholdPriceUsd) return "MNT price call at expiry";
+  return `MNT ${direction} $${Number(thresholdPriceUsd).toFixed(4)} at expiry`;
+}
+
+function SnapshotWalkthrough({ stats, tone }: { stats: Stats; tone: "wrong" | "right" }) {
+  const receipt = tone === "wrong" ? stats.proofRefund : stats.proofPayout;
+  const isWrong = tone === "wrong";
+  if (!receipt) {
+    return (
+      <div className="rounded-2xl border border-neutral-800 p-6 text-sm text-neutral-400">
+        No receipts for this example yet.
+      </div>
+    );
+  }
+  const finalTx = receipt.tx;
+  const amount = isWrong
+    ? formatDollar((stats.proofRefund?.paidBack ?? 0n) + (stats.proofRefund?.bonus ?? 0n))
+    : formatDollar(stats.proofPayout?.amount ?? 0n);
+
+  return (
+    <div className={`relative overflow-hidden rounded-[2rem] border ${isWrong ? "border-emerald-500/30" : "border-amber-500/30"} bg-neutral-950/80 p-5 shadow-[0_28px_90px_rgba(0,0,0,0.28)] md:p-6`}>
+      <div className={`absolute inset-x-0 top-0 h-1 ${isWrong ? "bg-emerald-300" : "bg-amber-300"}`} />
+      <div className="mb-5 flex items-baseline justify-between gap-3">
+        <div className={`text-xs font-semibold uppercase tracking-[0.24em] ${isWrong ? "text-emerald-200" : "text-amber-200"}`}>
+          snapshot proof · {isWrong ? "wrong → refund cleared" : "right → agent earned"}
+        </div>
+        <Link href={`/claim/${receipt.claimId}`} className="text-xs text-neutral-400 hover:text-neutral-100">
+          claim #{receipt.claimId} →
+        </Link>
+      </div>
+      <div className="mb-1 text-3xl font-black text-neutral-50">{receipt.agent}</div>
+      <div className="mb-6 text-sm text-neutral-400">{snapshotQuestion(receipt.direction, receipt.thresholdPriceUsd)}</div>
+
+      <div className="space-y-5">
+        <div className="flex gap-4">
+          <StepDot n="01" tone="neutral" />
+          <div>
+            <div className="mb-1 text-sm font-semibold text-neutral-100">The model made this call</div>
+            <div className="mb-2 text-xs leading-relaxed text-neutral-400">
+              The agent committed the claim on Mantle Sepolia and locked its own bond before settlement.
+            </div>
+            {receipt.commitTx ? <TxLink tx={receipt.commitTx} /> : null}
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <StepDot n="02" tone="neutral" />
+          <div>
+            <div className="mb-1 text-sm font-semibold text-neutral-100">Pyth checked the market</div>
+            <div className="mb-2 text-xs leading-relaxed text-neutral-400">
+              Settlement compared the market result against the claim and wrote the outcome onchain.
+            </div>
+            {receipt.settleTx ? <TxLink tx={receipt.settleTx} /> : null}
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <StepDot n="03" tone={isWrong ? "emerald" : "amber"} />
+          <div>
+            <div className={`mb-1 text-sm font-semibold ${isWrong ? "text-emerald-300" : "text-amber-300"}`}>
+              {isWrong ? "The refund was paid onchain" : "The agent was paid onchain"}
+            </div>
+            <div className="mb-2 text-lg font-black text-neutral-50">{amount}</div>
+            <TxLink tx={finalTx} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PrimitiveBox({ title, body, mono }: { title: string; body: string; mono?: string }) {
   return (
     <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-5">
@@ -174,6 +247,7 @@ function PrimitiveBox({ title, body, mono }: { title: string; body: string; mono
 
 export default async function HowItWorksPage() {
   const { wrong, right } = await loadReplayClaims();
+  const stats = buildSnapshotStats();
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -194,16 +268,12 @@ export default async function HowItWorksPage() {
         {wrong ? (
           <Walkthrough replay={wrong} tone="wrong" />
         ) : (
-          <div className="rounded-2xl border border-neutral-800 p-6 text-sm text-neutral-500">
-            No WRONG-and-refunded claim yet. The cron is still building the sample.
-          </div>
+          <SnapshotWalkthrough stats={stats} tone="wrong" />
         )}
         {right ? (
           <Walkthrough replay={right} tone="right" />
         ) : (
-          <div className="rounded-2xl border border-neutral-800 p-6 text-sm text-neutral-500">
-            No RIGHT-and-paid claim yet. The cron is still building the sample.
-          </div>
+          <SnapshotWalkthrough stats={stats} tone="right" />
         )}
       </section>
 

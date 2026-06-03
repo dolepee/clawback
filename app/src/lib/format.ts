@@ -79,12 +79,12 @@ export function decodePredictionParams(marketId: number, params: `0x${string}`):
 
 export function predictionQuestion(p: PredictionParams, expirySeconds: bigint): string {
   const hours = Number(expirySeconds - BigInt(Math.floor(Date.now() / 1000))) / 3600;
-  const horizon = hours > 0 ? `${hours.toFixed(1)}h` : `at expiry`;
+  const horizon = hours > 0 ? `within ${hours.toFixed(1)}h` : "at expiry";
   if (p.kind === "outperform") {
-    return `Does MNT outperform mETH by at least ${(p.minOutperformBps / 100).toFixed(2)}% by ${horizon}? Commit snapshot: MNT $${p.commitMntPriceUsd.toFixed(4)}, ETH $${p.commitEthPriceUsd.toFixed(2)}.`;
+    return `Does MNT outperform mETH by at least ${(p.minOutperformBps / 100).toFixed(2)}% ${horizon}? Commit snapshot: MNT $${p.commitMntPriceUsd.toFixed(4)}, ETH $${p.commitEthPriceUsd.toFixed(2)}.`;
   }
   if (p.kind === "threshold") {
-    return `Does MNT/USD trade ${p.direction} $${p.thresholdPriceUsd.toFixed(4)} by ${horizon}?`;
+    return `Does MNT/USD trade ${p.direction} $${p.thresholdPriceUsd.toFixed(4)} ${horizon}?`;
   }
   return `Raw params: ${p.hex.slice(0, 20)}...`;
 }

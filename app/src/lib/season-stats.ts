@@ -21,6 +21,8 @@ type SnapReceipt = {
   outcome: "pending" | "right" | "wrong";
   commitTx: string | null;
   settleTx: string | null;
+  commitAt?: number | null;
+  settleAt?: number | null;
   payoutTx: string | null;
   refundTx: string | null;
   provider?: string | null;
@@ -110,6 +112,10 @@ function snapshotStats(): LiveStats {
         ? {
             claimId: snap.curatedWrong.claimId,
             tx: hx(snap.curatedWrong.refundTx),
+            commitTx: snap.curatedWrong.commitTx ? hx(snap.curatedWrong.commitTx) : undefined,
+            settleTx: snap.curatedWrong.settleTx ? hx(snap.curatedWrong.settleTx) : undefined,
+            commitAt: snap.curatedWrong.commitAt ?? undefined,
+            settleAt: snap.curatedWrong.settleAt ?? undefined,
             paidBack: BigInt(snap.curatedWrong.paidBack),
             bonus: BigInt(snap.curatedWrong.bonus),
             user: hx(snap.curatedWrong.user),
@@ -125,6 +131,10 @@ function snapshotStats(): LiveStats {
         ? {
             claimId: snap.curatedRight.claimId,
             tx: hx(snap.curatedRight.payoutTx),
+            commitTx: snap.curatedRight.commitTx ? hx(snap.curatedRight.commitTx) : undefined,
+            settleTx: snap.curatedRight.settleTx ? hx(snap.curatedRight.settleTx) : undefined,
+            commitAt: snap.curatedRight.commitAt ?? undefined,
+            settleAt: snap.curatedRight.settleAt ?? undefined,
             amount: BigInt(snap.curatedRight.amount),
             agent: asHandle(snap.curatedRight.agent),
             provider: snap.curatedRight.provider ?? undefined,
@@ -142,6 +152,8 @@ function snapshotStats(): LiveStats {
       outcome: r.outcome,
       commitTx: hx(r.commitTx),
       settleTx: r.settleTx ? hx(r.settleTx) : undefined,
+      commitAt: r.commitAt ?? undefined,
+      settleAt: r.settleAt ?? undefined,
       payoutTx: r.payoutTx ? hx(r.payoutTx) : undefined,
       refundTx: r.refundTx ? hx(r.refundTx) : undefined,
       provider: r.provider ?? undefined,

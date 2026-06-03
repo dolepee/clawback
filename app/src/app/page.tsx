@@ -21,6 +21,17 @@ function formatCall(direction?: "above" | "below", thresholdPriceUsd?: string): 
   return `MNT ${direction} $${Number(thresholdPriceUsd).toFixed(4)}`;
 }
 
+function formatUtcTime(seconds?: number): string {
+  if (!seconds) return "Recorded";
+  const date = new Date(seconds * 1000);
+  return `${new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  }).format(date)} UTC`;
+}
+
 function txLink(tx: `0x${string}`, label = shortHex(tx, 6, 4), ariaLabel = "Open transaction proof") {
   return (
     <a
@@ -102,10 +113,10 @@ function MiniPriceChart({ threshold }: { threshold: string }) {
   return (
     <div className="mini-price-chart" aria-label="Price settlement sketch">
       <div className="chart-head">
-        <span>MNT Price</span>
-        <strong>$0.6113</strong>
+        <span>Settlement sketch</span>
+        <strong>threshold ${threshold}</strong>
       </div>
-      <svg viewBox="0 0 420 180" role="img" aria-label="MNT moved below the claimed threshold">
+      <svg viewBox="0 0 420 180" role="img" aria-label="Illustrative MNT path crossing the claim threshold">
         <path
           d="M18 58 L34 72 L48 65 L64 88 L82 80 L102 92 L120 86 L140 103 L158 96 L176 118 L196 110 L216 132"
           fill="none"
@@ -133,8 +144,8 @@ function MiniPriceChart({ threshold }: { threshold: string }) {
         </text>
       </svg>
       <div className="chart-time">
-        <span>15:00</span>
-        <span>17:14</span>
+        <span>commit</span>
+        <span>settle</span>
       </div>
     </div>
   );
@@ -147,21 +158,21 @@ function HomeProofRail({ receipt, refund }: { receipt?: Receipt; refund?: Stats[
         {
           step: "1",
           title: "Committed",
-          time: "15:00 UTC",
-          tx: receipt?.commitTx,
+          time: formatUtcTime(refund?.commitAt ?? receipt?.commitAt),
+          tx: refund?.commitTx ?? receipt?.commitTx,
           label: "Open commit transaction",
         },
         {
           step: "2",
           title: "Settled by Pyth",
-          time: "17:14 UTC",
-          tx: receipt?.settleTx,
+          time: formatUtcTime(refund?.settleAt ?? receipt?.settleAt),
+          tx: refund?.settleTx ?? receipt?.settleTx,
           label: "Open settlement transaction",
         },
         {
           step: "3",
           title: "Refund Paid",
-          time: "17:15 UTC",
+          time: "Onchain receipt",
           tx: refund?.tx,
           label: "Open refund transaction",
         },
@@ -227,12 +238,11 @@ function HomeReceiptTable({ stats }: { stats: Stats }) {
               <th>Prediction</th>
               <th>Outcome</th>
               <th>Refund / Payout</th>
-              <th>Time</th>
               <th />
             </tr>
           </thead>
           <tbody>
-            {stats.latestReceipts.slice(0, 5).map((receipt, index) => {
+            {stats.latestReceipts.slice(0, 5).map((receipt) => {
               const tx = receipt.refundTx ?? receipt.payoutTx ?? receipt.settleTx ?? receipt.commitTx;
               return (
                 <tr key={receipt.claimId}>
@@ -257,7 +267,6 @@ function HomeReceiptTable({ stats }: { stats: Stats }) {
                       {receiptVisibleAmount(receipt, stats)}
                     </strong>
                   </td>
-                  <td>{index === 0 ? "17m ago" : index === 1 ? "1h ago" : `${index + 1}h ago`}</td>
                   <td>
                     <a href={`${EXPLORER}/tx/${tx}`} target="_blank" rel="noreferrer" aria-label={`Open proof for claim ${receipt.claimId}`}>
                       View ↗
@@ -283,7 +292,7 @@ function TopAgentsCompact({ stats }: { stats: Stats }) {
       wins: stats.catWins,
       losses: stats.catLosses,
       accuracy: stats.catAccuracy,
-      earned: stats.proofPayout?.agent === "CatScout" ? formatDollar(stats.proofPayout.amount) : "Receipts",
+      earned: stats.proofPayout?.agent === "CatScout" ? formatDollar(stats.proofPayout.amount) : "—",
     },
     {
       id: stats.llmAgentId,
@@ -292,7 +301,7 @@ function TopAgentsCompact({ stats }: { stats: Stats }) {
       wins: stats.llmWins,
       losses: stats.llmLosses,
       accuracy: stats.llmAccuracy,
-      earned: stats.proofPayout?.agent === "LlmScout" ? formatDollar(stats.proofPayout.amount) : "Receipts",
+      earned: stats.proofPayout?.agent === "LlmScout" ? formatDollar(stats.proofPayout.amount) : "—",
     },
     {
       id: stats.lobsterAgentId,
@@ -301,7 +310,7 @@ function TopAgentsCompact({ stats }: { stats: Stats }) {
       wins: stats.lobsterWins,
       losses: stats.lobsterLosses,
       accuracy: stats.lobsterAccuracy,
-      earned: stats.proofPayout?.agent === "LobsterRogue" ? formatDollar(stats.proofPayout.amount) : "Receipts",
+      earned: stats.proofPayout?.agent === "LobsterRogue" ? formatDollar(stats.proofPayout.amount) : "—",
     },
   ].sort((a, b) => b.accuracy - a.accuracy || b.wins - a.wins);
 
@@ -353,6 +362,7 @@ function LiveRefundReceipt({ stats }: { stats: Stats }) {
   const threshold = stats.proofRefund?.thresholdPriceUsd
     ? Number(stats.proofRefund.thresholdPriceUsd).toFixed(4)
     : "0.6319";
+  const slashedBond = 5_000_000n;
 
   return (
     <aside className="live-receipt-card" id="refund-receipt" aria-label="Live refund receipt">
@@ -373,7 +383,7 @@ function LiveRefundReceipt({ stats }: { stats: Stats }) {
             </div>
             <div>
               <span>Agent bond slashed</span>
-              <strong className="text-red-300">$5.00</strong>
+              <strong className="text-red-300">{formatDollar(slashedBond)}</strong>
               <small>Paid from agent stake</small>
             </div>
           </div>

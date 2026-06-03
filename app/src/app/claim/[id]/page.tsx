@@ -136,9 +136,41 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
 
   const stats = buildSnapshotStats();
   const { claim, agent, accounting } = detail;
-  const matchingReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === Number(claim.id));
   const proofRefund = stats.proofRefund?.claimId === Number(claim.id) ? stats.proofRefund : undefined;
   const proofPayout = stats.proofPayout?.claimId === Number(claim.id) ? stats.proofPayout : undefined;
+  const proofReceipt: SnapshotReceipt | undefined = proofRefund
+    ? {
+        claimId: proofRefund.claimId,
+        agent: proofRefund.agent,
+        outcome: "wrong",
+        commitTx: proofRefund.commitTx ?? proofRefund.tx,
+        settleTx: proofRefund.settleTx,
+        commitAt: proofRefund.commitAt,
+        settleAt: proofRefund.settleAt,
+        refundTx: proofRefund.tx,
+        provider: proofRefund.provider,
+        fellBack: proofRefund.fellBack,
+        direction: proofRefund.direction,
+        thresholdPriceUsd: proofRefund.thresholdPriceUsd,
+      }
+    : proofPayout
+      ? {
+          claimId: proofPayout.claimId,
+          agent: proofPayout.agent,
+          outcome: "right",
+          commitTx: proofPayout.commitTx ?? proofPayout.tx,
+          settleTx: proofPayout.settleTx,
+          commitAt: proofPayout.commitAt,
+          settleAt: proofPayout.settleAt,
+          payoutTx: proofPayout.tx,
+          provider: proofPayout.provider,
+          fellBack: proofPayout.fellBack,
+          direction: proofPayout.direction,
+          thresholdPriceUsd: proofPayout.thresholdPriceUsd,
+        }
+      : undefined;
+  const matchingReceipt =
+    stats.latestReceipts.find((receipt) => receipt.claimId === Number(claim.id)) ?? proofReceipt;
   const prediction = decodePredictionParams(claim.marketId, claim.predictionParams);
   const question = predictionQuestion(prediction, claim.expiry);
   const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;

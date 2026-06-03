@@ -40,6 +40,10 @@ export type LiveStats = {
   proofRefund?: {
     claimId: number;
     tx: `0x${string}`;
+    commitTx?: `0x${string}`;
+    settleTx?: `0x${string}`;
+    commitAt?: number;
+    settleAt?: number;
     paidBack: bigint;
     bonus: bigint;
     user: `0x${string}`;
@@ -52,6 +56,10 @@ export type LiveStats = {
   proofPayout?: {
     claimId: number;
     tx: `0x${string}`;
+    commitTx?: `0x${string}`;
+    settleTx?: `0x${string}`;
+    commitAt?: number;
+    settleAt?: number;
     amount: bigint;
     agent: AgentHandle;
     provider?: string;
@@ -68,6 +76,8 @@ export type LiveStats = {
     outcome: "pending" | "right" | "wrong";
     commitTx: `0x${string}`;
     settleTx?: `0x${string}`;
+    commitAt?: number;
+    settleAt?: number;
     payoutTx?: `0x${string}`;
     refundTx?: `0x${string}`;
     provider?: string;

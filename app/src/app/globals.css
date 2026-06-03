@@ -2401,6 +2401,13 @@ body::before {
   font-weight: 850;
 }
 
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid rgb(var(--emerald));
+  outline-offset: 3px;
+}
+
 @media (max-width: 1280px) {
   .home-dashboard-grid {
     grid-template-columns: 1fr;
