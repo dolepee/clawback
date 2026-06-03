@@ -222,6 +222,14 @@ function receiptVisibleAmount(receipt: Receipt, stats: Stats): string {
   return "Pending";
 }
 
+function receiptProofTx(receipt: Receipt): `0x${string}` {
+  return receipt.refundTx ?? receipt.payoutTx ?? receipt.settleTx ?? receipt.commitTx;
+}
+
+function receiptOutcomeLabel(receipt: Receipt): string {
+  return receipt.outcome === "wrong" ? "Wrong" : receipt.outcome === "right" ? "Right" : "Pending";
+}
+
 function HomeReceiptTable({ stats }: { stats: Stats }) {
   return (
     <section className="latest-receipts-panel" id="receipts">
@@ -243,7 +251,7 @@ function HomeReceiptTable({ stats }: { stats: Stats }) {
           </thead>
           <tbody>
             {stats.latestReceipts.slice(0, 5).map((receipt) => {
-              const tx = receipt.refundTx ?? receipt.payoutTx ?? receipt.settleTx ?? receipt.commitTx;
+              const tx = receiptProofTx(receipt);
               return (
                 <tr key={receipt.claimId}>
                   <td><StatusBadge receipt={receipt} /></td>
@@ -260,7 +268,7 @@ function HomeReceiptTable({ stats }: { stats: Stats }) {
                   </td>
                   <td>{formatCall(receipt.direction, receipt.thresholdPriceUsd)}</td>
                   <td className={receipt.outcome === "wrong" ? "text-red-300" : receipt.outcome === "right" ? "text-emerald-200" : ""}>
-                    {receipt.outcome === "wrong" ? "Wrong" : receipt.outcome === "right" ? "Right" : "Pending"}
+                    {receiptOutcomeLabel(receipt)}
                   </td>
                   <td>
                     <strong className={receipt.outcome === "wrong" ? "text-emerald-200" : receipt.outcome === "right" ? "text-amber-200" : ""}>
@@ -277,6 +285,39 @@ function HomeReceiptTable({ stats }: { stats: Stats }) {
             })}
           </tbody>
         </table>
+      </div>
+      <div className="home-receipts-mobile-list">
+        {stats.latestReceipts.slice(0, 5).map((receipt) => {
+          const tx = receiptProofTx(receipt);
+          return (
+            <article className="home-receipt-mobile-card" key={receipt.claimId}>
+              <div>
+                <StatusBadge receipt={receipt} />
+                <Link href={`/claim/${receipt.claimId}`}>Claim #{receipt.claimId}</Link>
+              </div>
+              <div>
+                <span>{receipt.agent === "LlmScout" ? "🧠" : receipt.agent === "CatScout" ? "🐈" : "🦞"}</span>
+                <strong>{receipt.agent}</strong>
+              </div>
+              <p>{formatCall(receipt.direction, receipt.thresholdPriceUsd)}</p>
+              <dl>
+                <div>
+                  <dt>Outcome</dt>
+                  <dd className={receipt.outcome === "wrong" ? "text-red-300" : receipt.outcome === "right" ? "text-emerald-200" : ""}>
+                    {receiptOutcomeLabel(receipt)}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Receipt</dt>
+                  <dd>{receiptVisibleAmount(receipt, stats)}</dd>
+                </div>
+              </dl>
+              <a href={`${EXPLORER}/tx/${tx}`} target="_blank" rel="noreferrer" aria-label={`Open proof for claim ${receipt.claimId}`}>
+                View proof ↗
+              </a>
+            </article>
+          );
+        })}
       </div>
       <Link href="/feed" className="view-all-row">View all receipts <span aria-hidden>→</span></Link>
     </section>
@@ -433,10 +474,12 @@ export default function HomePage() {
             </Link>
             <Link href="/feed" className="secondary-action">Browse receipts</Link>
           </div>
+        </div>
+        <LiveRefundReceipt stats={stats} />
+        <div className="hero-support">
           <TrustBadges />
           <HomeStatsRow stats={stats} />
         </div>
-        <LiveRefundReceipt stats={stats} />
       </section>
 
       <div className="home-dashboard-grid">

@@ -1792,6 +1792,9 @@ body::before {
 /* style-master.png source-of-truth pass */
 .receipt-hero {
   grid-template-columns: minmax(0, 0.88fr) minmax(640px, 1.12fr);
+  grid-template-areas:
+    "copy receipt"
+    "support receipt";
   gap: clamp(2rem, 3.1vw, 3.4rem);
   min-height: auto;
   margin-top: -1.6rem;
@@ -1800,6 +1803,12 @@ body::before {
 }
 
 .hero-left {
+  grid-area: copy;
+  max-width: 680px;
+}
+
+.hero-support {
+  grid-area: support;
   max-width: 680px;
 }
 
@@ -1942,6 +1951,7 @@ body::before {
 }
 
 .live-receipt-card {
+  grid-area: receipt;
   border-radius: 1rem;
   border-color: rgba(255, 255, 255, 0.11);
   background:
@@ -2234,6 +2244,10 @@ body::before {
   overflow-x: auto;
 }
 
+.home-receipts-mobile-list {
+  display: none;
+}
+
 .home-receipts-table {
   width: 100%;
   min-width: 880px;
@@ -2419,6 +2433,9 @@ button:focus-visible,
 
   .receipt-hero {
     grid-template-columns: minmax(0, 0.92fr) minmax(480px, 1.08fr);
+    grid-template-areas:
+      "copy receipt"
+      "support receipt";
     gap: 1.5rem;
     margin-top: -0.8rem;
   }
@@ -2435,8 +2452,13 @@ button:focus-visible,
 @media (max-width: 860px) {
   .receipt-hero {
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "copy"
+      "receipt"
+      "support";
+    gap: 1rem;
     margin-top: 0;
-    padding-top: 1.45rem;
+    padding-top: 0.9rem;
   }
 
   .hero-left h1 {
@@ -2469,9 +2491,96 @@ button:focus-visible,
     justify-self: stretch;
   }
 
+  .home-receipts-table-wrap {
+    display: none;
+  }
+
+  .home-receipts-mobile-list {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .home-receipt-mobile-card {
+    display: grid;
+    gap: 0.7rem;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.025);
+    padding: 0.85rem;
+  }
+
+  .home-receipt-mobile-card > div:first-child,
+  .home-receipt-mobile-card > div:nth-child(2) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+
+  .home-receipt-mobile-card > div:nth-child(2) {
+    justify-content: flex-start;
+  }
+
+  .home-receipt-mobile-card > div:nth-child(2) span {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.065);
+  }
+
+  .home-receipt-mobile-card a {
+    color: rgb(var(--fg));
+    font-weight: 850;
+  }
+
+  .home-receipt-mobile-card p {
+    color: rgb(190 190 190);
+    font-size: 0.9rem;
+  }
+
+  .home-receipt-mobile-card dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .home-receipt-mobile-card dl div {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.55rem;
+    background: rgba(8, 12, 12, 0.72);
+    padding: 0.65rem;
+  }
+
+  .home-receipt-mobile-card dt {
+    color: rgb(145 145 145);
+    font-size: 0.66rem;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .home-receipt-mobile-card dd {
+    margin-top: 0.35rem;
+    color: rgb(var(--fg));
+    font-size: 0.98rem;
+    font-weight: 900;
+  }
+
   .home-stat-row div + div {
     border-left: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.09);
+  }
+
+  .top-agent-row {
+    grid-template-columns: 2rem 2.65rem minmax(0, 1fr);
+  }
+
+  .top-agent-row dl {
+    grid-column: 2 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
   }
 
   .top-agent-row dl {
