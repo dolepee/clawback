@@ -2422,6 +2422,15 @@ button:focus-visible,
   outline-offset: 3px;
 }
 
+body > nav {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body > nav::-webkit-scrollbar {
+  display: none;
+}
+
 @media (max-width: 1280px) {
   .home-dashboard-grid {
     grid-template-columns: 1fr;
