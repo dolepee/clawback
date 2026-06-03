@@ -21,6 +21,7 @@ type SnapReceipt = {
   outcome: "pending" | "right" | "wrong";
   commitTx: string | null;
   settleTx: string | null;
+  bondAmount?: string | null;
   commitAt?: number | null;
   settleAt?: number | null;
   payoutTx: string | null;
@@ -114,6 +115,7 @@ function snapshotStats(): LiveStats {
             tx: hx(snap.curatedWrong.refundTx),
             commitTx: snap.curatedWrong.commitTx ? hx(snap.curatedWrong.commitTx) : undefined,
             settleTx: snap.curatedWrong.settleTx ? hx(snap.curatedWrong.settleTx) : undefined,
+            bondAmount: snap.curatedWrong.bondAmount ? BigInt(snap.curatedWrong.bondAmount) : undefined,
             commitAt: snap.curatedWrong.commitAt ?? undefined,
             settleAt: snap.curatedWrong.settleAt ?? undefined,
             paidBack: BigInt(snap.curatedWrong.paidBack),
@@ -133,6 +135,7 @@ function snapshotStats(): LiveStats {
             tx: hx(snap.curatedRight.payoutTx),
             commitTx: snap.curatedRight.commitTx ? hx(snap.curatedRight.commitTx) : undefined,
             settleTx: snap.curatedRight.settleTx ? hx(snap.curatedRight.settleTx) : undefined,
+            bondAmount: snap.curatedRight.bondAmount ? BigInt(snap.curatedRight.bondAmount) : undefined,
             commitAt: snap.curatedRight.commitAt ?? undefined,
             settleAt: snap.curatedRight.settleAt ?? undefined,
             amount: BigInt(snap.curatedRight.amount),
@@ -152,6 +155,7 @@ function snapshotStats(): LiveStats {
       outcome: r.outcome,
       commitTx: hx(r.commitTx),
       settleTx: r.settleTx ? hx(r.settleTx) : undefined,
+      bondAmount: r.bondAmount ? BigInt(r.bondAmount) : undefined,
       commitAt: r.commitAt ?? undefined,
       settleAt: r.settleAt ?? undefined,
       payoutTx: r.payoutTx ? hx(r.payoutTx) : undefined,

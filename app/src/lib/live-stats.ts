@@ -42,6 +42,7 @@ export type LiveStats = {
     tx: `0x${string}`;
     commitTx?: `0x${string}`;
     settleTx?: `0x${string}`;
+    bondAmount?: bigint;
     commitAt?: number;
     settleAt?: number;
     paidBack: bigint;
@@ -58,6 +59,7 @@ export type LiveStats = {
     tx: `0x${string}`;
     commitTx?: `0x${string}`;
     settleTx?: `0x${string}`;
+    bondAmount?: bigint;
     commitAt?: number;
     settleAt?: number;
     amount: bigint;
@@ -76,6 +78,7 @@ export type LiveStats = {
     outcome: "pending" | "right" | "wrong";
     commitTx: `0x${string}`;
     settleTx?: `0x${string}`;
+    bondAmount?: bigint;
     commitAt?: number;
     settleAt?: number;
     payoutTx?: `0x${string}`;

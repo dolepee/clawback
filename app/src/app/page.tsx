@@ -403,7 +403,7 @@ function LiveRefundReceipt({ stats }: { stats: Stats }) {
   const threshold = stats.proofRefund?.thresholdPriceUsd
     ? Number(stats.proofRefund.thresholdPriceUsd).toFixed(4)
     : "0.6319";
-  const slashedBond = 5_000_000n;
+  const slashedBond = stats.proofRefund?.bondAmount ?? receipt?.bondAmount ?? 5_000_000n;
 
   return (
     <aside className="live-receipt-card" id="refund-receipt" aria-label="Live refund receipt">

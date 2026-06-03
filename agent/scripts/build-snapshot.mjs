@@ -155,7 +155,11 @@ async function main() {
     const id = l.args.claimId?.toString();
     if (!id) continue;
     agentByClaim.set(id, HANDLES[Number(l.args.agentId)] ?? "CatScout");
-    commitByClaim.set(id, { tx: l.transactionHash, block: l.blockNumber });
+    commitByClaim.set(id, {
+      tx: l.transactionHash,
+      block: l.blockNumber,
+      bondAmount: l.args.bondAmount ?? 0n,
+    });
   }
   const settleByClaim = new Map();
   for (const l of settles) {
@@ -228,6 +232,7 @@ async function main() {
       outcome: s ? (s.right ? "right" : "wrong") : "pending",
       commitTx: c?.tx ?? null,
       settleTx: s?.tx ?? null,
+      bondAmount: c ? usdc(c.bondAmount) : null,
       refundTx: rf?.tx ?? null,
       payoutTx: po?.tx ?? null,
       paidBack: rf ? usdc(rf.paidBack) : null,
@@ -257,6 +262,7 @@ async function main() {
       outcome: s ? (s.right ? "right" : "wrong") : "pending",
       commitTx: commitByClaim.get(key)?.tx ?? null,
       settleTx: s?.tx ?? null,
+      bondAmount: commitByClaim.get(key) ? usdc(commitByClaim.get(key).bondAmount) : null,
       payoutTx: payoutByClaim.get(key)?.tx ?? null,
       refundTx: refundByClaim.get(key)?.tx ?? null,
       provider: prov?.provider ?? null,
