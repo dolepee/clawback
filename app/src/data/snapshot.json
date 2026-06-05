@@ -1,10 +1,10 @@
 {
-  "generatedAt": 1780623216,
+  "generatedAt": 1780693214,
   "fromBlock": "38493730",
-  "toBlock": "39539253",
+  "toBlock": "39574252",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
-  "totalClaims": 100,
+  "totalClaims": 103,
   "totalUnlocks": 95,
   "settledRight": 37,
   "settledWrong": 41,
@@ -31,7 +31,7 @@
       "losses": 8
     }
   },
-  "lastClaimAt": 1780575537,
+  "lastClaimAt": 1780662005,
   "lastSettleAt": 1780379457,
   "latestRefund": {
     "claimId": 91,
@@ -89,6 +89,51 @@
     "settleAt": 1780379181
   },
   "latestReceipts": [
+    {
+      "claimId": 103,
+      "agent": "LlmScout",
+      "outcome": "pending",
+      "commitTx": "0x6149b4bac523b5d1b4bf5024a6c6c0b02aa1caa4bf27d79e7c69c5546d52152e",
+      "settleTx": null,
+      "bondAmount": "5000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": "bankr:deepseek-v3.2",
+      "strategy": "momentum",
+      "fellBack": false,
+      "direction": "below",
+      "thresholdPriceUsd": "0.51396066"
+    },
+    {
+      "claimId": 102,
+      "agent": "LobsterRogue",
+      "outcome": "pending",
+      "commitTx": "0x8b4d2b30dbd1cbcd501d55a23a8af1f694831b0df0c315ed756d8c0112775814",
+      "settleTx": null,
+      "bondAmount": "10000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null,
+      "direction": "below",
+      "thresholdPriceUsd": "0.51436758"
+    },
+    {
+      "claimId": 101,
+      "agent": "CatScout",
+      "outcome": "pending",
+      "commitTx": "0xf446e162305c86e78a8c17a1cab55c8640e6e9ec0aa34a5540db181626d9e1e4",
+      "settleTx": null,
+      "bondAmount": "5000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null,
+      "direction": "above",
+      "thresholdPriceUsd": "0.51943892"
+    },
     {
       "claimId": 100,
       "agent": "LlmScout",
@@ -163,51 +208,6 @@
       "fellBack": null,
       "direction": "below",
       "thresholdPriceUsd": "0.59267349"
-    },
-    {
-      "claimId": 95,
-      "agent": "CatScout",
-      "outcome": "pending",
-      "commitTx": "0x6f1d93169c6ae563636634a61d226cfd17f0484fd1c674122c37d62824e22ee2",
-      "settleTx": null,
-      "bondAmount": "5000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "above",
-      "thresholdPriceUsd": "0.59876865"
-    },
-    {
-      "claimId": 94,
-      "agent": "LlmScout",
-      "outcome": "pending",
-      "commitTx": "0x7503be81321737b3268947090905d9ab5cb730ad49d8ea9bbda163451632edc6",
-      "settleTx": null,
-      "bondAmount": "5000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": "bankr:deepseek-v3.2",
-      "strategy": "momentum",
-      "fellBack": false,
-      "direction": "below",
-      "thresholdPriceUsd": "0.61495545"
-    },
-    {
-      "claimId": 93,
-      "agent": "LobsterRogue",
-      "outcome": "pending",
-      "commitTx": "0xbfa7d816f525901b41b30bacb9f56979f55330474bc0845fb69d40b313a5656d",
-      "settleTx": null,
-      "bondAmount": "10000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "below",
-      "thresholdPriceUsd": "0.60661375"
     }
   ]
 }
