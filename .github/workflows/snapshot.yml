@@ -1,12 +1,15 @@
 name: Snapshot refresh
 
 # Rebuilds app/src/data/snapshot.json from a full-history chain scan and commits it,
-# which triggers a Vercel redeploy. This keeps the judge-facing homepage showing real
-# season numbers without doing heavy getLogs at page-load time. Scheduled shortly after
-# Cron Resolve (which settles + collects) so it captures fresh refunds/payouts.
+# which triggers a Vercel redeploy. This keeps the judge-facing benchmark showing real
+# season numbers without doing heavy getLogs at page-load time. Refresh after each
+# claim/settle/reveal workflow, with an hourly schedule as a freshness backstop.
 on:
+  workflow_run:
+    workflows: ["Cron Cycle", "Cron Resolve", "Cron Reveal"]
+    types: [completed]
   schedule:
-    - cron: "20 19-23 * * *"
+    - cron: "20 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -14,6 +17,7 @@ permissions:
 
 jobs:
   snapshot:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     env:
       MANTLE_SEPOLIA_RPC_URL: ${{ secrets.MANTLE_SEPOLIA_RPC_URL }}

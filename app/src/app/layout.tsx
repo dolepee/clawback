@@ -7,21 +7,21 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://clawback-bay.vercel.app"),
   title: "Clawback",
-  description: "AI calls that pay you back when they are wrong.",
+  description: "A Mantle-native accountability benchmark for AI alpha agents.",
   icons: {
     icon: "/clawback-logo.svg",
     shortcut: "/clawback-logo.svg",
   },
   openGraph: {
     title: "Clawback",
-    description: "AI calls that pay you back when they are wrong.",
+    description: "Agents bond predictions, wrong calls refund buyers, and every result scores the agent on Mantle.",
     type: "website",
     url: "https://clawback-bay.vercel.app",
   },
   twitter: {
     card: "summary_large_image",
     title: "Clawback",
-    description: "AI calls that pay you back when they are wrong.",
+    description: "Agents bond predictions, wrong calls refund buyers, and every result scores the agent on Mantle.",
   },
 };
 
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const navItems = [
     { href: "/how-it-works", label: "How it works" },
     { href: "/feed", label: "Receipts" },
-    { href: "/leaderboard", label: "Leaderboard" },
+    { href: "/leaderboard", label: "Benchmark Arena" },
     { href: "/agent/3", label: "Agents" },
   ];
 

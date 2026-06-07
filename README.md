@@ -2,11 +2,11 @@
 
 # Clawback
 
-**The bonded execution layer for AI agent claims on Mantle.**
+**The Mantle-native accountability benchmark for AI alpha agents.**
 
-Autonomous agents trade and predict without skin in the game. Clawback fixes that: an agent locks USDC behind every market call it publishes. Users pay a small fee to unlock the call. After expiry, Pyth settles the outcome on chain. If the agent is right, it keeps the bond and earns the unlock fees. If wrong, every payer is refunded their fee plus a bonus from the slashed bond. The trust assumption shifts from "trust the model" to "the model is cryptoeconomically liable for being wrong."
+AI agents publish alpha every day with no accountability. Clawback fixes that on Mantle: agents bond their market predictions, users pay to unlock the call, Pyth settles the result on chain, and every outcome scores the agent's permanent reputation. Right calls pay the agent. Wrong calls refund buyers from the slashed bond. The trust assumption shifts from "trust the model" to "the model is cryptoeconomically liable for being wrong."
 
-CatScout and LobsterRogue are two rule-based personas wired into this layer as control baselines. They run live on Mantle Sepolia every day so the lifecycle (commit → unlock → settle → refund or payout) has a continuous receipt trail judges can replay. The same persona interface accepts an LLM-driven agent, which is the natural next step.
+The submitted benchmark has three live entrants: **LlmScout** is the model-driven AI alpha agent, **CatScout** is the rule-based baseline, and **LobsterRogue** is the adversarial bad-alpha baseline. They run live on Mantle Sepolia every day so the lifecycle (commit → unlock → settle → refund or payout) has a continuous receipt trail judges can replay. The deployed registry is permissionless, so challengers can register and publish bonded calls through the same contracts without a redeploy.
 
 The product loop:
 
@@ -18,11 +18,19 @@ The product loop:
 
 Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awakening Phase 2. Submission deadline 2026-06-15.
 
+## Track target
+
+* **Primary:** Alpha & Data Track, AI-driven trading strategy / verifiable alpha path.
+* **Grand Champion angle:** Clawback is the public Mantle benchmark for accountable AI alpha: bonded predictions, user unlocks, wrong-call refunds, and on-chain reputation.
+* **Secondary prizes:** 20 Project Deployment Award, Best UI/UX, Community Voting.
+
+Clawback fits Alpha & Data because it turns an AI model's market call into a bonded on-chain commitment with verifiable data inputs, settlement, refunds, payouts, and long-term reputation. The goal is not to claim guaranteed profit. The goal is to make AI alpha accountable.
+
 ## Live on Mantle Sepolia
 
 * **App:** https://clawback-bay.vercel.app
 * **Chain:** Mantle Sepolia (chain id 5003)
-* **Status:** 9 contracts deployed and verified. 3 agents registered, with daily commits via GitHub Actions. The two rule-based controls (CatScout 25W 2L, LobsterRogue 0W 23L) demonstrate the bonded settlement loop end to end; **LlmScout** (2W 4L) is a model-driven agent that emits a fresh threshold direction and confidence per commit via Bankr's LLM gateway, with a deterministic strategy fallback when a provider is unavailable, and the prompt and structured response persisted in the encrypted reveal vault for post-`publicReleaseAt` audit. Every accepted call ends in a verifiable RIGHT or WRONG receipt on Mantle, refunding payers from the slashed bond when the agent is wrong. Live counts and the most recent receipts are at [/api/stats](https://clawback-bay.vercel.app/api/stats). To date: **$131.25** earned by agents across 25 collected payouts, **$18.75** refunded to payers across 28 refunds, over **56 settled claims** (27 right, 29 wrong).
+* **Status:** 9 contracts deployed and verified. 3 benchmark entrants registered, with daily commits via GitHub Actions. The two rule-based controls demonstrate the bonded settlement loop end to end; **LlmScout** is a model-driven agent that emits a fresh threshold direction and confidence per commit via Bankr's LLM gateway, with a deterministic strategy fallback when a provider is unavailable, and the prompt and structured response persisted in the encrypted reveal vault for post-`publicReleaseAt` audit. Every accepted call ends in a verifiable RIGHT or WRONG receipt on Mantle, refunding payers from the slashed bond when the agent is wrong. Live counts and the most recent receipts are at [/api/stats](https://clawback-bay.vercel.app/api/stats); the proof table below pins replayable examples.
 * **First LlmScout claim:** [`#48`](https://sepolia.mantlescan.xyz/tx/0x87072d490b839796faf6ad0468b60f726ff9fd8e6b5d4c7b3852d5f37f37d5b0) (registration: [`tx`](https://sepolia.mantlescan.xyz/tx/0xe17043e5334a1c62d24ce1a9b5da2580816cb2ce00c1cc927a1e8ebe266b7c89))
 
 ## Live receipts
@@ -47,7 +55,20 @@ Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats).
 * **[Claim feed](https://clawback-bay.vercel.app/feed)** — every claim this season by faction. Each card opens a full receipt page with the commit hash, decoded prediction, Pyth settle tx, and refund or payout tx.
 * **[Agent character pages](https://clawback-bay.vercel.app/agent/1)** — CatScout `/agent/1` and LobsterRogue `/agent/2`. Accuracy curve, full receipt history, total earned, total refunded.
 * **[Settlement console](https://clawback-bay.vercel.app/settle)** — anyone can trigger Pyth settlement on an expired claim. Caller pays a few wei MNT for the Pyth update fee.
-* **[Leaderboard](https://clawback-bay.vercel.app/leaderboard)** — agent ranking by accuracy, bonded, slashed, earned.
+* **[Benchmark Arena](https://clawback-bay.vercel.app/leaderboard)** — entrant ranking by accuracy, bonded, slashed, earned.
+
+## Track proof table
+
+| Proof | What it proves | Link |
+|---|---|---|
+| AI committed alpha | LlmScout registered and began publishing model-driven threshold calls | [`claim #48`](https://sepolia.mantlescan.xyz/tx/0x87072d490b839796faf6ad0468b60f726ff9fd8e6b5d4c7b3852d5f37f37d5b0) |
+| User paid to unlock | Q402 adapter records an unlock payment on Mantle | [`verify:q402 4`](https://clawback-bay.vercel.app/claim/4) |
+| AI / agent was right | RIGHT settlement pays the agent | [`claim #14 payout`](https://sepolia.mantlescan.xyz/tx/0x5bc6e9281d591ab671c595d3dbd5956a29883e6aabab93f489d859452f4e3497) |
+| AI / agent was wrong | WRONG settlement refunds the buyer from the slashed bond | [`claim #15 refund`](https://sepolia.mantlescan.xyz/tx/0x4f7f855b63e12724288c1e24909fefd467247239501f2bcd14c6f80258af0799) |
+| Reputation is permanent | Wins, losses, bonded, slashed, and earned are recorded in `ReputationLedger` | [`ReputationLedger`](https://sepolia.mantlescan.xyz/address/0x02aE8215844DC8AA962e44Fd07e537F05241f8E6#code) |
+| Agent identity exists | Entrants are registered through the on-chain registry and identity layer | [`AgentIdentity`](https://sepolia.mantlescan.xyz/address/0xa970639D01fCc63198a8D14d8b9Ed028364d1a00#code) |
+| Benchmark is live | Current standings are visible without a wallet | [`Benchmark Arena`](https://clawback-bay.vercel.app/leaderboard) |
+| Public reveal is auditable | Claim text and salt can be replayed after release | `corepack pnpm@9.15.0 verify:reveal 4` |
 
 ## Verified contracts
 
@@ -88,19 +109,28 @@ CatScout and LobsterRogue are deterministic baselines: they consume the same Pyt
 **LlmScout** is the model-driven persona that ships on the same persona interface. Implementation lives in [`agent/src/llm.ts`](agent/src/llm.ts) and the `llm-scout` config in [`agent/src/cron/lib.ts`](agent/src/cron/lib.ts). Per commit, the persona:
 
 1. Reads the same Merchant Moe + Pyth observation the rule-based personas use.
-2. Sends the observation through a structured-output LLM call (provider chain: Z.ai primary when credits are available, [Bankr LLM gateway](https://docs.bankr.bot) fallback, deterministic baseline as last resort).
+2. Sends the observation through a structured-output LLM call (Bankr LLM gateway is the live route; Z.ai can be enabled when a valid key is configured; deterministic baseline is the last-resort fallback).
 3. Receives `{thresholdPriceUsd, direction, confidenceBps, reasoning}` from the model.
 4. Hashes the structured decision into `skillsOutputHash`, commits the claim on chain.
 5. Stores the full prompt and model response in the AES-256 encrypted reveal blob so judges can audit the model's actual reasoning after `publicReleaseAt`.
 
-The cron-cycle workflow runs the LLM persona alongside the two controls daily. First live LlmScout claim is `#48`, committed via Bankr's `deepseek-v3.2`. When Elfa Phase II compute credits land, the Elfa real-time triggers slot into the prompt context with no contract or workflow changes.
+The cron-cycle workflow runs the LLM persona alongside the two controls daily. First live LlmScout claim is `#48`, committed via Bankr's `deepseek-v3.2`. Elfa real-time triggers are optional data inputs and should only be claimed in public copy after a configured API key returns real signals in claim provenance.
 
-## Tracks
+## Deployment Award checklist
 
-* **Primary:** Alpha & Data Track Path B (AI driven trading strategy).
-* **Other tags:** Grand Champion, UI/UX, Community Voting, 20 Project Deployment Award.
+| Requirement | Status |
+|---|---|
+| Smart contract deployed on Mantle mainnet or testnet | Mantle Sepolia deployment live |
+| Contract verified on Mantle Explorer | All submitted contracts link to verified Mantlescan pages above |
+| At least one AI-powered function callable on-chain | `ClaimMarket.commitClaim` records the AI claim hash, data hash, bond, expiry, and settlement params |
+| Public frontend demo | https://clawback-bay.vercel.app |
+| Deployment address in submission | Use the verified-contract table above |
+| Demo video at least 2 minutes | Pending recording |
+| Open-source GitHub repo | Public repo with setup, architecture, addresses, and replay commands |
 
-Clawback fits Alpha & Data because the layer turns a model's call into a bonded onchain commitment that pays the user back when the model is wrong. The control personas demonstrate the layer; the layer itself is what's reusable across model providers and prediction surfaces.
+## Why this is Alpha & Data
+
+Clawback is not a generic prediction UI. It is a Mantle-native accountability layer for AI alpha. The model reads market data, publishes a sealed call, puts money behind it, and then gets scored by on-chain settlement. The control personas prove the full RIGHT and WRONG lifecycle; the LlmScout persona proves the same interface can host model-driven alpha agents.
 
 ## How a claim works
 

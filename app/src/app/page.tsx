@@ -49,9 +49,9 @@ function txLink(tx: `0x${string}`, label = shortHex(tx, 6, 4), ariaLabel = "Open
 
 function TrustBadges() {
   const badges = [
-    { label: "Powered by", value: "Mantle", icon: "◉" },
+    { label: "Scored on", value: "Mantle", icon: "◉" },
     { label: "Settled by", value: "Pyth", icon: "P" },
-    { label: "Secured with", value: "Bankr LLM", icon: "◆" },
+    { label: "AI route", value: "Bankr LLM", icon: "◆" },
   ];
   return (
     <div className="trust-badges" aria-label="Trusted infrastructure">
@@ -77,7 +77,7 @@ function HomeStatsRow({ stats }: { stats: Stats }) {
         <dd>{stats.refundsClaimed}</dd>
       </div>
       <div>
-        <dt>Agents</dt>
+        <dt>Benchmark entrants</dt>
         <dd>3</dd>
       </div>
       <div>
@@ -358,8 +358,8 @@ function TopAgentsCompact({ stats }: { stats: Stats }) {
   return (
     <section className="top-agents-panel">
       <div className="home-panel-head">
-        <p>Top agents</p>
-        <Link href="/leaderboard">View all</Link>
+        <p>Benchmark arena</p>
+        <Link href="/leaderboard">View standings</Link>
       </div>
       <div className="top-agent-list">
         {rows.map((row, index) => {
@@ -386,7 +386,7 @@ function TopAgentsCompact({ stats }: { stats: Stats }) {
           );
         })}
       </div>
-      <p className="top-agent-note">Live stats update from the committed receipt snapshot.</p>
+      <p className="top-agent-note">AI agent, baseline, and adversarial baseline scored by settled Mantle receipts.</p>
     </section>
   );
 }
@@ -443,9 +443,9 @@ function LiveRefundReceipt({ stats }: { stats: Stats }) {
 function ProofStrip({ stats }: { stats: Stats }) {
   return (
     <div className="proof-strip">
-      <span>No custody</span>
-      <span>Onchain verified</span>
-      <span>Transparent and auditable</span>
+      <span>Bonded alpha</span>
+      <span>Scored on Mantle</span>
+      <span>Refunds on wrong calls</span>
       <span>{settledCount(stats)} settled receipts</span>
     </div>
   );
@@ -459,20 +459,22 @@ export default function HomePage() {
     <div className="claw-page">
       <section className="receipt-hero">
         <div className="hero-left">
-          <div className="status-pill">AI accountability. Onchain.</div>
+          <div className="status-pill">Mantle AI Alpha Turing Test</div>
           <h1>
-            When the AI is wrong,<br /> you get your <span>money back.</span>
+            AI alpha,<br /> bonded and <span>scored onchain.</span>
           </h1>
           <p className="hero-subhead">
-            AI agents stake their own USDC on every price call. Wrong calls pay users back
-            from the slashed bond.
+            Agents bond market predictions on Mantle. Users unlock the call. Pyth settles it.
+            Right calls pay the agent; wrong calls refund buyers from the slashed bond.
           </p>
           <div className="hero-cta-row">
-            <Link href={refund ? `/claim/${refund.claimId}` : "#refund-receipt"} className="primary-action">
-              Watch a refund happen
+            <Link href="/leaderboard" className="primary-action">
+              View Benchmark Arena
               <span aria-hidden>→</span>
             </Link>
-            <Link href="/feed" className="secondary-action">Browse receipts</Link>
+            <Link href={refund ? `/claim/${refund.claimId}` : "#refund-receipt"} className="secondary-action">
+              Watch Refund vs Payout
+            </Link>
           </div>
         </div>
         <LiveRefundReceipt stats={stats} />
