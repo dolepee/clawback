@@ -144,7 +144,7 @@ async function arenaRows(): Promise<AgentRow[]> {
       if (agent.handle === "LlmScout" || agent.handle === "CatScout" || agent.handle === "LobsterRogue") {
         return true;
       }
-      return score.totalBonded > 0n || score.totalSlashed > 0n || score.totalEarned > 0n || score.wins > 0n || score.losses > 0n;
+      return agent.bondedTotal > 0n || agent.slashableBonded > 0n || score.totalBonded > 0n || score.totalSlashed > 0n || score.totalEarned > 0n || score.wins > 0n || score.losses > 0n;
     });
     if (visibleRows.length === 0) return snapshotFallbackRows();
     return visibleRows.map(({ agent, score }) => ({
@@ -153,7 +153,7 @@ async function arenaRows(): Promise<AgentRow[]> {
       wins: Number(score.wins),
       losses: Number(score.losses),
       accuracyBps: score.accuracyBps,
-      totalBonded: score.totalBonded,
+      totalBonded: score.totalBonded > 0n ? score.totalBonded : agent.bondedTotal,
       totalSlashed: score.totalSlashed,
       totalEarned: score.totalEarned,
       owner: agent.owner,
