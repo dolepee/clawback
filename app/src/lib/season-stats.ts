@@ -62,8 +62,7 @@ type SnapshotShape = {
 const snap = snapshotJson as unknown as SnapshotShape;
 
 const hx = (s: string | null): `0x${string}` => (s ?? "0x") as `0x${string}`;
-const asHandle = (s: string): AgentHandle =>
-  s === "LobsterRogue" || s === "LlmScout" ? s : "CatScout";
+const asHandle = (s: string): AgentHandle => s;
 const acc = (w: number, l: number): number => (w + l === 0 ? 0 : w / (w + l));
 
 function snapshotStats(): LiveStats {

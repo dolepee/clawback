@@ -17,3 +17,4 @@ docs/JUDGE_REPLAY.md
 # Private cron artifacts: claimText + salt + private delivery payloads.
 # These must never reach a public commit before publicReleaseAt.
 agent/cron-private/
+.vercel
