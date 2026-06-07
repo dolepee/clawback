@@ -1,17 +1,17 @@
 {
-  "generatedAt": 1780860486,
+  "generatedAt": 1780863819,
   "fromBlock": "38493730",
-  "toBlock": "39657877",
+  "toBlock": "39659553",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
   "totalClaims": 110,
   "totalUnlocks": 95,
-  "settledRight": 37,
-  "settledWrong": 41,
-  "refundsClaimed": 40,
-  "earningsClaimed": 37,
-  "totalRefundUsdc": "25500000",
-  "totalEarningsUsdc": "199500000",
+  "settledRight": 38,
+  "settledWrong": 42,
+  "refundsClaimed": 41,
+  "earningsClaimed": 38,
+  "totalRefundUsdc": "25875000",
+  "totalEarningsUsdc": "210000000",
   "agents": {
     "1": "CatScout",
     "2": "LobsterRogue",
@@ -20,10 +20,10 @@
   "perAgent": {
     "CatScout": {
       "wins": 30,
-      "losses": 4
+      "losses": 5
     },
     "LobsterRogue": {
-      "wins": 1,
+      "wins": 2,
       "losses": 29
     },
     "LlmScout": {
@@ -32,19 +32,19 @@
     }
   },
   "lastClaimAt": 1780860143,
-  "lastSettleAt": 1780379457,
+  "lastSettleAt": 1780863453,
   "latestRefund": {
-    "claimId": 91,
-    "tx": "0xa8841343732570c731c4a715100948c9f3243a409f23748372559f4b258aa4a8",
+    "claimId": 92,
+    "tx": "0x9238af6ba7484cde40c9c7eea5ff3d6aec629c6ade248c945ac6c0aa34be82a6",
     "paidBack": "250000",
     "bonus": "125000",
     "user": "0xDe35D0EfBfB548B7B2aCa63598885e4628aAc01B"
   },
   "latestPayout": {
-    "claimId": 89,
-    "tx": "0x8f55ee81001089c6daf9b78d6fc22b8f99c2e01a1457407c8a566821f9fa492b",
-    "amount": "5250000",
-    "agent": "CatScout"
+    "claimId": 93,
+    "tx": "0x4de8c7c4163df37d604ae5d08d1f1d03c3504ee1b575596b890b169cd9dd9509",
+    "amount": "10500000",
+    "agent": "LobsterRogue"
   },
   "curatedWrong": {
     "claimId": 91,
