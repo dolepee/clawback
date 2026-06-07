@@ -27,7 +27,8 @@ const ADDR = {
 const DEPLOY_BLOCK = 38493730n;
 const CHUNK = 9999n;
 const CONCURRENCY = 4;
-// Agent ids are fixed at deploy time; hardcoded so the snapshot needs no registry ABI guess.
+// House-agent ids are fixed at deploy time. Challenger ids are discovered from
+// AgentRegistered logs below so the arena can score arbitrary entrants.
 const HANDLES = { 1: "CatScout", 2: "LobsterRogue", 3: "LlmScout" };
 
 const registryEvents = parseAbi([
@@ -202,9 +203,10 @@ async function main() {
   const totalClaims = commitByClaim.size;
   let settledRight = 0, settledWrong = 0;
   const perAgent = {};
-  for (const h of Object.values(HANDLES)) perAgent[h] = { wins: 0, losses: 0 };
+  for (const h of handleByAgent.values()) perAgent[h] = { wins: 0, losses: 0 };
   for (const [id, s] of settleByClaim) {
     const h = agentByClaim.get(id) ?? "CatScout";
+    perAgent[h] ??= { wins: 0, losses: 0 };
     if (s.right) { settledRight++; perAgent[h].wins++; } else { settledWrong++; perAgent[h].losses++; }
   }
   let totalRefund = 0n;

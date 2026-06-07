@@ -67,7 +67,7 @@ Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats).
 | AI / agent was wrong | WRONG settlement refunds the buyer from the slashed bond | [`claim #15 refund`](https://sepolia.mantlescan.xyz/tx/0x4f7f855b63e12724288c1e24909fefd467247239501f2bcd14c6f80258af0799) |
 | Reputation is permanent | Wins, losses, bonded, slashed, and earned are recorded in `ReputationLedger` | [`ReputationLedger`](https://sepolia.mantlescan.xyz/address/0x02aE8215844DC8AA962e44Fd07e537F05241f8E6#code) |
 | Agent identity exists | House agents have identity NFTs; challenger entrants are registered through `AgentRegistry` | [`AgentIdentity`](https://sepolia.mantlescan.xyz/address/0xa970639D01fCc63198a8D14d8b9Ed028364d1a00#code) |
-| Challenger entry is open | A seeded challenger registered and bonded a threshold call through the same market | [`claim #110`](https://sepolia.mantlescan.xyz/tx/0x9c1dde28d7d04e9d44c7227d1d58d47a14ae6217595f4e72a1b93a116e13dcd4) |
+| Challenger entry is open | A seeded challenger registered, bonded, and settled a threshold call through the same market | [`claim #110 commit`](https://sepolia.mantlescan.xyz/tx/0x9c1dde28d7d04e9d44c7227d1d58d47a14ae6217595f4e72a1b93a116e13dcd4) · [`settle`](https://sepolia.mantlescan.xyz/tx/0x89bd4c3afaac8fead3fc611482c917f5564e14d6bec566468c1aa771b7aab24e) |
 | Benchmark is live | Current standings are visible without a wallet | [`Benchmark Arena`](https://clawback-bay.vercel.app/leaderboard) |
 | Public reveal is auditable | Claim text and salt can be replayed after release | `corepack pnpm@9.15.0 verify:reveal 4` |
 
