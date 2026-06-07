@@ -20,6 +20,7 @@ const CRON_RUNS = resolve(__dirname, "../cron-runs");
 const RPC = process.env.MANTLE_SEPOLIA_RPC_URL ?? "https://rpc.sepolia.mantle.xyz";
 const EXPLORER = "https://sepolia.mantlescan.xyz";
 const ADDR = {
+  agentRegistry: "0x0b7B93C0E6591bD415BEDE8B8DCD57171f4A7851",
   claimMarket: "0x8C076c7452E526526De877F86BBb4BA37E027af9",
   clawbackEscrow: "0xEa02e04E9550eA556235B46d10b554b876C16d2a",
 };
@@ -29,6 +30,9 @@ const CONCURRENCY = 4;
 // Agent ids are fixed at deploy time; hardcoded so the snapshot needs no registry ABI guess.
 const HANDLES = { 1: "CatScout", 2: "LobsterRogue", 3: "LlmScout" };
 
+const registryEvents = parseAbi([
+  "event AgentRegistered(uint256 indexed agentId, address indexed owner, string handle, uint8 faction)",
+]);
 const marketEvents = parseAbi([
   "event ClaimCommitted(uint256 indexed claimId, uint256 indexed agentId, bytes32 claimHash, bytes32 skillsOutputHash, uint256 bondAmount, uint256 unlockPrice, uint64 expiry, uint64 publicReleaseAt, uint8 marketId, bytes predictionParams)",
   "event ClaimSettled(uint256 indexed claimId, bool agentRight)",
@@ -138,10 +142,18 @@ function readClaimProvenance() {
 
 async function main() {
   console.log(`Scanning Mantle Sepolia from block ${DEPLOY_BLOCK} ...`);
+  const registry = await scan(ADDR.agentRegistry, registryEvents);
   const market = await scan(ADDR.claimMarket, marketEvents);
   const escrow = await scan(ADDR.clawbackEscrow, escrowEvents);
   const latest = market.latest;
   const provenanceByClaim = readClaimProvenance();
+
+  const handleByAgent = new Map(Object.entries(HANDLES).map(([id, handle]) => [id, handle]));
+  for (const l of registry.logs.filter((log) => log.eventName === "AgentRegistered")) {
+    const agentId = l.args.agentId?.toString();
+    const handle = l.args.handle;
+    if (agentId && handle) handleByAgent.set(agentId, handle);
+  }
 
   const commits = market.logs.filter((l) => l.eventName === "ClaimCommitted");
   const settles = market.logs.filter((l) => l.eventName === "ClaimSettled");
@@ -154,7 +166,8 @@ async function main() {
   for (const l of commits) {
     const id = l.args.claimId?.toString();
     if (!id) continue;
-    agentByClaim.set(id, HANDLES[Number(l.args.agentId)] ?? "CatScout");
+    const agentId = l.args.agentId?.toString();
+    agentByClaim.set(id, handleByAgent.get(agentId) ?? `Agent #${agentId ?? "unknown"}`);
     commitByClaim.set(id, {
       tx: l.transactionHash,
       block: l.blockNumber,

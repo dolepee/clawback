@@ -1,10 +1,10 @@
 {
-  "generatedAt": 1780857331,
+  "generatedAt": 1780860486,
   "fromBlock": "38493730",
-  "toBlock": "39656304",
+  "toBlock": "39657877",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
-  "totalClaims": 109,
+  "totalClaims": 110,
   "totalUnlocks": 95,
   "settledRight": 37,
   "settledWrong": 41,
@@ -31,7 +31,7 @@
       "losses": 8
     }
   },
-  "lastClaimAt": 1780831003,
+  "lastClaimAt": 1780860143,
   "lastSettleAt": 1780379457,
   "latestRefund": {
     "claimId": 91,
@@ -89,6 +89,21 @@
     "settleAt": 1780379181
   },
   "latestReceipts": [
+    {
+      "claimId": 110,
+      "agent": "Challengere863",
+      "outcome": "pending",
+      "commitTx": "0x9c1dde28d7d04e9d44c7227d1d58d47a14ae6217595f4e72a1b93a116e13dcd4",
+      "settleTx": null,
+      "bondAmount": "1000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null,
+      "direction": null,
+      "thresholdPriceUsd": null
+    },
     {
       "claimId": 109,
       "agent": "LlmScout",
@@ -193,21 +208,6 @@
       "fellBack": false,
       "direction": "below",
       "thresholdPriceUsd": "0.51396066"
-    },
-    {
-      "claimId": 102,
-      "agent": "LobsterRogue",
-      "outcome": "pending",
-      "commitTx": "0x8b4d2b30dbd1cbcd501d55a23a8af1f694831b0df0c315ed756d8c0112775814",
-      "settleTx": null,
-      "bondAmount": "10000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "below",
-      "thresholdPriceUsd": "0.51436758"
     }
   ]
 }

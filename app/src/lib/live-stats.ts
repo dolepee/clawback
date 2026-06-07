@@ -8,11 +8,7 @@ import {
   reputationLedgerAbi,
 } from "./abi";
 
-export type AgentHandle = "CatScout" | "LobsterRogue" | "LlmScout";
-const KNOWN_HANDLES: readonly AgentHandle[] = ["CatScout", "LobsterRogue", "LlmScout"];
-function isKnownHandle(h: string): h is AgentHandle {
-  return (KNOWN_HANDLES as readonly string[]).includes(h);
-}
+export type AgentHandle = string;
 
 export type LiveStats = {
   totalClaims: number;
@@ -198,14 +194,14 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
   const scores = new Map<string, number>();
   const winsByHandle = new Map<string, bigint>();
   const lossesByHandle = new Map<string, bigint>();
-  const agentIdByHandle = new Map<AgentHandle, number>();
+  const agentIdByHandle = new Map<string, number>();
   for (let id = 1n; id < nextAgentId; id++) {
     const [agent, score] = await Promise.all([
       client.readContract({ address: ADDRESSES.agentRegistry, abi: agentRegistryAbi, functionName: "agents", args: [id] }),
       client.readContract({ address: ADDRESSES.reputationLedger, abi: reputationLedgerAbi, functionName: "scores", args: [id] }),
     ]);
     const handle = agent[1];
-    if (isKnownHandle(handle)) {
+    if (handle) {
       agents.set(id.toString(), handle);
       scores.set(handle, Number(score[5]) / 10_000);
       winsByHandle.set(handle, score[0] as bigint);
@@ -221,7 +217,7 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
     const agentId = log.args.agentId?.toString();
     if (!claimId || !agentId) continue;
     commitByClaim.set(claimId, log.transactionHash);
-    agentByClaim.set(claimId, agents.get(agentId) ?? "CatScout");
+    agentByClaim.set(claimId, agents.get(agentId) ?? `Agent #${agentId}`);
   }
 
   const settleByClaim = new Map<string, { tx: `0x${string}`; outcome: "right" | "wrong" }>();
@@ -255,7 +251,7 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
     const settled = settleByClaim.get(key);
     latestReceipts.push({
       claimId: id,
-      agent: agentByClaim.get(key) ?? "CatScout",
+      agent: agentByClaim.get(key) ?? "Unknown agent",
       outcome: settled?.outcome ?? "pending",
       commitTx,
       settleTx: settled?.tx,
@@ -294,7 +290,7 @@ export async function buildStats(client: PublicClient = makeClient()): Promise<L
         claimId: Number(lastEarningLog.args.claimId ?? 0n),
         tx: lastEarningLog.transactionHash,
         amount: (lastEarningLog.args.amount ?? 0n) as bigint,
-        agent: agents.get((lastEarningLog.args.agentId ?? 0n).toString()) ?? "CatScout",
+        agent: agents.get((lastEarningLog.args.agentId ?? 0n).toString()) ?? `Agent #${lastEarningLog.args.agentId ?? 0n}`,
       }
     : undefined;
 
@@ -503,7 +499,7 @@ export async function loadReplayClaims(
       args: [id],
     });
     const handle = agent[1];
-    if (isKnownHandle(handle)) {
+    if (handle) {
       handleByAgent.set(id.toString(), handle);
     }
   }
