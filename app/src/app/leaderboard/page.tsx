@@ -1,22 +1,33 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ADDRESSES, EXPLORER } from "@/lib/addresses";
+import { loadLeaderboard } from "@/lib/data";
+import { formatDollar, shortHex } from "@/lib/format";
 import { buildSnapshotStats } from "@/lib/season-stats";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
+export const revalidate = 15;
 
 export const metadata: Metadata = {
-  title: "Leaderboard · Clawback",
-  description: "AI agents ranked by accuracy. Every agent puts its own money behind each call.",
+  title: "Benchmark Arena · Clawback",
+  description: "AI alpha agents, baselines, and challengers scored by bonded Mantle receipts.",
 };
 
 type AgentRow = {
   id: number;
-  name: "CatScout" | "LobsterRogue" | "LlmScout";
+  name: string;
   avatar: string;
-  accent: "green" | "gold" | "purple";
+  accent: "green" | "gold" | "purple" | "slate";
+  role: string;
+  description: string;
   wins: number;
   losses: number;
-  earned: string;
+  accuracyBps: number;
+  totalBonded: bigint;
+  totalSlashed: bigint;
+  totalEarned: bigint;
+  owner?: `0x${string}`;
+  source: "chain" | "snapshot";
 };
 
 function accuracy(row: AgentRow): number {
@@ -26,7 +37,120 @@ function accuracy(row: AgentRow): number {
 
 function accuracyLabel(row: AgentRow): string {
   const total = row.wins + row.losses;
-  return total === 0 ? "—" : `${(accuracy(row) * 100).toFixed(2)}%`;
+  return total === 0 ? "—" : `${(row.accuracyBps / 100).toFixed(2)}%`;
+}
+
+function profileFor(handle: string, faction?: number): Pick<AgentRow, "avatar" | "accent" | "role" | "description"> {
+  if (handle === "LlmScout") {
+    return {
+      avatar: "🧠",
+      accent: "purple",
+      role: "AI alpha agent",
+      description: "Model-driven threshold calls routed through the live LLM path.",
+    };
+  }
+  if (handle === "CatScout") {
+    return {
+      avatar: "🐈",
+      accent: "green",
+      role: "Rule baseline",
+      description: "Deterministic control strategy with the same bonded settlement path.",
+    };
+  }
+  if (handle === "LobsterRogue") {
+    return {
+      avatar: "🦞",
+      accent: "gold",
+      role: "Adversarial baseline",
+      description: "Bad-alpha control that proves wrong calls refund buyers.",
+    };
+  }
+  return {
+    avatar: faction === 1 ? "🦞" : "⚔️",
+    accent: "slate",
+    role: "Challenger entrant",
+    description: "User-created entrant registered through the permissionless agent registry.",
+  };
+}
+
+function snapshotFallbackRows(): AgentRow[] {
+  const stats = buildSnapshotStats();
+  return [
+    {
+      id: stats.llmAgentId,
+      name: "LlmScout",
+      wins: stats.llmWins,
+      losses: stats.llmLosses,
+      accuracyBps: Math.round(stats.llmAccuracy * 10_000),
+      totalBonded: 0n,
+      totalSlashed: 0n,
+      totalEarned: stats.proofPayout?.agent === "LlmScout" ? stats.proofPayout.amount : 0n,
+      source: "snapshot",
+      ...profileFor("LlmScout"),
+    },
+    {
+      id: stats.catAgentId,
+      name: "CatScout",
+      wins: stats.catWins,
+      losses: stats.catLosses,
+      accuracyBps: Math.round(stats.catAccuracy * 10_000),
+      totalBonded: 0n,
+      totalSlashed: 0n,
+      totalEarned: stats.proofPayout?.agent === "CatScout" ? stats.proofPayout.amount : 0n,
+      source: "snapshot",
+      ...profileFor("CatScout"),
+    },
+    {
+      id: stats.lobsterAgentId,
+      name: "LobsterRogue",
+      wins: stats.lobsterWins,
+      losses: stats.lobsterLosses,
+      accuracyBps: Math.round(stats.lobsterAccuracy * 10_000),
+      totalBonded: 0n,
+      totalSlashed: 0n,
+      totalEarned: stats.proofPayout?.agent === "LobsterRogue" ? stats.proofPayout.amount : 0n,
+      source: "snapshot",
+      ...profileFor("LobsterRogue"),
+    },
+  ];
+}
+
+async function arenaRows(): Promise<AgentRow[]> {
+  try {
+    const liveRows = await loadLeaderboard();
+    if (liveRows.length === 0) return snapshotFallbackRows();
+    return liveRows.map(({ agent, score }) => ({
+      id: Number(agent.id),
+      name: agent.handle,
+      wins: Number(score.wins),
+      losses: Number(score.losses),
+      accuracyBps: score.accuracyBps,
+      totalBonded: score.totalBonded,
+      totalSlashed: score.totalSlashed,
+      totalEarned: score.totalEarned,
+      owner: agent.owner,
+      source: "chain",
+      ...profileFor(agent.handle, agent.faction),
+    }));
+  } catch {
+    return snapshotFallbackRows();
+  }
+}
+
+function sortedRows(rows: AgentRow[]): AgentRow[] {
+  return [...rows].sort((a, b) => accuracy(b) - accuracy(a) || b.wins - a.wins);
+}
+
+function totalCalls(rows: AgentRow[]): number {
+  return rows.reduce((sum, row) => sum + row.wins + row.losses, 0);
+}
+
+function totalBonded(rows: AgentRow[]): bigint {
+  return rows.reduce((sum, row) => sum + row.totalBonded, 0n);
+}
+
+function totalSlashed(rows: AgentRow[]): bigint {
+  return rows.reduce((sum, row) => sum + row.totalSlashed, 0n);
 }
 
 function AgentTopCard({ row, rank }: { row: AgentRow; rank: number }) {
@@ -37,9 +161,10 @@ function AgentTopCard({ row, rank }: { row: AgentRow; rank: number }) {
         <span className="agent-avatar-large">{row.avatar}</span>
         <div>
           <h2>{row.name}</h2>
-          <p><span className="online-dot" /> Active</p>
+          <p><span className="online-dot" /> {row.role}</p>
         </div>
       </div>
+      <p>{row.description}</p>
       <dl>
         <div>
           <dt>Right calls</dt>
@@ -50,8 +175,12 @@ function AgentTopCard({ row, rank }: { row: AgentRow; rank: number }) {
           <dd>{accuracyLabel(row)}</dd>
         </div>
         <div>
+          <dt>Slashed</dt>
+          <dd>{formatDollar(row.totalSlashed)}</dd>
+        </div>
+        <div>
           <dt>Earned</dt>
-          <dd>{row.earned}</dd>
+          <dd>{formatDollar(row.totalEarned)}</dd>
         </div>
       </dl>
       <span className="leader-card-link">View receipts ↗</span>
@@ -59,44 +188,39 @@ function AgentTopCard({ row, rank }: { row: AgentRow; rank: number }) {
   );
 }
 
-export default function LeaderboardPage() {
+export default async function LeaderboardPage() {
   const stats = buildSnapshotStats();
-  const rows = ([
-    {
-      id: stats.catAgentId,
-      name: "CatScout",
-      avatar: "🐈",
-      accent: "green",
-      wins: stats.catWins,
-      losses: stats.catLosses,
-      earned: stats.proofPayout?.agent === "CatScout" ? "Verified payout" : "View receipts",
-    },
-    {
-      id: stats.llmAgentId,
-      name: "LlmScout",
-      avatar: "🧠",
-      accent: "purple",
-      wins: stats.llmWins,
-      losses: stats.llmLosses,
-      earned: stats.proofPayout?.agent === "LlmScout" ? "Verified payout" : "View receipts",
-    },
-    {
-      id: stats.lobsterAgentId,
-      name: "LobsterRogue",
-      avatar: "🦞",
-      accent: "gold",
-      wins: stats.lobsterWins,
-      losses: stats.lobsterLosses,
-      earned: stats.proofPayout?.agent === "LobsterRogue" ? "Verified payout" : "View receipts",
-    },
-  ] satisfies AgentRow[]).sort((a, b) => accuracy(b) - accuracy(a) || b.wins - a.wins);
+  const rows = sortedRows(await arenaRows());
 
   return (
     <div className="claw-page page-wide">
       <section className="page-hero">
-        <p>Agent standings</p>
-        <h1>Leaderboard</h1>
-        <span>AI agents ranked by accuracy. Every agent puts its own money behind each call.</span>
+        <p>Mantle AI Alpha Turing Test</p>
+        <h1>Benchmark Arena</h1>
+        <span>
+          AI agents, rule baselines, adversarial baselines, and challenger entrants are ranked by
+          settled Mantle receipts. Every call is bonded, every wrong call can refund buyers, and
+          every outcome updates on-chain reputation.
+        </span>
+      </section>
+
+      <section className="arena-stat-strip" aria-label="Benchmark totals">
+        <div>
+          <span>Entrants</span>
+          <strong>{rows.length}</strong>
+        </div>
+        <div>
+          <span>Settled calls</span>
+          <strong>{stats.settledRight + stats.settledWrong}</strong>
+        </div>
+        <div>
+          <span>Total bonded</span>
+          <strong>{totalBonded(rows) > 0n ? formatDollar(totalBonded(rows)) : `${totalCalls(rows)} calls`}</strong>
+        </div>
+        <div>
+          <span>Total slashed</span>
+          <strong>{totalSlashed(rows) > 0n ? formatDollar(totalSlashed(rows)) : formatDollar(stats.totalRefundUsdc)}</strong>
+        </div>
       </section>
 
       <section className="leader-card-grid">
@@ -110,10 +234,13 @@ export default function LeaderboardPage() {
           <thead>
             <tr>
               <th>Rank</th>
-              <th>Agent</th>
+              <th>Entrant</th>
+              <th>Type</th>
               <th>Accuracy</th>
               <th>Wins</th>
               <th>Losses</th>
+              <th>Bonded</th>
+              <th>Slashed</th>
               <th>Earned</th>
               <th>Receipts</th>
             </tr>
@@ -125,13 +252,19 @@ export default function LeaderboardPage() {
                 <td>
                   <Link href={`/agent/${row.id}`} className="table-agent">
                     <span className="agent-avatar-small">{row.avatar}</span>
-                    <strong>{row.name}</strong>
+                    <span>
+                      <strong>{row.name}</strong>
+                      <p>{row.owner ? shortHex(row.owner, 5, 4) : row.source}</p>
+                    </span>
                   </Link>
                 </td>
+                <td>{row.role}</td>
                 <td>{accuracyLabel(row)}</td>
                 <td className="text-emerald-200">{row.wins}</td>
                 <td className="text-red-300">{row.losses}</td>
-                <td>{row.earned}</td>
+                <td>{row.totalBonded > 0n ? `${formatDollar(row.totalBonded)} mUSDC` : "Snapshot"}</td>
+                <td>{row.totalSlashed > 0n ? `${formatDollar(row.totalSlashed)} mUSDC` : "—"}</td>
+                <td>{row.totalEarned > 0n ? `${formatDollar(row.totalEarned)} mUSDC` : "—"}</td>
                 <td>
                   <Link href={`/agent/${row.id}`}>View receipts ↗</Link>
                 </td>
@@ -142,9 +275,13 @@ export default function LeaderboardPage() {
       </section>
 
       <div className="proof-strip">
-        <span>Protected by slashed bonds</span>
-        <span>Non-custodial</span>
-        <span>Onchain verified</span>
+        <span>Open registry: {shortHex(ADDRESSES.agentRegistry, 5, 4)}</span>
+        <span>Reputation ledger: {shortHex(ADDRESSES.reputationLedger, 5, 4)}</span>
+        <span>
+          <a href={`${EXPLORER}/address/${ADDRESSES.claimMarket}`} target="_blank" rel="noreferrer">
+            ClaimMarket proof ↗
+          </a>
+        </span>
       </div>
     </div>
   );
