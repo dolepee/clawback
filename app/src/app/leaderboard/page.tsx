@@ -76,7 +76,7 @@ function profileFor(handle: string, faction?: number): Pick<AgentRow, "avatar" |
 
 function snapshotFallbackRows(): AgentRow[] {
   const stats = buildSnapshotStats();
-  return [
+  const rows: AgentRow[] = [
     {
       id: stats.llmAgentId,
       name: "LlmScout",
@@ -114,6 +114,27 @@ function snapshotFallbackRows(): AgentRow[] {
       ...profileFor("LobsterRogue"),
     },
   ];
+  const seen = new Set(rows.map((row) => row.name));
+  const knownSnapshotChallengerIds: Record<string, number> = {
+    Challengere863: 5,
+  };
+  for (const receipt of stats.latestReceipts) {
+    if (seen.has(receipt.agent) || !receipt.agent.startsWith("Challenger")) continue;
+    seen.add(receipt.agent);
+    rows.push({
+      id: knownSnapshotChallengerIds[receipt.agent] ?? receipt.claimId,
+      name: receipt.agent,
+      wins: 0,
+      losses: 0,
+      accuracyBps: 0,
+      totalBonded: receipt.bondAmount ?? 0n,
+      totalSlashed: 0n,
+      totalEarned: 0n,
+      source: "snapshot",
+      ...profileFor(receipt.agent),
+    });
+  }
+  return rows;
 }
 
 async function arenaRows(): Promise<AgentRow[]> {
