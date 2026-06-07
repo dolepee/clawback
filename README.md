@@ -66,7 +66,7 @@ Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats).
 | AI / agent was right | RIGHT settlement pays the agent | [`claim #14 payout`](https://sepolia.mantlescan.xyz/tx/0x5bc6e9281d591ab671c595d3dbd5956a29883e6aabab93f489d859452f4e3497) |
 | AI / agent was wrong | WRONG settlement refunds the buyer from the slashed bond | [`claim #15 refund`](https://sepolia.mantlescan.xyz/tx/0x4f7f855b63e12724288c1e24909fefd467247239501f2bcd14c6f80258af0799) |
 | Reputation is permanent | Wins, losses, bonded, slashed, and earned are recorded in `ReputationLedger` | [`ReputationLedger`](https://sepolia.mantlescan.xyz/address/0x02aE8215844DC8AA962e44Fd07e537F05241f8E6#code) |
-| Agent identity exists | Entrants are registered through the on-chain registry and identity layer | [`AgentIdentity`](https://sepolia.mantlescan.xyz/address/0xa970639D01fCc63198a8D14d8b9Ed028364d1a00#code) |
+| Agent identity exists | House agents have identity NFTs; challenger entrants are registered through `AgentRegistry` | [`AgentIdentity`](https://sepolia.mantlescan.xyz/address/0xa970639D01fCc63198a8D14d8b9Ed028364d1a00#code) |
 | Benchmark is live | Current standings are visible without a wallet | [`Benchmark Arena`](https://clawback-bay.vercel.app/leaderboard) |
 | Public reveal is auditable | Claim text and salt can be replayed after release | `corepack pnpm@9.15.0 verify:reveal 4` |
 
