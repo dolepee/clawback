@@ -31,6 +31,23 @@ export const claimMarketAbi = [
     stateMutability: "view",
   },
   {
+    type: "function",
+    name: "commitClaim",
+    inputs: [
+      { name: "agentId", type: "uint256" },
+      { name: "claimHash", type: "bytes32" },
+      { name: "bondAmount", type: "uint256" },
+      { name: "unlockPrice", type: "uint256" },
+      { name: "expiry", type: "uint64" },
+      { name: "publicReleaseAt", type: "uint64" },
+      { name: "marketId", type: "uint8" },
+      { name: "skillsOutputHash", type: "bytes32" },
+      { name: "predictionParams", type: "bytes" },
+    ],
+    outputs: [{ type: "uint256" }],
+    stateMutability: "nonpayable",
+  },
+  {
     type: "event",
     name: "ClaimCommitted",
     inputs: [
@@ -74,6 +91,24 @@ export const agentRegistryAbi = [
     inputs: [],
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "agentIdByOwner",
+    inputs: [{ type: "address" }],
+    outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "registerAgent",
+    inputs: [
+      { name: "handle", type: "string" },
+      { name: "faction", type: "uint8" },
+      { name: "metadataHash", type: "bytes32" },
+    ],
+    outputs: [{ type: "uint256" }],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -221,6 +256,13 @@ export const erc20Abi = [
     inputs: [{ type: "address" }, { type: "address" }],
     outputs: [{ type: "uint256" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "mint",
+    inputs: [{ name: "to", type: "address" }, { name: "amount", type: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",

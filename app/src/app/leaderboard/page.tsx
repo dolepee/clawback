@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChallengerEntry } from "@/components/ChallengerEntry";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { loadLeaderboard } from "@/lib/data";
 import { formatDollar, shortHex } from "@/lib/format";
@@ -228,6 +229,8 @@ export default async function LeaderboardPage() {
           <AgentTopCard key={row.name} row={row} rank={index + 1} />
         ))}
       </section>
+
+      <ChallengerEntry />
 
       <section className="leader-table-wrap">
         <table className="leader-table">
