@@ -30,6 +30,16 @@ type SnapReceipt = {
   fellBack?: boolean | null;
   direction?: "above" | "below" | null;
   thresholdPriceUsd?: string | null;
+  elfaSource?: string | null;
+  elfaSignalCount?: number | null;
+  elfaFetchedAt?: number | null;
+  elfaSignals?: Array<{
+    kind: string;
+    label: string;
+    score: number | null;
+    description: string;
+    validUntil?: number;
+  }>;
 };
 
 type SnapMoneyReceipt = SnapReceipt & {
@@ -64,6 +74,16 @@ const snap = snapshotJson as unknown as SnapshotShape;
 const hx = (s: string | null): `0x${string}` => (s ?? "0x") as `0x${string}`;
 const asHandle = (s: string): AgentHandle => s;
 const acc = (w: number, l: number): number => (w + l === 0 ? 0 : w / (w + l));
+
+function elfaProof(r: SnapReceipt) {
+  if (!r.elfaSource || !r.elfaSignalCount || !r.elfaFetchedAt) return undefined;
+  return {
+    source: r.elfaSource,
+    signalCount: r.elfaSignalCount,
+    fetchedAt: r.elfaFetchedAt,
+    signals: r.elfaSignals ?? [],
+  };
+}
 
 function snapshotStats(): LiveStats {
   const cat = snap.perAgent.CatScout ?? { wins: 0, losses: 0 };
@@ -125,6 +145,7 @@ function snapshotStats(): LiveStats {
             fellBack: snap.curatedWrong.fellBack ?? undefined,
             direction: snap.curatedWrong.direction ?? undefined,
             thresholdPriceUsd: snap.curatedWrong.thresholdPriceUsd ?? undefined,
+            elfa: elfaProof(snap.curatedWrong),
           }
         : undefined,
     proofPayout:
@@ -143,6 +164,7 @@ function snapshotStats(): LiveStats {
             fellBack: snap.curatedRight.fellBack ?? undefined,
             direction: snap.curatedRight.direction ?? undefined,
             thresholdPriceUsd: snap.curatedRight.thresholdPriceUsd ?? undefined,
+            elfa: elfaProof(snap.curatedRight),
           }
         : undefined,
     lastClaimAt: snap.lastClaimAt,
@@ -163,6 +185,7 @@ function snapshotStats(): LiveStats {
       fellBack: r.fellBack ?? undefined,
       direction: r.direction ?? undefined,
       thresholdPriceUsd: r.thresholdPriceUsd ?? undefined,
+      elfa: elfaProof(r),
     })),
     llmStrategyDistribution: {},
     llmRecentDecisions: [],

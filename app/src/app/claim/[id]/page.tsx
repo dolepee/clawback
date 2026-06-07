@@ -152,6 +152,7 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
         fellBack: proofRefund.fellBack,
         direction: proofRefund.direction,
         thresholdPriceUsd: proofRefund.thresholdPriceUsd,
+        elfa: proofRefund.elfa,
       }
     : proofPayout
       ? {
@@ -167,10 +168,12 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
           fellBack: proofPayout.fellBack,
           direction: proofPayout.direction,
           thresholdPriceUsd: proofPayout.thresholdPriceUsd,
+          elfa: proofPayout.elfa,
         }
       : undefined;
   const matchingReceipt =
     stats.latestReceipts.find((receipt) => receipt.claimId === Number(claim.id)) ?? proofReceipt;
+  const elfa = proofRefund?.elfa ?? proofPayout?.elfa ?? matchingReceipt?.elfa;
   const prediction = decodePredictionParams(claim.marketId, claim.predictionParams);
   const question = predictionQuestion(prediction, claim.expiry);
   const market = MARKET_LABEL[claim.marketId] ?? `market #${claim.marketId}`;
@@ -295,6 +298,12 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
             <span>Model route</span>
             <strong>{provider}</strong>
           </div>
+          {elfa ? (
+            <div>
+              <span>Elfa signals</span>
+              <strong>{elfa.signalCount} captured</strong>
+            </div>
+          ) : null}
           <div>
             <span>Market</span>
             <strong>{market}</strong>

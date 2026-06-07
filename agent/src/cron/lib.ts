@@ -576,6 +576,14 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     // choice, mechanical on-chain confidence, and the model's own
     // confidence call. The prompt/reasoning stays in the encrypted
     // private blob until publicReleaseAt.
+    elfa: elfaSnapshot
+      ? {
+          source: elfaSnapshot.source,
+          fetchedAt: elfaSnapshot.fetchedAt,
+          signalCount: elfaSnapshot.signals.length,
+          signals: elfaSnapshot.signals.slice(0, 6),
+        }
+      : null,
     llm: llmDecisionRecord
       ? {
           provider: llmDecisionRecord.provider,

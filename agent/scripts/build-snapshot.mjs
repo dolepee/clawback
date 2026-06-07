@@ -130,6 +130,10 @@ function readClaimProvenance() {
           fellBack: typeof json.llm?.fellBack === "boolean" ? json.llm.fellBack : null,
           direction: json.direction ?? null,
           thresholdPriceUsd: json.thresholdPriceUsd ?? null,
+          elfaSource: json.elfa?.source ?? null,
+          elfaSignalCount: typeof json.elfa?.signalCount === "number" ? json.elfa.signalCount : null,
+          elfaFetchedAt: typeof json.elfa?.fetchedAt === "number" ? json.elfa.fetchedAt : null,
+          elfaSignals: Array.isArray(json.elfa?.signals) ? json.elfa.signals.slice(0, 6) : [],
         });
       } catch {
         // Provenance is presentation metadata only; never let a malformed file break
@@ -259,6 +263,10 @@ async function main() {
       fellBack: prov?.fellBack ?? null,
       direction: prov?.direction ?? null,
       thresholdPriceUsd: prov?.thresholdPriceUsd ?? null,
+      elfaSource: prov?.elfaSource ?? null,
+      elfaSignalCount: prov?.elfaSignalCount ?? null,
+      elfaFetchedAt: prov?.elfaFetchedAt ?? null,
+      elfaSignals: prov?.elfaSignals ?? [],
       commitAt: c ? await blockTs(c.block) : 0,
       settleAt: s ? await blockTs(s.block) : 0,
     };
@@ -285,6 +293,10 @@ async function main() {
       fellBack: prov?.fellBack ?? null,
       direction: prov?.direction ?? null,
       thresholdPriceUsd: prov?.thresholdPriceUsd ?? null,
+      elfaSource: prov?.elfaSource ?? null,
+      elfaSignalCount: prov?.elfaSignalCount ?? null,
+      elfaFetchedAt: prov?.elfaFetchedAt ?? null,
+      elfaSignals: prov?.elfaSignals ?? [],
     });
   }
 

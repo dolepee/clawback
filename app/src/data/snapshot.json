@@ -1,10 +1,10 @@
 {
-  "generatedAt": 1780864845,
+  "generatedAt": 1780866998,
   "fromBlock": "38493730",
-  "toBlock": "39660063",
+  "toBlock": "39661138",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
-  "totalClaims": 110,
+  "totalClaims": 111,
   "totalUnlocks": 95,
   "settledRight": 38,
   "settledWrong": 43,
@@ -39,7 +39,7 @@
       "losses": 1
     }
   },
-  "lastClaimAt": 1780860143,
+  "lastClaimAt": 1780866457,
   "lastSettleAt": 1780863983,
   "latestRefund": {
     "claimId": 92,
@@ -72,6 +72,10 @@
     "fellBack": false,
     "direction": "above",
     "thresholdPriceUsd": "0.63194835",
+    "elfaSource": null,
+    "elfaSignalCount": null,
+    "elfaFetchedAt": null,
+    "elfaSignals": [],
     "commitAt": 1780334103,
     "settleAt": 1780379457
   },
@@ -93,10 +97,64 @@
     "fellBack": false,
     "direction": "below",
     "thresholdPriceUsd": "0.64496311",
+    "elfaSource": null,
+    "elfaSignalCount": null,
+    "elfaFetchedAt": null,
+    "elfaSignals": [],
     "commitAt": 1780092497,
     "settleAt": 1780379181
   },
   "latestReceipts": [
+    {
+      "claimId": 111,
+      "agent": "LlmScout",
+      "outcome": "pending",
+      "commitTx": "0xfd7813b5649b54362a4fbd6df13f191701002cb750912ba75057c4765f73b558",
+      "settleTx": null,
+      "bondAmount": "5000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": "bankr:deepseek-v3.2",
+      "strategy": "momentum",
+      "fellBack": false,
+      "direction": "above",
+      "thresholdPriceUsd": "0.52496261",
+      "elfaSource": "elfa",
+      "elfaSignalCount": 5,
+      "elfaFetchedAt": 1780866444,
+      "elfaSignals": [
+        {
+          "kind": "quote",
+          "label": "quote",
+          "score": null,
+          "description": "@hackapreneur https://x.com/hackapreneur/status/2062564069895516267"
+        },
+        {
+          "kind": "article",
+          "label": "article",
+          "score": null,
+          "description": "@minchi https://x.com/minchi/status/2062561596468019541"
+        },
+        {
+          "kind": "note",
+          "label": "note",
+          "score": null,
+          "description": "@MessariCrypto https://x.com/MessariCrypto/status/2062522419408154879"
+        },
+        {
+          "kind": "reply",
+          "label": "reply",
+          "score": null,
+          "description": "@CryptoRick98 https://x.com/CryptoRick98/status/2062520247865704608"
+        },
+        {
+          "kind": "reply",
+          "label": "reply",
+          "score": null,
+          "description": "@Agnidex https://x.com/Agnidex/status/2061769614712041500"
+        }
+      ]
+    },
     {
       "claimId": 110,
       "agent": "Challengere863",
@@ -110,7 +168,11 @@
       "strategy": null,
       "fellBack": null,
       "direction": null,
-      "thresholdPriceUsd": null
+      "thresholdPriceUsd": null,
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
     },
     {
       "claimId": 109,
@@ -125,7 +187,11 @@
       "strategy": "momentum",
       "fellBack": false,
       "direction": "above",
-      "thresholdPriceUsd": "0.52499397"
+      "thresholdPriceUsd": "0.52499397",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
     },
     {
       "claimId": 108,
@@ -140,7 +206,11 @@
       "strategy": null,
       "fellBack": null,
       "direction": "below",
-      "thresholdPriceUsd": "0.52058164"
+      "thresholdPriceUsd": "0.52058164",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
     },
     {
       "claimId": 107,
@@ -155,7 +225,11 @@
       "strategy": null,
       "fellBack": null,
       "direction": "above",
-      "thresholdPriceUsd": "0.52582493"
+      "thresholdPriceUsd": "0.52582493",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
     },
     {
       "claimId": 106,
@@ -170,7 +244,11 @@
       "strategy": "momentum",
       "fellBack": false,
       "direction": "below",
-      "thresholdPriceUsd": "0.49785694"
+      "thresholdPriceUsd": "0.49785694",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
     },
     {
       "claimId": 105,
@@ -185,7 +263,11 @@
       "strategy": null,
       "fellBack": null,
       "direction": "below",
-      "thresholdPriceUsd": "0.49799275"
+      "thresholdPriceUsd": "0.49799275",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
     },
     {
       "claimId": 104,
@@ -200,22 +282,11 @@
       "strategy": null,
       "fellBack": null,
       "direction": "above",
-      "thresholdPriceUsd": "0.50313054"
-    },
-    {
-      "claimId": 103,
-      "agent": "LlmScout",
-      "outcome": "pending",
-      "commitTx": "0x6149b4bac523b5d1b4bf5024a6c6c0b02aa1caa4bf27d79e7c69c5546d52152e",
-      "settleTx": null,
-      "bondAmount": "5000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": "bankr:deepseek-v3.2",
-      "strategy": "momentum",
-      "fellBack": false,
-      "direction": "below",
-      "thresholdPriceUsd": "0.51396066"
+      "thresholdPriceUsd": "0.50313054",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
     }
   ]
 }

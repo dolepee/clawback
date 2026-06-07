@@ -46,7 +46,7 @@ export function elfaConfigFromEnv(): ElfaConfig | null {
   const apiKey = process.env.ELFA_API_KEY;
   if (!apiKey) return null;
   return {
-    baseUrl: process.env.ELFA_BASE_URL ?? "https://api.elfa.ai/v1",
+    baseUrl: process.env.ELFA_BASE_URL ?? "https://api.elfa.ai",
     apiKey,
     symbol: process.env.ELFA_SYMBOL ?? "MNT",
     windowHours: Number(process.env.ELFA_WINDOW_HOURS ?? 6),
@@ -58,29 +58,27 @@ export async function fetchElfaTriggers(): Promise<ElfaSnapshot | null> {
   if (!config) return null;
 
   try {
-    // TODO: replace the path + payload shape with Elfa's actual endpoint
-    // once the sponsor confirms the contract. The placeholder below
-    // expects an OpenAPI-style /signals route returning either a
-    // pre-shaped array or a generic envelope. Either shape is tolerated
-    // by the parser.
-    const url = `${config.baseUrl}/signals?symbol=${encodeURIComponent(config.symbol)}&window=${config.windowHours}h`;
-    const resp = await fetch(url, {
-      method: "GET",
-      headers: {
-        authorization: `Bearer ${config.apiKey}`,
-        accept: "application/json",
-      },
-      signal: AbortSignal.timeout(8_000),
-    });
-    if (!resp.ok) {
-      const body = await resp.text().catch(() => "");
-      console.warn(`[elfa] HTTP ${resp.status}: ${body.slice(0, 200)}`);
-      return null;
-    }
-    const payload = (await resp.json()) as unknown;
-    const signals = collapseToSignals(payload);
+    const payloads = await Promise.all([
+      fetchElfaJson(config, "/v2/data/top-mentions", {
+        ticker: config.symbol,
+        timeWindow: `${config.windowHours}h`,
+        pageSize: "5",
+      }),
+      fetchElfaJson(config, "/v2/data/keyword-mentions", {
+        keywords: `${config.symbol},Mantle,MNT`,
+        limit: "5",
+      }),
+      fetchElfaJson(config, "/v2/aggregations/trending-tokens", {
+        timeWindow: `${config.windowHours}h`,
+        minMentions: "1",
+      }),
+    ]);
+    const signals = payloads.flatMap((payload, index) =>
+      collapseToSignals(payload, ["top_mentions", "keyword_mentions", "trending_tokens"][index]),
+    );
+    if (signals.length === 0) return null;
     return {
-      signals,
+      signals: signals.slice(0, 8),
       fetchedAt: Math.floor(Date.now() / 1000),
       source: "elfa",
     };
@@ -88,6 +86,41 @@ export async function fetchElfaTriggers(): Promise<ElfaSnapshot | null> {
     console.warn(`[elfa] fetch threw:`, (err as Error).message);
     return null;
   }
+}
+
+async function fetchElfaJson(
+  config: ElfaConfig,
+  path: string,
+  params: Record<string, string>,
+): Promise<unknown | null> {
+  const url = new URL(path, normaliseBaseUrl(config.baseUrl));
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+  try {
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: {
+        "x-elfa-api-key": config.apiKey,
+        accept: "application/json",
+      },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!resp.ok) {
+      const body = await resp.text().catch(() => "");
+      console.warn(`[elfa] ${path} HTTP ${resp.status}: ${body.slice(0, 160)}`);
+      return null;
+    }
+    return (await resp.json()) as unknown;
+  } catch (err) {
+    console.warn(`[elfa] ${path} fetch threw:`, (err as Error).message);
+    return null;
+  }
+}
+
+function normaliseBaseUrl(baseUrl: string): string {
+  const trimmed = baseUrl.replace(/\/+$/, "");
+  return trimmed.endsWith("/v2") ? trimmed.slice(0, -3) : trimmed;
 }
 
 // Renders the snapshot as a prompt fragment the LLM can read. The
@@ -105,7 +138,7 @@ export function renderForPrompt(snapshot: ElfaSnapshot | null): string {
 
 // Tolerant parser: accepts whatever shape Elfa returns and normalises
 // into TriggerSignal[]. Replace once Elfa documents the actual schema.
-function collapseToSignals(payload: unknown): TriggerSignal[] {
+function collapseToSignals(payload: unknown, sourceKind = "signal"): TriggerSignal[] {
   if (!payload) return [];
   const candidates =
     Array.isArray(payload)
@@ -120,7 +153,7 @@ function collapseToSignals(payload: unknown): TriggerSignal[] {
   for (const raw of candidates) {
     if (!raw || typeof raw !== "object") continue;
     const r = raw as Record<string, unknown>;
-    const kind = typeof r.kind === "string" ? r.kind : typeof r.type === "string" ? r.type : "signal";
+    const kind = typeof r.kind === "string" ? r.kind : typeof r.type === "string" ? r.type : sourceKind;
     const label =
       typeof r.label === "string"
         ? r.label
@@ -128,7 +161,16 @@ function collapseToSignals(payload: unknown): TriggerSignal[] {
           ? r.name
           : typeof r.title === "string"
             ? r.title
-            : kind;
+            : typeof r.keyword === "string"
+              ? r.keyword
+              : typeof r.ticker === "string"
+                ? r.ticker
+                : typeof r.symbol === "string"
+                  ? r.symbol
+                  : kind;
+    const account = typeof (r.account as { username?: unknown } | undefined)?.username === "string"
+      ? `@${(r.account as { username: string }).username}`
+      : null;
     const description =
       typeof r.description === "string"
         ? r.description
@@ -136,8 +178,19 @@ function collapseToSignals(payload: unknown): TriggerSignal[] {
           ? r.summary
           : typeof r.detail === "string"
             ? r.detail
-            : label;
-    const score = typeof r.score === "number" ? r.score : typeof r.magnitude === "number" ? r.magnitude : null;
+            : typeof r.link === "string"
+              ? `${account ? `${account} ` : ""}${r.link}`
+              : account
+                ? `${account} mentioned ${label}`
+                : label;
+    const score =
+      typeof r.score === "number"
+        ? r.score
+        : typeof r.magnitude === "number"
+          ? r.magnitude
+          : typeof r.sentiment === "number"
+            ? r.sentiment
+            : null;
     const validUntil =
       typeof r.validUntil === "number"
         ? r.validUntil

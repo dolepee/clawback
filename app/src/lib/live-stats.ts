@@ -10,6 +10,21 @@ import {
 
 export type AgentHandle = string;
 
+export type ElfaReceiptSignal = {
+  kind: string;
+  label: string;
+  score: number | null;
+  description: string;
+  validUntil?: number;
+};
+
+export type ElfaReceiptProof = {
+  source: string;
+  signalCount: number;
+  fetchedAt: number;
+  signals: ElfaReceiptSignal[];
+};
+
 export type LiveStats = {
   totalClaims: number;
   totalUnlocks: number;
@@ -49,6 +64,7 @@ export type LiveStats = {
     fellBack?: boolean;
     direction?: "above" | "below";
     thresholdPriceUsd?: string;
+    elfa?: ElfaReceiptProof;
   };
   proofPayout?: {
     claimId: number;
@@ -64,6 +80,7 @@ export type LiveStats = {
     fellBack?: boolean;
     direction?: "above" | "below";
     thresholdPriceUsd?: string;
+    elfa?: ElfaReceiptProof;
   };
   lastClaimAt: number;
   lastSettleAt: number;
@@ -83,6 +100,7 @@ export type LiveStats = {
     fellBack?: boolean;
     direction?: "above" | "below";
     thresholdPriceUsd?: string;
+    elfa?: ElfaReceiptProof;
   }>;
   // LlmScout strategic identity: counts of each strategy across recent
   // LlmScout claims, plus the last few labeled claims for the agent page.

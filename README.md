@@ -62,6 +62,7 @@ Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats).
 | Proof | What it proves | Link |
 |---|---|---|
 | AI committed alpha | LlmScout registered and began publishing model-driven threshold calls | [`claim #48`](https://sepolia.mantlescan.xyz/tx/0x87072d490b839796faf6ad0468b60f726ff9fd8e6b5d4c7b3852d5f37f37d5b0) |
+| Elfa signals captured | LlmScout claim provenance includes Elfa signal count/source for the model prompt | [`claim #111`](https://sepolia.mantlescan.xyz/tx/0xfd7813b5649b54362a4fbd6df13f191701002cb750912ba75057c4765f73b558) |
 | User paid to unlock | Q402 adapter records an unlock payment on Mantle | [`verify:q402 4`](https://clawback-bay.vercel.app/claim/4) |
 | AI / agent was right | RIGHT settlement pays the agent | [`claim #14 payout`](https://sepolia.mantlescan.xyz/tx/0x5bc6e9281d591ab671c595d3dbd5956a29883e6aabab93f489d859452f4e3497) |
 | AI / agent was wrong | WRONG settlement refunds the buyer from the slashed bond | [`claim #15 refund`](https://sepolia.mantlescan.xyz/tx/0x4f7f855b63e12724288c1e24909fefd467247239501f2bcd14c6f80258af0799) |
