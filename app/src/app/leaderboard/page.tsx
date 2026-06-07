@@ -140,8 +140,14 @@ function snapshotFallbackRows(): AgentRow[] {
 async function arenaRows(): Promise<AgentRow[]> {
   try {
     const liveRows = await loadLeaderboard();
-    if (liveRows.length === 0) return snapshotFallbackRows();
-    return liveRows.map(({ agent, score }) => ({
+    const visibleRows = liveRows.filter(({ agent, score }) => {
+      if (agent.handle === "LlmScout" || agent.handle === "CatScout" || agent.handle === "LobsterRogue") {
+        return true;
+      }
+      return score.totalBonded > 0n || score.totalSlashed > 0n || score.totalEarned > 0n || score.wins > 0n || score.losses > 0n;
+    });
+    if (visibleRows.length === 0) return snapshotFallbackRows();
+    return visibleRows.map(({ agent, score }) => ({
       id: Number(agent.id),
       name: agent.handle,
       wins: Number(score.wins),
