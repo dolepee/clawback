@@ -1,17 +1,17 @@
 {
-  "generatedAt": 1780920723,
+  "generatedAt": 1780922008,
   "fromBlock": "38493730",
-  "toBlock": "39688001",
+  "toBlock": "39688645",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
   "totalClaims": 112,
   "totalUnlocks": 95,
-  "settledRight": 39,
-  "settledWrong": 43,
-  "refundsClaimed": 41,
-  "earningsClaimed": 38,
-  "totalRefundUsdc": "25875000",
-  "totalEarningsUsdc": "210000000",
+  "settledRight": 48,
+  "settledWrong": 50,
+  "refundsClaimed": 42,
+  "earningsClaimed": 43,
+  "totalRefundUsdc": "26250000",
+  "totalEarningsUsdc": "240500000",
   "agents": {
     "1": "CatScout",
     "2": "LobsterRogue",
@@ -19,16 +19,16 @@
   },
   "perAgent": {
     "CatScout": {
-      "wins": 30,
-      "losses": 5
+      "wins": 34,
+      "losses": 6
     },
     "LobsterRogue": {
-      "wins": 2,
-      "losses": 29
+      "wins": 3,
+      "losses": 33
     },
     "LlmScout": {
-      "wins": 7,
-      "losses": 8
+      "wins": 11,
+      "losses": 10
     },
     "Challenger0e87": {
       "wins": 0,
@@ -44,19 +44,19 @@
     }
   },
   "lastClaimAt": 1780904477,
-  "lastSettleAt": 1780916599,
+  "lastSettleAt": 1780921171,
   "latestRefund": {
-    "claimId": 92,
-    "tx": "0x9238af6ba7484cde40c9c7eea5ff3d6aec629c6ade248c945ac6c0aa34be82a6",
+    "claimId": 95,
+    "tx": "0x7196984197cd226a16bcbf713066f2b45e575a04189641c1ce9e27ecde36de9c",
     "paidBack": "250000",
     "bonus": "125000",
     "user": "0xDe35D0EfBfB548B7B2aCa63598885e4628aAc01B"
   },
   "latestPayout": {
-    "claimId": 93,
-    "tx": "0x4de8c7c4163df37d604ae5d08d1f1d03c3504ee1b575596b890b169cd9dd9509",
-    "amount": "10500000",
-    "agent": "LobsterRogue"
+    "claimId": 107,
+    "tx": "0x2bd0fc1ec03e4c42e8116770d06b96d3c3724098b7ba121173ec5164ae6ca78e",
+    "amount": "5000000",
+    "agent": "CatScout"
   },
   "curatedWrong": {
     "claimId": 91,
@@ -200,9 +200,9 @@
     {
       "claimId": 109,
       "agent": "LlmScout",
-      "outcome": "pending",
+      "outcome": "right",
       "commitTx": "0x145eae186135ccbb3f6445dcb9c5e3bc102090ca10338856f53d0d8e6436b36a",
-      "settleTx": null,
+      "settleTx": "0x94ed9fe1cb189fada4a1e087dcc32b8e077adbf659a530709a4065e2d7c7af76",
       "bondAmount": "5000000",
       "payoutTx": null,
       "refundTx": null,
@@ -219,9 +219,9 @@
     {
       "claimId": 108,
       "agent": "LobsterRogue",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0x539b0b23891bf7b842dc1c9aba3ff4a1e208027a2e1a9874fdb88ed789abbda5",
-      "settleTx": null,
+      "settleTx": "0x6a318b0aed8fa2efd0904e4cb88741fab62d986d3b96f3c6e51ad6c908e29ee2",
       "bondAmount": "10000000",
       "payoutTx": null,
       "refundTx": null,
@@ -238,11 +238,11 @@
     {
       "claimId": 107,
       "agent": "CatScout",
-      "outcome": "pending",
+      "outcome": "right",
       "commitTx": "0x127071c459dc24a71cea65d079ed8c285bfe03b16f5faf179bcb588611a4f775",
-      "settleTx": null,
+      "settleTx": "0x18121b01688c1f56ffd2eae74a36fdf2eb1de56a6501e536fa367070360c4917",
       "bondAmount": "5000000",
-      "payoutTx": null,
+      "payoutTx": "0x2bd0fc1ec03e4c42e8116770d06b96d3c3724098b7ba121173ec5164ae6ca78e",
       "refundTx": null,
       "provider": null,
       "strategy": null,
@@ -257,9 +257,9 @@
     {
       "claimId": 106,
       "agent": "LlmScout",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0xebd683813446944eeccaab92f3fbb00799cee32ebc489edd8376ff75357292cc",
-      "settleTx": null,
+      "settleTx": "0x6fad29d8ca89cf032d5ef92beae55c9ef1a644531cfe0ab79d2bf8382e2b9c6b",
       "bondAmount": "5000000",
       "payoutTx": null,
       "refundTx": null,
@@ -276,9 +276,9 @@
     {
       "claimId": 105,
       "agent": "LobsterRogue",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0xaff7e63e6f1658f776fb139c70160684d59bda4c978c4d8aac50e5282bbaa37d",
-      "settleTx": null,
+      "settleTx": "0xda4a870e94b5184dd4e700a755863ee1bec481c41323abd0d5e6df88612fe1ca",
       "bondAmount": "10000000",
       "payoutTx": null,
       "refundTx": null,
