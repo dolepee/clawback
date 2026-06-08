@@ -70,10 +70,12 @@ function ProofTimeline({
   events,
   receipt,
   agentRight,
+  fallbackUnlockAmount = 0n,
 }: {
   events: TimelineEvent[];
   receipt?: SnapshotReceipt;
   agentRight: boolean;
+  fallbackUnlockAmount?: bigint;
 }) {
   const commit = eventTx(events, "commit") ?? receiptTx(receipt, "commit");
   const unlock = events.find((event): event is Extract<TimelineEvent, { kind: "unlock" }> => event.kind === "unlock");
@@ -90,6 +92,12 @@ function ProofTimeline({
           body: `${shortHex(unlock.payer)} paid ${formatUsdc(unlock.amount)} USDC before settlement.`,
           tx: unlock.tx,
         }
+      : fallbackUnlockAmount > 0n
+        ? {
+            label: "Unlock escrowed",
+            body: `${formatUsdc(fallbackUnlockAmount)} USDC is recorded in escrow before settlement.`,
+            tx: undefined,
+          }
       : null,
     settle
       ? { label: "Settled by Pyth", body: "Pyth checked the market after expiry.", tx: settle }
@@ -531,7 +539,12 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
       />
 
       <section className="detail-grid">
-        <ProofTimeline events={timeline} receipt={matchingReceipt} agentRight={agentRight} />
+        <ProofTimeline
+          events={timeline}
+          receipt={matchingReceipt}
+          agentRight={agentRight}
+          fallbackUnlockAmount={!isSettled ? totalUnlocked : 0n}
+        />
         <section className="detail-card actions-card">
           <div className="detail-kicker">Actions</div>
           <p>
