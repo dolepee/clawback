@@ -24,6 +24,11 @@ export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
 type SnapshotReceipt = ReturnType<typeof buildSnapshotStats>["latestReceipts"][number];
+type ProofTimelineRow = {
+  label: string;
+  body: string;
+  tx: `0x${string}` | undefined;
+};
 
 function formatCall(direction?: "above" | "below", thresholdPriceUsd?: string): string {
   if (!direction || !thresholdPriceUsd) return "MNT price call";
@@ -71,20 +76,33 @@ function ProofTimeline({
   agentRight: boolean;
 }) {
   const commit = eventTx(events, "commit") ?? receiptTx(receipt, "commit");
+  const unlock = events.find((event): event is Extract<TimelineEvent, { kind: "unlock" }> => event.kind === "unlock");
   const settle = eventTx(events, "settle") ?? receiptTx(receipt, "settle");
   const payment = agentRight
     ? eventTx(events, "payout") ?? receiptTx(receipt, "payout")
     : eventTx(events, "refund") ?? receiptTx(receipt, "refund");
 
-  const rows = [
+  const rawRows: Array<ProofTimelineRow | null> = [
     { label: "Committed", body: "The model made this call and locked its bond.", tx: commit },
-    { label: "Settled by Pyth", body: "Pyth checked the market after expiry.", tx: settle },
-    {
-      label: agentRight ? "Agent paid" : "Refund paid",
-      body: agentRight ? "The right call let the agent earn." : "The wrong call paid users back onchain.",
-      tx: payment,
-    },
+    unlock
+      ? {
+          label: "Unlocked by payer",
+          body: `${shortHex(unlock.payer)} paid ${formatUsdc(unlock.amount)} USDC before settlement.`,
+          tx: unlock.tx,
+        }
+      : null,
+    settle
+      ? { label: "Settled by Pyth", body: "Pyth checked the market after expiry.", tx: settle }
+      : { label: "Awaiting Pyth", body: "Settlement opens after the expiry window closes.", tx: undefined },
+    payment
+      ? {
+          label: agentRight ? "Agent paid" : "Refund paid",
+          body: agentRight ? "The right call let the agent earn." : "The wrong call paid users back onchain.",
+          tx: payment,
+        }
+      : null,
   ];
+  const rows = rawRows.filter((row): row is ProofTimelineRow => row !== null);
 
   return (
     <section className="detail-card proof-card">
@@ -394,6 +412,12 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
   }
 
   const shareOutcome = isSettled ? (agentRight ? "right" : "wrong") : "pending";
+  const unlockEvents = timeline.filter((event): event is Extract<TimelineEvent, { kind: "unlock" }> => event.kind === "unlock");
+  const totalUnlocked = unlockEvents.reduce((sum, event) => sum + event.amount, 0n) || accounting.totalPaid;
+  const receiptValue = isSettled ? paidAmount : totalUnlocked;
+  const receiptValueLabel = receiptValue > 0n ? formatDollar(receiptValue) : isSettled ? "—" : "No unlock yet";
+  const beneficiaryLabel = !isSettled ? (totalUnlocked > 0n ? "Escrowed" : "Pending") : agentRight ? "Agent" : "Payers";
+  const valueLabel = !isSettled ? "Unlocks paid" : paidLabel;
 
   return (
     <div className="claw-page page-wide">
@@ -436,11 +460,11 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
           </div>
           <div>
             <dt>Paid to</dt>
-            <dd>{agentRight ? "Agent" : "Payers"}</dd>
+            <dd>{beneficiaryLabel}</dd>
           </div>
           <div>
             <dt>Amount</dt>
-            <dd>{paidAmount > 0n ? formatDollar(paidAmount) : "Pending"}</dd>
+            <dd>{receiptValueLabel}</dd>
           </div>
         </dl>
       </section>
@@ -467,7 +491,7 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
           <ul>
             <li>Prediction: <strong>{callText === "MNT price call" ? question : callText}</strong></li>
             <li>Outcome: <strong>{isSettled ? (agentRight ? "Right" : "Wrong") : "Pending"}</strong></li>
-            <li>Receipt value: <strong>{paidAmount > 0n ? formatDollar(paidAmount) : "Pending"}</strong></li>
+            <li>{valueLabel}: <strong>{receiptValueLabel}</strong></li>
           </ul>
         </article>
 
@@ -527,8 +551,8 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
         </section>
         <section className={`detail-card payment-card ${agentRight ? "payment-earned" : "payment-refund"}`}>
           <span>{isSettled ? (agentRight ? "Agent earned" : "Refunded") : "Pending"}</span>
-          <h2>{paidAmount > 0n ? formatDollar(paidAmount) : "—"}</h2>
-          <p>{paidLabel}</p>
+          <h2>{receiptValueLabel}</h2>
+          <p>{valueLabel}</p>
           <Link href={`/claim/${claim.id.toString()}`}>Claim #{claim.id.toString()}</Link>
         </section>
       </section>
