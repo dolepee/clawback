@@ -698,35 +698,42 @@ export async function settleClaims(): Promise<void> {
     const claim = await readClaim(claimId, client);
     if (claim.state !== CLAIM_STATE_COMMITTED) continue;
     if (claim.expiry > now) continue;
-    const feedIds = claim.marketId === 0 ? [addrs.mntFeed, addrs.ethFeed] : [addrs.mntFeed];
-    const bundle = await fetchPythUpdateBundle(feedIds);
-    const fee = await client.readContract({
-      address: addrs.pyth,
-      abi: PYTH_ABI,
-      functionName: "getUpdateFee",
-      args: [bundle.updateData],
-    });
-    const params = encodeAbiParameters([{ type: "bytes[]" }], [bundle.updateData]);
-    const txHash = await wallet.writeContract({
-      address: addrs.pythSettlementAdapter,
-      abi: PYTH_ADAPTER_ABI,
-      functionName: "resolve",
-      args: [claimId, params],
-      value: fee,
-      account: settler,
-      chain: mantleSepolia,
-    });
-    const receipt = await client.waitForTransactionReceipt({ hash: txHash });
-    const accounting = await readAccounting(claimId, client);
-    completed++;
-    console.log("CLAWBACK_CLAIM_SETTLED");
-    console.log(`claimId=${claimId}`);
-    console.log(`outcome=${accounting.agentRight ? "right" : "wrong"}`);
-    console.log(`tx=${txHash}`);
-    console.log(`fee=${fee}`);
-    console.log(`block=${receipt.blockNumber}`);
-    for (const snapshot of bundle.snapshots) {
-      console.log(`priceFeed=${snapshot.id} priceE8=${snapshot.priceE8} publishTime=${snapshot.publishTime}`);
+    try {
+      const feedIds = claim.marketId === 0 ? [addrs.mntFeed, addrs.ethFeed] : [addrs.mntFeed];
+      const bundle = await fetchPythUpdateBundle(feedIds);
+      const fee = await client.readContract({
+        address: addrs.pyth,
+        abi: PYTH_ABI,
+        functionName: "getUpdateFee",
+        args: [bundle.updateData],
+      });
+      const params = encodeAbiParameters([{ type: "bytes[]" }], [bundle.updateData]);
+      const txHash = await wallet.writeContract({
+        address: addrs.pythSettlementAdapter,
+        abi: PYTH_ADAPTER_ABI,
+        functionName: "resolve",
+        args: [claimId, params],
+        value: fee,
+        account: settler,
+        chain: mantleSepolia,
+      });
+      const receipt = await client.waitForTransactionReceipt({ hash: txHash });
+      const accounting = await readAccounting(claimId, client);
+      completed++;
+      console.log("CLAWBACK_CLAIM_SETTLED");
+      console.log(`claimId=${claimId}`);
+      console.log(`outcome=${accounting.agentRight ? "right" : "wrong"}`);
+      console.log(`tx=${txHash}`);
+      console.log(`fee=${fee}`);
+      console.log(`block=${receipt.blockNumber}`);
+      for (const snapshot of bundle.snapshots) {
+        console.log(`priceFeed=${snapshot.id} priceE8=${snapshot.priceE8} publishTime=${snapshot.publishTime}`);
+      }
+    } catch (e) {
+      const err = e as Error;
+      console.log(`CLAWBACK_CLAIM_SETTLE_SKIPPED claimId=${claimId} err=${err.message.slice(0, 200)}`);
+      if (completed > 0) break;
+      throw err;
     }
   }
   if (completed === 0) console.log("CLAWBACK_CLAIM_SETTLED none");

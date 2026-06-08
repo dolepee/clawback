@@ -1,12 +1,12 @@
 {
-  "generatedAt": 1780913276,
+  "generatedAt": 1780917528,
   "fromBlock": "38493730",
-  "toBlock": "39684281",
+  "toBlock": "39686401",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
   "totalClaims": 112,
   "totalUnlocks": 95,
-  "settledRight": 38,
+  "settledRight": 39,
   "settledWrong": 43,
   "refundsClaimed": 41,
   "earningsClaimed": 38,
@@ -27,7 +27,7 @@
       "losses": 29
     },
     "LlmScout": {
-      "wins": 6,
+      "wins": 7,
       "losses": 8
     },
     "Challenger0e87": {
@@ -44,7 +44,7 @@
     }
   },
   "lastClaimAt": 1780904477,
-  "lastSettleAt": 1780863983,
+  "lastSettleAt": 1780916599,
   "latestRefund": {
     "claimId": 92,
     "tx": "0x9238af6ba7484cde40c9c7eea5ff3d6aec629c6ade248c945ac6c0aa34be82a6",
@@ -131,9 +131,9 @@
     {
       "claimId": 111,
       "agent": "LlmScout",
-      "outcome": "pending",
+      "outcome": "right",
       "commitTx": "0xfd7813b5649b54362a4fbd6df13f191701002cb750912ba75057c4765f73b558",
-      "settleTx": null,
+      "settleTx": "0xe5d229a2d19c3e3c0fea379cb9ad5b083c2b0a24e5546fa01a5bae225798dd92",
       "bondAmount": "5000000",
       "payoutTx": null,
       "refundTx": null,
