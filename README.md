@@ -33,17 +33,28 @@ Clawback fits Alpha & Data because it turns an AI model's market call into a bon
 * **Status:** 9 contracts deployed and verified. 3 benchmark entrants plus permissionless challengers have live receipts on Mantle Sepolia. The two rule-based controls demonstrate the bonded settlement loop end to end; **LlmScout** is a model-driven agent that emits a fresh threshold direction and confidence per commit via Bankr's LLM gateway, with a deterministic strategy fallback when a provider is unavailable, and the prompt and structured response persisted in the encrypted reveal vault for post-`publicReleaseAt` audit. Every accepted call ends in a verifiable RIGHT or WRONG receipt on Mantle, refunding payers from the slashed bond when the agent is wrong. Live counts and the most recent receipts are at [/api/stats](https://clawback-bay.vercel.app/api/stats); the proof table below pins replayable examples.
 * **First LlmScout claim:** [`#48`](https://sepolia.mantlescan.xyz/tx/0x87072d490b839796faf6ad0468b60f726ff9fd8e6b5d4c7b3852d5f37f37d5b0) (registration: [`tx`](https://sepolia.mantlescan.xyz/tx/0xe17043e5334a1c62d24ce1a9b5da2580816cb2ce00c1cc927a1e8ebe266b7c89))
 
+## Official proof pair
+
+These are the two receipts the submission should lead with. Together they show the AI/data path and the accountability path without asking judges to infer the product from old receipts.
+
+| Receipt | Why it matters | Proof |
+|---|---|---|
+| **#111: LlmScout was right** | Bankr `deepseek-v3.2` consumed the live market context plus **5 Elfa signals**, posted a bonded MNT threshold call, and Pyth settled it RIGHT on Mantle. This is the AI Alpha & Data proof. | [claim page](https://clawback-bay.vercel.app/claim/111) · [commit](https://sepolia.mantlescan.xyz/tx/0xfd7813b5649b54362a4fbd6df13f191701002cb750912ba75057c4765f73b558) · [settle](https://sepolia.mantlescan.xyz/tx/0xe5d229a2d19c3e3c0fea379cb9ad5b083c2b0a24e5546fa01a5bae225798dd92) |
+| **#112: Challenger was wrong** | A user-created challenger entered through the open registry, made a bonded call, Pyth settled it WRONG, and the payer was refunded from the slashed bond. This is the product/accountability proof. | [claim page](https://clawback-bay.vercel.app/claim/112) · [commit](https://sepolia.mantlescan.xyz/tx/0xdfdd717179ff02776e09d5c13192a34a625c801c29dfc5635606e7211fde260f) · [settle](https://sepolia.mantlescan.xyz/tx/0xdbf3bb66385cf24ca475661013256b1e8370ea37299dbb48c44bcd050abc2f24) · [refund](https://sepolia.mantlescan.xyz/tx/0x0e3f18feddb034009d728711baa6cefb9088d89d23706fc2a8a83fd6c7e35dc3) |
+
+Submission framing: **LlmScout consumes Bankr + Elfa + market data, bonds a price call on Mantle, and Pyth settles whether it was right. Claim #111 proves the AI signal path worked; claim #112 proves the refund path works when a challenger is wrong.**
+
 ## Live receipts
 
-Fresh challenge receipt plus both outcome paths:
+Fresh AI proof, fresh challenger proof, plus both older outcome paths:
 
 | Moment | Transaction |
 |---|---|
+| LlmScout claim 111 committed with 5 Elfa signals captured | [`0xfd7813b5`](https://sepolia.mantlescan.xyz/tx/0xfd7813b5649b54362a4fbd6df13f191701002cb750912ba75057c4765f73b558) |
+| Pyth settled claim 111 RIGHT | [`0xe5d229a2`](https://sepolia.mantlescan.xyz/tx/0xe5d229a2d19c3e3c0fea379cb9ad5b083c2b0a24e5546fa01a5bae225798dd92) |
 | Challenger-bad3 committed claim 112 through the open registry | [`0xdfdd7171`](https://sepolia.mantlescan.xyz/tx/0xdfdd717179ff02776e09d5c13192a34a625c801c29dfc5635606e7211fde260f) |
 | Pyth settled claim 112 WRONG | [`0xdbf3bb66`](https://sepolia.mantlescan.xyz/tx/0xdbf3bb66385cf24ca475661013256b1e8370ea37299dbb48c44bcd050abc2f24) |
 | Payer refunded on claim 112 | [`0x0e3f18fe`](https://sepolia.mantlescan.xyz/tx/0x0e3f18feddb034009d728711baa6cefb9088d89d23706fc2a8a83fd6c7e35dc3) |
-| LlmScout claim 111 committed with 5 Elfa signals captured | [`0xfd7813b5`](https://sepolia.mantlescan.xyz/tx/0xfd7813b5649b54362a4fbd6df13f191701002cb750912ba75057c4765f73b558) |
-| Pyth settled claim 111 RIGHT | [`0xe5d229a2`](https://sepolia.mantlescan.xyz/tx/0xe5d229a2d19c3e3c0fea379cb9ad5b083c2b0a24e5546fa01a5bae225798dd92) |
 | LobsterRogue claim 15 committed (WRONG cycle) | [`0xc6e47f83`](https://sepolia.mantlescan.xyz/tx/0xc6e47f8302710db9cf18a1727a8d2be27f202719eb378a5e6e669a4c0fcc56fd) |
 | Pyth settled claim 15 WRONG | [`0x802ccf9b`](https://sepolia.mantlescan.xyz/tx/0x802ccf9b12c8a188ed4fc48c624f37012d7feb4060b6b7116bd8ff0fdd984b5e) |
 | Payer clawed back 0.50 USDC + 0.25 bonus (claim 15) | [`0x4f7f855b`](https://sepolia.mantlescan.xyz/tx/0x4f7f855b63e12724288c1e24909fefd467247239501f2bcd14c6f80258af0799) |
@@ -51,7 +62,7 @@ Fresh challenge receipt plus both outcome paths:
 | Pyth settled claim 14 RIGHT | [`0xe32d9aaa`](https://sepolia.mantlescan.xyz/tx/0xe32d9aaac29abb2a570992bd708619b1a727716bcc98625e63cb2ce0f09b1d0a) |
 | CatScout claimed 5.25 USDC earnings (claim 14) | [`0x5bc6e928`](https://sepolia.mantlescan.xyz/tx/0x5bc6e9281d591ab671c595d3dbd5956a29883e6aabab93f489d859452f4e3497) |
 
-Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats). Or scroll the [claim feed](https://clawback-bay.vercel.app/feed) and click any card. Claim `112` is the live challenger refund proof. Claim `111` is the Elfa + Bankr model proof. Claims `14` and `15` remain older settlement examples. For a full public reveal replay, use claims `4` and `5` in the verifier section below.
+Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats). Or scroll the [claim feed](https://clawback-bay.vercel.app/feed) and click any card. Claim `111` is the Elfa + Bankr model proof. Claim `112` is the live challenger refund proof. Claims `14` and `15` remain older settlement examples. For a full public reveal replay, use claims `4` and `5` in the verifier section below.
 
 ## Explore the live product
 
@@ -140,6 +151,16 @@ The cron-cycle workflow runs the LLM persona alongside the two controls daily. F
 ## Why this is Alpha & Data
 
 Clawback is not a generic prediction UI. It is a Mantle-native accountability layer for AI alpha. The model reads market data, publishes a sealed call, puts money behind it, and then gets scored by on-chain settlement. The control personas prove the full RIGHT and WRONG lifecycle; the LlmScout persona proves the same interface can host model-driven alpha agents.
+
+## Why Mantle is load-bearing
+
+Clawback depends on Mantle for the parts judges should care about most:
+
+* **Bonded AI claims:** agent commitments, bonds, sealed claim hashes, and data hashes are written to Mantle, not stored only in the app.
+* **User accountability:** unlock payments, wrong-call refunds, and right-call payouts are Mantle transactions.
+* **Permanent reputation:** wins, losses, earned, slashed, and refunded totals update `ReputationLedger` on Mantle.
+* **Permissionless challengers:** new entrants can register and publish bonded calls through the same Mantle contracts.
+* **Replayable proof:** every receipt links back to Mantlescan so judges can verify without trusting the frontend.
 
 ## How a claim works
 

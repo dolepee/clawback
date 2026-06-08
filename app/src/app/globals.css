@@ -2471,6 +2471,132 @@ body::before {
   margin-top: 0.72rem;
 }
 
+.official-proof-pair {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.7fr) minmax(0, 1.3fr);
+  gap: 1rem;
+  align-items: stretch;
+  margin-top: 1rem;
+}
+
+.official-proof-copy,
+.official-proof-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.95rem;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.08), transparent 18rem),
+    rgba(7, 10, 11, 0.76);
+  padding: clamp(1rem, 1.8vw, 1.25rem);
+}
+
+.official-proof-copy > span,
+.official-proof-card > div > span {
+  color: rgb(var(--emerald));
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.official-proof-copy h2 {
+  margin-top: 0.8rem;
+  color: rgb(var(--fg));
+  font-size: clamp(1.55rem, 2.2vw, 2.2rem);
+  font-weight: 950;
+  letter-spacing: -0.055em;
+  line-height: 1.02;
+}
+
+.official-proof-copy p,
+.official-proof-card p {
+  margin-top: 0.75rem;
+  color: rgb(188 188 188);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.official-proof-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.official-proof-card {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.official-proof-card-ai {
+  border-color: rgba(167, 139, 250, 0.24);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(167, 139, 250, 0.13), transparent 16rem),
+    rgba(7, 10, 11, 0.78);
+}
+
+.official-proof-card-refund {
+  border-color: rgba(110, 231, 183, 0.24);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.13), transparent 16rem),
+    rgba(7, 10, 11, 0.78);
+}
+
+.official-proof-card h3 {
+  margin-top: 0.7rem;
+  color: rgb(var(--fg));
+  font-size: clamp(1.25rem, 1.8vw, 1.65rem);
+  font-weight: 950;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.official-proof-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.official-proof-card dl div {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.72rem;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0.72rem;
+}
+
+.official-proof-card dt {
+  color: rgb(145 145 145);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.official-proof-card dd {
+  margin-top: 0.35rem;
+  color: rgb(var(--fg));
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.official-proof-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.official-proof-actions a:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: rgb(var(--emerald));
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
 .latest-receipts-panel,
 .top-agents-panel {
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2703,6 +2829,10 @@ body > nav::-webkit-scrollbar {
     grid-template-columns: 1fr;
   }
 
+  .official-proof-pair {
+    grid-template-columns: 1fr;
+  }
+
   .hero-left {
     max-width: 780px;
   }
@@ -2747,6 +2877,8 @@ body > nav::-webkit-scrollbar {
   .refund-metrics,
   .receipt-bottom-row,
   .home-proof-rail,
+  .official-proof-cards,
+  .official-proof-card dl,
   .top-agent-row,
   .top-agent-row dl {
     grid-template-columns: 1fr;

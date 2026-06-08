@@ -451,6 +451,73 @@ function ProofStrip({ stats }: { stats: Stats }) {
   );
 }
 
+function OfficialProofPair({ stats }: { stats: Stats }) {
+  const aiReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === 111);
+  const challengerReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === 112);
+  const challengerRefund = stats.proofRefund?.claimId === 112 ? stats.proofRefund : undefined;
+
+  const cards = [
+    {
+      eyebrow: "AI Alpha proof",
+      title: "#111 Bankr + Elfa call settled right",
+      body: "LlmScout consumed 5 Elfa signals, routed through Bankr deepseek-v3.2, bonded an MNT threshold call, and Pyth settled it RIGHT on Mantle.",
+      href: "/claim/111",
+      primary: aiReceipt?.provider ? formatProvider(aiReceipt.provider) : "Bankr deepseek-v3.2",
+      secondary: aiReceipt?.elfa?.signalCount ? `${aiReceipt.elfa.signalCount} Elfa signals` : "Elfa signal provenance",
+      tx: aiReceipt?.settleTx ?? aiReceipt?.commitTx,
+      tone: "ai",
+    },
+    {
+      eyebrow: "Accountability proof",
+      title: "#112 Challenger was wrong, payer refunded",
+      body: "A user-created challenger entered through the same registry, made a bonded call, lost, and the refund was paid from the slashed bond.",
+      href: "/claim/112",
+      primary: challengerRefund ? formatDollar(challengerRefund.paidBack + challengerRefund.bonus) : "Refund paid",
+      secondary: "Wrong call clawed back",
+      tx: challengerRefund?.tx ?? challengerReceipt?.refundTx ?? challengerReceipt?.settleTx ?? challengerReceipt?.commitTx,
+      tone: "refund",
+    },
+  ] as const;
+
+  return (
+    <section className="official-proof-pair" aria-label="Official submission proof pair">
+      <div className="official-proof-copy">
+        <span>Official proof pair</span>
+        <h2>One receipt proves the AI path. One receipt proves the refund path.</h2>
+        <p>
+          Lead with these two in the submission: #111 shows Bankr + Elfa + Pyth scoring a real AI call;
+          #112 shows the product promise when a call is wrong.
+        </p>
+      </div>
+      <div className="official-proof-cards">
+        {cards.map((card) => (
+          <article className={`official-proof-card official-proof-card-${card.tone}`} key={card.title}>
+            <div>
+              <span>{card.eyebrow}</span>
+              <h3>{card.title}</h3>
+              <p>{card.body}</p>
+            </div>
+            <dl>
+              <div>
+                <dt>Signal</dt>
+                <dd>{card.primary}</dd>
+              </div>
+              <div>
+                <dt>Status</dt>
+                <dd>{card.secondary}</dd>
+              </div>
+            </dl>
+            <div className="official-proof-actions">
+              <Link href={card.href}>Open receipt <span aria-hidden>→</span></Link>
+              {card.tx ? txLink(card.tx, shortHex(card.tx, 6, 4), `Open ${card.title} transaction`) : null}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const stats = buildSnapshotStats();
 
@@ -484,6 +551,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      <OfficialProofPair stats={stats} />
       <div className="home-dashboard-grid">
         <HomeReceiptTable stats={stats} />
         <TopAgentsCompact stats={stats} />
