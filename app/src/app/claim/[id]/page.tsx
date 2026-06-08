@@ -124,10 +124,10 @@ function AiPipeline({
     <section className="ai-pipeline-card" aria-label="AI reasoning pipeline">
       <div className="pipeline-copy">
         <div className="detail-kicker">AI reasoning path</div>
-        <h2>Signals {"->"} model {"->"} bonded call {"->"} receipt.</h2>
+        <h2>Signal evidence, model route, bonded call, receipt.</h2>
         <p>
-          The interface shows how the AI reached the public claim before the chain scores it.
-          This keeps the model useful without asking users to trust a black box.
+          The receipt shows what data the AI used, what model made the call,
+          and which onchain proof will score the result.
         </p>
       </div>
       <div className="pipeline-steps">
@@ -156,8 +156,8 @@ function AiPipeline({
         <div className="pipeline-signals" aria-label="Captured Elfa signal examples">
           {signals.slice(0, 3).map((signal, index) => (
             <article key={`${signal.description}-${index}`}>
-              <span>{signal.kind}</span>
-              <strong>{signal.label}</strong>
+              <span>Elfa {signal.kind}</span>
+              <strong>Market signal {String(index + 1).padStart(2, "0")}</strong>
               <p>{signal.description}</p>
             </article>
           ))}

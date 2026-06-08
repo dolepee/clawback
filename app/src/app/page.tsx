@@ -468,8 +468,8 @@ export default function HomePage() {
             truth, and wrong calls refund buyers from the slashed bond.
           </p>
           <div className="hero-cta-row">
-            <Link href="/theater" className="primary-action">
-              Watch AI Accountability
+            <Link href="/accountability" className="primary-action">
+              See the accountability loop
               <span aria-hidden>→</span>
             </Link>
             <Link href="/leaderboard" className="secondary-action">

@@ -7,8 +7,8 @@ import { formatDollar, shortHex } from "@/lib/format";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "AI Accountability Theater · Clawback",
-  description: "Watch the full Clawback loop: signals, model call, bonded commit, Pyth settlement, and refund or payout.",
+  title: "AI Accountability · Clawback",
+  description: "See how Clawback turns AI predictions into bonded, oracle-settled receipts on Mantle.",
 };
 
 type Stats = ReturnType<typeof buildSnapshotStats>;
@@ -29,9 +29,9 @@ function proofTx(receipt?: Receipt): `0x${string}` | undefined {
 
 function outcomeLabel(receipt?: Receipt): string {
   if (!receipt) return "Pending";
-  if (receipt.outcome === "wrong") return "Wrong -> refunded";
-  if (receipt.outcome === "right") return "Right -> agent earned";
-  return "Pending -> on the hook";
+  if (receipt.outcome === "wrong") return "Wrong, user refunded";
+  if (receipt.outcome === "right") return "Right, agent earned";
+  return "Pending, bond at risk";
 }
 
 function amountLabel(receipt: Receipt | undefined, stats: Stats): string {
@@ -118,7 +118,7 @@ function SignalStack({ receipt }: { receipt?: Receipt }) {
       <h2>{receipt?.elfa ? `${receipt.elfa.signalCount} Elfa signals captured` : "Signals pending"}</h2>
       <p>
         Clawback shows the data source behind the model call before the agent locks capital.
-        Judges do not need to trust a black-box screenshot.
+        You can see what the AI used, what it predicted, and what capital it put at risk.
       </p>
       <div className="signal-list">
         {signals.slice(0, 4).map((signal, index) => (
@@ -188,11 +188,11 @@ export default function TheaterPage() {
     <div className="claw-page page-wide">
       <section className="theater-hero">
         <div>
-          <p>Guided demo path</p>
-          <h1>Watch an AI call get judged.</h1>
+          <p>AI accountability loop</p>
+          <h1>See what the AI risks before you trust it.</h1>
           <span>
-            A single visual path for non-technical judges: Elfa signals feed the model,
-            the agent bonds the call, Pyth settles the truth, and Clawback pays the right side.
+            Elfa signals feed the model, the agent bonds its call on Mantle,
+            Pyth settles the market, and Clawback pays the side that was right.
           </span>
         </div>
         <Link href={elfaReceipt ? `/claim/${elfaReceipt.claimId}` : "/feed"}>Open live Elfa receipt</Link>
@@ -204,34 +204,34 @@ export default function TheaterPage() {
           <TheaterStep
             index="01"
             title="Signals captured"
-            body="Elfa market context is attached to the LlmScout provenance packet."
+            body="Market context is attached to the LlmScout receipt before the agent commits."
             value={elfaReceipt?.elfa ? `${elfaReceipt.elfa.signalCount} signals` : "pending"}
           />
           <TheaterStep
             index="02"
             title="Model makes a call"
-            body="The model route and threshold decision are displayed before settlement."
+            body="The model route and threshold decision are visible before settlement."
             value={providerLabel(elfaReceipt?.provider)}
           />
           <TheaterStep
             index="03"
             title="Bond locked on Mantle"
-            body="The agent posts its own capital before the claim enters the public board."
+            body="The agent posts its own capital before users can buy or challenge the call."
             value={elfaReceipt?.bondAmount ? formatDollar(elfaReceipt.bondAmount) : "bonded"}
           />
           <TheaterStep
             index="04"
             title="Pyth settles the truth"
-            body="The outcome is scored onchain after expiry, not manually decided by the app."
+            body="The outcome is scored after expiry by oracle settlement, not by the app."
             value={elfaReceipt?.outcome === "pending" ? "awaiting expiry" : outcomeLabel(elfaReceipt)}
           />
         </div>
       </section>
 
       <section className="outcome-showcase" aria-label="Completed receipt examples">
-        <ReceiptOutcomeCard title="If the AI is wrong" receipt={refundReceipt} stats={stats} />
-        <ReceiptOutcomeCard title="If the AI is right" receipt={payoutReceipt} stats={stats} />
-        <ReceiptOutcomeCard title="Current Elfa-backed call" receipt={elfaReceipt} stats={stats} />
+        <ReceiptOutcomeCard title="Wrong call" receipt={refundReceipt} stats={stats} />
+        <ReceiptOutcomeCard title="Right call" receipt={payoutReceipt} stats={stats} />
+        <ReceiptOutcomeCard title="Live bonded call" receipt={elfaReceipt} stats={stats} />
       </section>
     </div>
   );
