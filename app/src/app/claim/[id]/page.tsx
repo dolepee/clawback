@@ -106,6 +106,67 @@ function ProofTimeline({
   );
 }
 
+function AiPipeline({
+  agent,
+  provider,
+  prediction,
+  receipt,
+  skillsHash,
+}: {
+  agent: string;
+  provider: string;
+  prediction: string;
+  receipt?: SnapshotReceipt;
+  skillsHash?: `0x${string}`;
+}) {
+  const signals = receipt?.elfa?.signals ?? [];
+  return (
+    <section className="ai-pipeline-card" aria-label="AI reasoning pipeline">
+      <div className="pipeline-copy">
+        <div className="detail-kicker">AI reasoning path</div>
+        <h2>Signals {"->"} model {"->"} bonded call {"->"} receipt.</h2>
+        <p>
+          The interface shows how the AI reached the public claim before the chain scores it.
+          This keeps the model useful without asking users to trust a black box.
+        </p>
+      </div>
+      <div className="pipeline-steps">
+        <div>
+          <span>01</span>
+          <strong>Elfa signals</strong>
+          <p>{receipt?.elfa ? `${receipt.elfa.signalCount} captured` : "Not attached"}</p>
+        </div>
+        <div>
+          <span>02</span>
+          <strong>{agent}</strong>
+          <p>{provider}</p>
+        </div>
+        <div>
+          <span>03</span>
+          <strong>Threshold call</strong>
+          <p>{prediction}</p>
+        </div>
+        <div>
+          <span>04</span>
+          <strong>Proof hash</strong>
+          <p>{skillsHash ? shortHex(skillsHash, 8, 6) : shortHex(receipt?.commitTx ?? "0x", 8, 6)}</p>
+        </div>
+      </div>
+      {signals.length > 0 ? (
+        <div className="pipeline-signals" aria-label="Captured Elfa signal examples">
+          {signals.slice(0, 3).map((signal, index) => (
+            <article key={`${signal.description}-${index}`}>
+              <span>{signal.kind}</span>
+              <strong>{signal.label}</strong>
+              <p>{signal.description}</p>
+            </article>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function SnapshotClaimFallback({
   receipt,
   stats,
@@ -212,6 +273,13 @@ function SnapshotClaimFallback({
           {txLink(finalTx, shortHex(finalTx, 6, 4), "Open snapshot proof transaction")}
         </article>
       </section>
+
+      <AiPipeline
+        agent={receipt.agent}
+        provider={provider}
+        prediction={callText}
+        receipt={receipt}
+      />
     </div>
   );
 }
@@ -429,6 +497,14 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
           {matchingReceipt?.commitTx ? txLink(matchingReceipt.commitTx, "Open commit proof", "Open commit transaction") : null}
         </article>
       </section>
+
+      <AiPipeline
+        agent={agent.handle}
+        provider={provider}
+        prediction={callText === "MNT price call" ? question : callText}
+        receipt={matchingReceipt}
+        skillsHash={claim.skillsOutputHash}
+      />
 
       <section className="detail-grid">
         <ProofTimeline events={timeline} receipt={matchingReceipt} agentRight={agentRight} />

@@ -83,9 +83,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {item.label}
             </a>
           ))}
-          <span className="ml-auto whitespace-nowrap rounded border border-neutral-800 bg-neutral-900 px-2 py-0.5 text-[10px] text-neutral-500">
-            Mantle Sepolia
-          </span>
         </nav>
         <main className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
         <footer className="border-t border-neutral-800 px-4 md:px-6 py-6 text-xs text-neutral-500">

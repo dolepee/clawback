@@ -3079,3 +3079,386 @@ body > nav::-webkit-scrollbar {
     margin-bottom: 0;
   }
 }
+
+/* UI/UX award sprint: guided AI theater, readable provenance, receipt stories. */
+.theater-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: end;
+  padding: clamp(2.25rem, 5vw, 5rem) 0 1.3rem;
+}
+
+.theater-hero p {
+  color: rgb(var(--emerald));
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.theater-hero h1 {
+  max-width: 780px;
+  margin-top: 0.7rem;
+  color: rgb(var(--fg));
+  font-family: var(--font-display), Georgia, ui-serif, serif;
+  font-size: clamp(3.4rem, 6.8vw, 7rem);
+  font-weight: 850;
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+}
+
+.theater-hero span {
+  display: block;
+  max-width: 760px;
+  margin-top: 1rem;
+  color: rgb(205 205 205);
+  font-size: clamp(1rem, 1.35vw, 1.18rem);
+  line-height: 1.6;
+}
+
+.theater-hero a,
+.story-receipt-card > a,
+.story-receipt-card > a + a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  border: 1px solid rgba(110, 231, 183, 0.28);
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.08);
+  color: rgb(var(--emerald));
+  padding: 0 1rem;
+  font-weight: 900;
+}
+
+.theater-stage {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.68fr) minmax(0, 1.32fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.signal-stack,
+.ai-pipeline-card,
+.story-receipt-card,
+.theater-outcome-card {
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.08), transparent 18rem),
+    rgba(255, 255, 255, 0.025);
+}
+
+.signal-stack {
+  padding: 1.25rem;
+}
+
+.signal-stack h2,
+.ai-pipeline-card h2,
+.story-receipt-card h2,
+.theater-outcome-card h3 {
+  margin-top: 0.7rem;
+  color: rgb(var(--fg));
+  font-family: var(--font-display), Georgia, ui-serif, serif;
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.signal-stack h2,
+.ai-pipeline-card h2 {
+  font-size: clamp(2rem, 3vw, 3rem);
+}
+
+.signal-stack > p,
+.ai-pipeline-card > .pipeline-copy p,
+.story-receipt-card p,
+.theater-outcome-card p {
+  margin-top: 0.8rem;
+  color: rgb(190 190 190);
+  line-height: 1.55;
+}
+
+.signal-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.signal-list div,
+.pipeline-signals article {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0.78rem;
+  background: rgba(0, 0, 0, 0.22);
+  padding: 0.85rem;
+}
+
+.signal-list span,
+.pipeline-signals span,
+.story-receipt-card > span,
+.theater-outcome-card > .detail-kicker {
+  color: rgb(var(--emerald));
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.signal-list strong,
+.pipeline-signals strong {
+  display: block;
+  margin-top: 0.35rem;
+  color: rgb(var(--fg));
+}
+
+.signal-list p,
+.pipeline-signals p {
+  margin-top: 0.35rem;
+  color: rgb(165 165 165);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.theater-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.theater-step {
+  min-height: 320px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+    rgba(7, 10, 11, 0.86);
+  padding: 1.1rem;
+}
+
+.theater-step > span {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(110, 231, 183, 0.32);
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.1);
+  color: rgb(var(--emerald));
+  font-weight: 950;
+}
+
+.theater-step h3 {
+  margin-top: 4.8rem;
+  color: rgb(var(--fg));
+  font-size: 1.25rem;
+  font-weight: 950;
+}
+
+.theater-step p {
+  margin-top: 0.65rem;
+  color: rgb(175 175 175);
+  line-height: 1.5;
+}
+
+.theater-step strong {
+  display: inline-flex;
+  margin-top: 1rem;
+  border: 1px solid rgba(110, 231, 183, 0.22);
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.08);
+  color: rgb(var(--emerald));
+  padding: 0.42rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.outcome-showcase,
+.receipt-story-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.theater-outcome-card,
+.story-receipt-card {
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+  padding: 1.1rem;
+}
+
+.outcome-wrong,
+.story-refund {
+  border-color: rgba(110, 231, 183, 0.24);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.12), transparent 16rem),
+    rgba(255, 255, 255, 0.025);
+}
+
+.outcome-right,
+.story-paid {
+  border-color: rgba(252, 211, 77, 0.25);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(245, 158, 11, 0.12), transparent 16rem),
+    rgba(255, 255, 255, 0.025);
+}
+
+.outcome-pending,
+.story-pending {
+  border-color: rgba(196, 181, 253, 0.24);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.11), transparent 16rem),
+    rgba(255, 255, 255, 0.025);
+}
+
+.theater-outcome-card h3,
+.story-receipt-card h2 {
+  font-size: clamp(1.7rem, 2.4vw, 2.35rem);
+}
+
+.theater-outcome-card dl,
+.story-receipt-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.theater-outcome-card dl div,
+.story-receipt-card dl div {
+  background: rgba(7, 10, 11, 0.78);
+  padding: 0.75rem;
+}
+
+.theater-outcome-card dt,
+.story-receipt-card dt {
+  color: rgb(145 145 145);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.theater-outcome-card dd,
+.story-receipt-card dd {
+  margin-top: 0.35rem;
+  color: rgb(var(--fg));
+  font-weight: 950;
+}
+
+.theater-outcome-card a {
+  color: rgb(var(--emerald));
+  font-weight: 900;
+}
+
+.story-receipt-card > a + a {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.025);
+  color: rgb(230 230 230);
+}
+
+.ai-pipeline-card {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.52fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.1rem;
+}
+
+.pipeline-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.pipeline-steps div {
+  position: relative;
+  min-height: 9.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0.85rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.85rem;
+}
+
+.pipeline-steps div:not(:last-child)::after {
+  content: "->";
+  position: absolute;
+  right: -0.62rem;
+  top: 50%;
+  color: rgb(var(--emerald));
+  font-weight: 950;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.pipeline-steps span {
+  color: rgb(var(--emerald));
+  font-size: 0.68rem;
+  font-weight: 950;
+}
+
+.pipeline-steps strong {
+  display: block;
+  margin-top: 1.6rem;
+  color: rgb(var(--fg));
+}
+
+.pipeline-steps p {
+  margin-top: 0.45rem;
+  color: rgb(165 165 165);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.pipeline-signals {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 1080px) {
+  .theater-hero,
+  .theater-stage,
+  .ai-pipeline-card {
+    grid-template-columns: 1fr;
+  }
+
+  .theater-flow,
+  .pipeline-steps,
+  .pipeline-signals,
+  .outcome-showcase,
+  .receipt-story-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .theater-step {
+    min-height: auto;
+  }
+
+  .theater-step h3 {
+    margin-top: 1.6rem;
+  }
+
+  .pipeline-steps div:not(:last-child)::after {
+    content: "";
+    right: auto;
+    left: 1.35rem;
+    top: auto;
+    bottom: -0.9rem;
+    width: 0.18rem;
+    height: 0.9rem;
+    border-radius: 999px;
+    background: rgb(var(--emerald));
+    transform: none;
+  }
+}

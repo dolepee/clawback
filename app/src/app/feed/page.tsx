@@ -42,6 +42,48 @@ function proofTx(receipt: Receipt): `0x${string}` {
   return receipt.refundTx ?? receipt.payoutTx ?? receipt.settleTx ?? receipt.commitTx;
 }
 
+function proofRefundReceipt(stats: Stats): Receipt | undefined {
+  const proof = stats.proofRefund;
+  if (!proof) return undefined;
+  return {
+    claimId: proof.claimId,
+    agent: proof.agent,
+    outcome: "wrong",
+    commitTx: proof.commitTx ?? proof.tx,
+    settleTx: proof.settleTx,
+    bondAmount: proof.bondAmount,
+    commitAt: proof.commitAt,
+    settleAt: proof.settleAt,
+    refundTx: proof.tx,
+    provider: proof.provider,
+    fellBack: proof.fellBack,
+    direction: proof.direction,
+    thresholdPriceUsd: proof.thresholdPriceUsd,
+    elfa: proof.elfa,
+  } as Receipt;
+}
+
+function proofPayoutReceipt(stats: Stats): Receipt | undefined {
+  const proof = stats.proofPayout;
+  if (!proof) return undefined;
+  return {
+    claimId: proof.claimId,
+    agent: proof.agent,
+    outcome: "right",
+    commitTx: proof.commitTx ?? proof.tx,
+    settleTx: proof.settleTx,
+    bondAmount: proof.bondAmount,
+    commitAt: proof.commitAt,
+    settleAt: proof.settleAt,
+    payoutTx: proof.tx,
+    provider: proof.provider,
+    fellBack: proof.fellBack,
+    direction: proof.direction,
+    thresholdPriceUsd: proof.thresholdPriceUsd,
+    elfa: proof.elfa,
+  } as Receipt;
+}
+
 function AgentBadge({ agent }: { agent: Receipt["agent"] }) {
   return (
     <div className="receipt-agent">
@@ -98,6 +140,72 @@ function ReceiptLine({ receipt, stats }: { receipt: Receipt; stats: Stats }) {
   );
 }
 
+function StoryReceiptCard({
+  title,
+  receipt,
+  stats,
+  fallback,
+}: {
+  title: string;
+  receipt?: Receipt;
+  stats: Stats;
+  fallback?: {
+    headline: string;
+    body: string;
+    metricLabel: string;
+    metricValue: string;
+  };
+}) {
+  if (!receipt) {
+    return (
+      <article className="story-receipt-card">
+        <span>{title}</span>
+        <h2>{fallback?.headline ?? "Receipt pending"}</h2>
+        <p>{fallback?.body ?? "This lane will fill when the next matching claim is captured."}</p>
+        {fallback ? (
+          <dl>
+            <div>
+              <dt>{fallback.metricLabel}</dt>
+              <dd>{fallback.metricValue}</dd>
+            </div>
+          </dl>
+        ) : null}
+      </article>
+    );
+  }
+  const isRefund = receipt.outcome === "wrong" || Boolean(receipt.refundTx);
+  const isPaid = receipt.outcome === "right" || Boolean(receipt.payoutTx);
+  const tx = proofTx(receipt);
+  return (
+    <article className={`story-receipt-card ${isRefund ? "story-refund" : isPaid ? "story-paid" : "story-pending"}`}>
+      <span>{title}</span>
+      <h2>{isRefund ? "Wrong -> refunded" : isPaid ? "Right -> earned" : "Pending -> on the hook"}</h2>
+      <p>
+        {receipt.agent} predicted {formatCall(receipt.direction, receipt.thresholdPriceUsd)}.{" "}
+        {isRefund
+          ? "The refund path is the product moment."
+          : isPaid
+            ? "The agent was rewarded for being right."
+            : "The bond is locked until the oracle settles it."}
+      </p>
+      <dl>
+        <div>
+          <dt>Claim</dt>
+          <dd>#{receipt.claimId}</dd>
+        </div>
+        <div>
+          <dt>Value</dt>
+          <dd>{receiptAmount(receipt, stats)}</dd>
+        </div>
+      </dl>
+      <Link href={`/claim/${receipt.claimId}`}>Open receipt</Link>
+      <a href={`${EXPLORER}/tx/${tx}`} target="_blank" rel="noreferrer">
+        Verify on Mantle <span aria-hidden>↗</span>
+      </a>
+    </article>
+  );
+}
+
 export default async function ReceiptsPage({
   searchParams,
 }: {
@@ -109,6 +217,9 @@ export default async function ReceiptsPage({
     rawFilter === "refunded" || rawFilter === "agent-paid" ? rawFilter : "all";
   const stats = buildSnapshotStats();
   const allRows = stats.latestReceipts;
+  const refundStory = proofRefundReceipt(stats) ?? allRows.find((receipt) => receipt.outcome === "wrong" || receipt.refundTx);
+  const paidStory = proofPayoutReceipt(stats) ?? allRows.find((receipt) => receipt.outcome === "right" || receipt.payoutTx);
+  const pendingStory = allRows.find((receipt) => receipt.outcome === "pending");
   const rows = allRows.filter((receipt) => {
     if (filter === "refunded") return receipt.outcome === "wrong" || Boolean(receipt.refundTx);
     if (filter === "agent-paid") return receipt.outcome === "right" || Boolean(receipt.payoutTx);
@@ -148,6 +259,22 @@ export default async function ReceiptsPage({
           <span>Paid back to users</span>
           <strong className="text-emerald-200">{formatDollar(stats.totalRefundUsdc)}</strong>
         </div>
+      </section>
+
+      <section className="receipt-story-grid" aria-label="Receipt outcome stories">
+        <StoryReceiptCard title="Best user moment" receipt={refundStory} stats={stats} />
+        <StoryReceiptCard
+          title="Agent upside"
+          receipt={paidStory}
+          stats={stats}
+          fallback={{
+            headline: "Right -> agent earns",
+            body: "When an agent is correct, the bonded prediction pays the agent instead of refunding users.",
+            metricLabel: "Right calls",
+            metricValue: String(stats.settledRight),
+          }}
+        />
+        <StoryReceiptCard title="Live risk" receipt={pendingStory} stats={stats} />
       </section>
 
       <section className="receipts-panel">

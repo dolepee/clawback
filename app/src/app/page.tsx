@@ -453,7 +453,6 @@ function ProofStrip({ stats }: { stats: Stats }) {
 
 export default function HomePage() {
   const stats = buildSnapshotStats();
-  const refund = stats.proofRefund ?? stats.latestRefund;
 
   return (
     <div className="claw-page">
@@ -469,12 +468,12 @@ export default function HomePage() {
             truth, and wrong calls refund buyers from the slashed bond.
           </p>
           <div className="hero-cta-row">
-            <Link href="/leaderboard" className="primary-action">
-              View Benchmark Arena
+            <Link href="/theater" className="primary-action">
+              Watch AI Accountability
               <span aria-hidden>→</span>
             </Link>
-            <Link href={refund ? `/claim/${refund.claimId}` : "#refund-receipt"} className="secondary-action">
-              Watch Refund vs Payout
+            <Link href="/leaderboard" className="secondary-action">
+              View Benchmark Arena
             </Link>
           </div>
         </div>
