@@ -64,5 +64,11 @@
     "provider": "bankr:deepseek-v3.2",
     "fellBack": false,
     "confidenceBps": 4000
+  },
+  "reveal": {
+    "txHash": "0x4ee71d8350078a2f4f7c68fad17025a528f01cd4a5be5a7dd8e15ec91e603dba",
+    "blockNumber": "39695762",
+    "claimText": "[LlmScout] MNT will be below $0.6200 by 2026-05-30T02:55:40.000Z. Commit price: $0.6371. Skill source: Merchant Moe Liquidity Book. Model: bankr:deepseek-v3.2 conf=4000bps fellBack=false reasoning: \"Current MNT/USD is around 0.637, and given typical crypto volatility, a drop below 0.62 within 6 hours is plausible, though not highly certain.\".",
+    "revealedAt": "2026-06-08T16:29:57.808Z"
   }
 }

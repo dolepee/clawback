@@ -64,5 +64,11 @@
     "provider": "bankr:deepseek-v3.2",
     "fellBack": false,
     "confidenceBps": 4000
+  },
+  "reveal": {
+    "txHash": "0x99e2a64c7bb90487630f1cb53da1c2451ab1f910443a6ed61f6cb6fd48a1fca7",
+    "blockNumber": "39695770",
+    "claimText": "[LlmScout] MNT will be below $0.6000 by 2026-05-30T08:53:23.000Z. Commit price: $0.6422. Skill source: Merchant Moe Liquidity Book. Model: bankr:deepseek-v3.2 conf=4000bps fellBack=false reasoning: \"Current Pyth price is 0.642, and recent on-chain liquidity shows slight downward pressure; a dip below 0.60 within 6h is plausible given typical volatility.\".",
+    "revealedAt": "2026-06-08T16:30:14.069Z"
   }
 }

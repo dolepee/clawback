@@ -64,5 +64,11 @@
     "provider": "bankr:deepseek-v3.2",
     "fellBack": false,
     "confidenceBps": 4000
+  },
+  "reveal": {
+    "txHash": "0x1457901b4b26f35367671f3989362b0f04c9b860b7364358ed2fb53f87bcdd36",
+    "blockNumber": "39695754",
+    "claimText": "[LlmScout] MNT will be below $0.6000 by 2026-05-30T01:52:28.000Z. Commit price: $0.6367. Skill source: Merchant Moe Liquidity Book.",
+    "revealedAt": "2026-06-08T16:29:42.438Z"
   }
 }
