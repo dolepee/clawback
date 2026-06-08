@@ -1415,6 +1415,31 @@ body::before {
   line-height: 1.58;
 }
 
+.challenge-preflight {
+  margin-top: 1rem;
+  border: 1px solid rgba(110, 231, 183, 0.18);
+  border-radius: 1rem;
+  background:
+    linear-gradient(135deg, rgba(110, 231, 183, 0.09), rgba(255, 255, 255, 0.018)),
+    rgba(0, 0, 0, 0.2);
+  padding: 0.95rem;
+}
+
+.challenge-preflight strong {
+  display: block;
+  color: rgb(236 253 245);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.challenge-preflight small {
+  display: block;
+  margin-top: 0.45rem;
+  color: rgb(155 155 155);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
 .challenger-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1450,6 +1475,113 @@ body::before {
 .challenger-form select:focus {
   border-color: rgba(110, 231, 183, 0.52);
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.08);
+}
+
+.challenge-stepper {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.challenge-step {
+  position: relative;
+  min-height: 9rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(110, 231, 183, 0.08), transparent 8rem),
+    rgba(0, 0, 0, 0.22);
+  padding: 0.9rem;
+}
+
+.challenge-step::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.challenge-step-pending {
+  border-color: rgba(110, 231, 183, 0.42);
+  box-shadow: 0 0 0 1px rgba(110, 231, 183, 0.08), 0 18px 42px rgba(16, 185, 129, 0.1);
+}
+
+.challenge-step-pending::after {
+  background: linear-gradient(90deg, rgb(var(--emerald)), rgba(110, 231, 183, 0.1));
+}
+
+.challenge-step-done,
+.challenge-step-skipped {
+  border-color: rgba(110, 231, 183, 0.22);
+}
+
+.challenge-step-done::after,
+.challenge-step-skipped::after {
+  background: rgb(var(--emerald));
+}
+
+.challenge-step-error {
+  border-color: rgba(248, 113, 113, 0.42);
+}
+
+.challenge-step-error::after {
+  background: rgb(248 113 113);
+}
+
+.challenge-step-index {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(110, 231, 183, 0.24);
+  border-radius: 999px;
+  background: rgba(110, 231, 183, 0.1);
+  color: rgb(var(--emerald));
+  font-size: 0.78rem;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+}
+
+.challenge-step-title {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.7rem;
+}
+
+.challenge-step-title span {
+  color: rgb(var(--fg));
+  font-size: 0.98rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.challenge-step-title em {
+  color: rgb(var(--emerald));
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.challenge-step-error .challenge-step-title em {
+  color: rgb(248 113 113);
+}
+
+.challenge-step p {
+  margin-top: 0.55rem;
+  color: rgb(156 156 156);
+  font-size: 0.78rem;
+  line-height: 1.48;
+}
+
+.challenge-step-tx {
+  display: inline-flex;
+  margin-top: 0.55rem;
+  font-size: 0.78rem;
 }
 
 .challenger-actions {
@@ -1872,7 +2004,8 @@ body::before {
   }
 
   .challenger-entry,
-  .challenger-form {
+  .challenger-form,
+  .challenge-stepper {
     grid-template-columns: 1fr;
   }
 
