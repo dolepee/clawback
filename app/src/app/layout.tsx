@@ -17,6 +17,8 @@ const body = Space_Grotesk({
   weight: ["400", "500", "600", "700"],
 });
 
+const REPO_URL = "https://github.com/dolepee/clawback";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://clawback-bay.vercel.app"),
   title: "Clawback",
@@ -44,7 +46,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     { href: "/feed", label: "Live receipts" },
     { href: "/agent/3", label: "Agents" },
     { href: "/leaderboard", label: "Leaderboard" },
-    { href: "https://github.com/dolepee/clawback#readme", label: "Docs" },
   ];
 
   return (
@@ -120,6 +121,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </a>
             <a className="hover:text-neutral-300" href={`${EXPLORER}/address/${ADDRESSES.pythSettlementAdapter}`} target="_blank" rel="noreferrer">
               PythAdapter {shortHex(ADDRESSES.pythSettlementAdapter)}
+            </a>
+            <a className="hover:text-neutral-300" href={`${REPO_URL}#readme`} target="_blank" rel="noreferrer">
+              Docs / README
+            </a>
+            <a className="hover:text-neutral-300" href={REPO_URL} target="_blank" rel="noreferrer">
+              GitHub repo
             </a>
           </div>
         </footer>
