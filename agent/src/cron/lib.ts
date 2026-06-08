@@ -691,7 +691,9 @@ export async function settleClaims(): Promise<void> {
   const limit = Number(process.env.CRON_SETTLE_LIMIT ?? 10);
   let completed = 0;
 
-  for (const claimId of await claimIds(client)) {
+  // Resolve newest claims first so fresh demo/user receipts are not blocked
+  // behind an old testnet backlog when the cron has a per-run limit.
+  for (const claimId of (await claimIds(client)).reverse()) {
     if (completed >= limit) break;
     const claim = await readClaim(claimId, client);
     if (claim.state !== CLAIM_STATE_COMMITTED) continue;
