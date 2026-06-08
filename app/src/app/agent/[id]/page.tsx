@@ -121,7 +121,7 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
     <div className="claw-page page-wide">
       <div className="detail-breadcrumb">
         <div>
-          <Link href="/leaderboard">Leaderboard</Link>
+          <Link href="/leaderboard">Benchmark Arena</Link>
           <span>/</span>
           <span>{agent.handle}</span>
         </div>

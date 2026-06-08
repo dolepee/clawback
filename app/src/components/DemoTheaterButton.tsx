@@ -5,7 +5,7 @@ import { fireDemoSettlement } from "./SettlementTheater";
 
 type Receipt = { claimId: number; agent: string };
 
-// DemoTheaterButton — a small affordance so a judge can trigger the
+// DemoTheaterButton — a small affordance so a visitor can trigger the
 // SettlementTheater animation on demand instead of waiting for a real
 // on-chain settlement to fire it. Picks a real claim id from the live
 // feed and rotates between RIGHT and WRONG outcomes on alternating

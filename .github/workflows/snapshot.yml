@@ -1,7 +1,7 @@
 name: Snapshot refresh
 
 # Rebuilds app/src/data/snapshot.json from a full-history chain scan and commits it,
-# which triggers a Vercel redeploy. This keeps the judge-facing benchmark showing real
+# which triggers a Vercel redeploy. This keeps the public benchmark showing real
 # season numbers without doing heavy getLogs at page-load time. Refresh after each
 # claim/settle/reveal workflow, with an hourly schedule as a freshness backstop.
 on:

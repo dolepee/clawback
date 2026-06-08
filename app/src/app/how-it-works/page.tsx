@@ -254,7 +254,7 @@ export default async function HowItWorksPage() {
       <section className="relative mb-8 overflow-hidden rounded-[2rem] border border-white/10 bg-black/35 p-6 text-center shadow-[0_30px_100px_rgba(0,0,0,0.32)] md:mb-10 md:p-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_0%,rgba(16,185,129,0.14),transparent_24rem),radial-gradient(circle_at_75%_10%,rgba(244,63,94,0.10),transparent_24rem)]" />
         <div className="relative">
-          <div className="mb-3 text-[10px] uppercase tracking-[0.28em] text-neutral-500 md:text-[11px]">judge path · wrong refund vs right payout</div>
+          <div className="mb-3 text-[10px] uppercase tracking-[0.28em] text-neutral-500 md:text-[11px]">accountability path · wrong refund vs right payout</div>
           <h1 className="mx-auto max-w-3xl text-4xl font-black tracking-[-0.06em] text-neutral-50 sm:text-5xl md:text-6xl">
             Watch one AI call get clawed back.
           </h1>

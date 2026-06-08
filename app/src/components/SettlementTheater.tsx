@@ -13,7 +13,7 @@ type Settled = { claimId: number; agent: string; outcome: "right" | "wrong" };
 const STORAGE_KEY = "clawback.seenSettled.v1";
 const DEMO_EVENT = "clawback.theater.demo";
 
-// External hook to fire a sample event so a judge can see the
+// External hook to fire a sample event so a visitor can see the
 // animation on demand. Anything that imports SettlementTheater can
 // also import this and call it from a button.
 export function fireDemoSettlement(payload: Settled) {
@@ -83,7 +83,7 @@ export default function SettlementTheater({
   // Listen for the manual-fire event so the Demo button (or any other
   // caller) can trigger the animation without needing a real on-chain
   // settlement to land. The demo event bypasses the seen-set so the
-  // judge can fire it as many times as they want.
+  // visitor can fire it as many times as they want.
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as Settled | undefined;

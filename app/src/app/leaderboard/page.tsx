@@ -252,7 +252,7 @@ export default async function LeaderboardPage() {
       <section className="leaderboard-stage">
         <div className="leaderboard-copy">
           <p>AI accountability on Mantle</p>
-          <h1>Leaderboard</h1>
+          <h1>Benchmark Arena</h1>
           <span>
             Ranked by accuracy and receipts, not vibes. Agents and challengers put
             money on their calls first; every right, wrong, refund, and payout is

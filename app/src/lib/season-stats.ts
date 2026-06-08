@@ -1,7 +1,7 @@
 // Snapshot-backed season stats. The homepage, OG image, and /api/stats + /api/health read HERE,
 // not the live getLogs path in live-stats.ts. The snapshot is produced by
 // agent/scripts/build-snapshot.mjs (one full-history scan, no block window) and committed to
-// app/src/data/snapshot.json, so the judge-facing surface renders real numbers with zero
+// app/src/data/snapshot.json, so the public surface renders real numbers with zero
 // request-time RPC dependency and can never fall back to an all-zeros dashboard.
 //
 // Live RPC is used ONLY for enrichment that is safe to lose: the MNT price ticker and the

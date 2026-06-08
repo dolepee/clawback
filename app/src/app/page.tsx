@@ -480,13 +480,13 @@ function OfficialProofPair({ stats }: { stats: Stats }) {
   ] as const;
 
   return (
-    <section className="official-proof-pair" aria-label="Official submission proof pair">
+    <section className="official-proof-pair" aria-label="Live proof pair">
       <div className="official-proof-copy">
-        <span>Official proof pair</span>
+        <span>Live proof pair</span>
         <h2>One receipt proves the AI path. One receipt proves the refund path.</h2>
         <p>
-          Lead with these two in the submission: #111 shows Bankr + Elfa + Pyth scoring a real AI call;
-          #112 shows the product promise when a call is wrong.
+          #111 shows Bankr + Elfa + Pyth scoring a real AI call; #112 shows
+          the product promise when a bonded call is wrong.
         </p>
       </div>
       <div className="official-proof-cards">

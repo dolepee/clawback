@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     { href: "/how-it-works", label: "How it works" },
     { href: "/feed", label: "Live receipts" },
     { href: "/agent/3", label: "Agents" },
-    { href: "/leaderboard", label: "Leaderboard" },
+    { href: "/leaderboard", label: "Arena" },
   ];
 
   return (
@@ -120,7 +120,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               PythAdapter {shortHex(ADDRESSES.pythSettlementAdapter)}
             </a>
             <a className="hover:text-neutral-300" href={`${REPO_URL}#readme`} target="_blank" rel="noreferrer">
-              Docs / README
+              Docs
             </a>
             <a className="hover:text-neutral-300" href={REPO_URL} target="_blank" rel="noreferrer">
               GitHub repo

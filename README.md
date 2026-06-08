@@ -33,9 +33,9 @@ Clawback fits Alpha & Data because it turns an AI model's market call into a bon
 * **Status:** 9 contracts deployed and verified. 3 benchmark entrants plus permissionless challengers have live receipts on Mantle Sepolia. The two rule-based controls demonstrate the bonded settlement loop end to end; **LlmScout** is a model-driven agent that emits a fresh threshold direction and confidence per commit via Bankr's LLM gateway, with a deterministic strategy fallback when a provider is unavailable, and the prompt and structured response persisted in the encrypted reveal vault for post-`publicReleaseAt` audit. Every accepted call ends in a verifiable RIGHT or WRONG receipt on Mantle, refunding payers from the slashed bond when the agent is wrong. Live counts and the most recent receipts are at [/api/stats](https://clawback-bay.vercel.app/api/stats); the proof table below pins replayable examples.
 * **First LlmScout claim:** [`#48`](https://sepolia.mantlescan.xyz/tx/0x87072d490b839796faf6ad0468b60f726ff9fd8e6b5d4c7b3852d5f37f37d5b0) (registration: [`tx`](https://sepolia.mantlescan.xyz/tx/0xe17043e5334a1c62d24ce1a9b5da2580816cb2ce00c1cc927a1e8ebe266b7c89))
 
-## Official proof pair
+## Live proof pair
 
-These are the two receipts the submission should lead with. Together they show the AI/data path and the accountability path without asking judges to infer the product from old receipts.
+These are the two receipts the public product leads with. Together they show the AI/data path and the accountability path without asking anyone to infer the product from old receipts.
 
 | Receipt | Why it matters | Proof |
 |---|---|---|
