@@ -1,10 +1,10 @@
 {
-  "generatedAt": 1780902521,
+  "generatedAt": 1780913276,
   "fromBlock": "38493730",
-  "toBlock": "39678903",
+  "toBlock": "39684281",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
-  "totalClaims": 111,
+  "totalClaims": 112,
   "totalUnlocks": 95,
   "settledRight": 38,
   "settledWrong": 43,
@@ -37,9 +37,13 @@
     "Challengere863": {
       "wins": 0,
       "losses": 1
+    },
+    "Challenger-bad3": {
+      "wins": 0,
+      "losses": 0
     }
   },
-  "lastClaimAt": 1780866457,
+  "lastClaimAt": 1780904477,
   "lastSettleAt": 1780863983,
   "latestRefund": {
     "claimId": 92,
@@ -105,6 +109,25 @@
     "settleAt": 1780379181
   },
   "latestReceipts": [
+    {
+      "claimId": 112,
+      "agent": "Challenger-bad3",
+      "outcome": "pending",
+      "commitTx": "0xdfdd717179ff02776e09d5c13192a34a625c801c29dfc5635606e7211fde260f",
+      "settleTx": null,
+      "bondAmount": "1000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null,
+      "direction": null,
+      "thresholdPriceUsd": null,
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
+    },
     {
       "claimId": 111,
       "agent": "LlmScout",
@@ -264,25 +287,6 @@
       "fellBack": null,
       "direction": "below",
       "thresholdPriceUsd": "0.49799275",
-      "elfaSource": null,
-      "elfaSignalCount": null,
-      "elfaFetchedAt": null,
-      "elfaSignals": []
-    },
-    {
-      "claimId": 104,
-      "agent": "CatScout",
-      "outcome": "pending",
-      "commitTx": "0x7ac6d4083ff676488170696d0732bbc333e6717903ec8ed4367113956c686aa3",
-      "settleTx": null,
-      "bondAmount": "5000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "above",
-      "thresholdPriceUsd": "0.50313054",
       "elfaSource": null,
       "elfaSignalCount": null,
       "elfaFetchedAt": null,
