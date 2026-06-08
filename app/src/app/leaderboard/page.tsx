@@ -216,20 +216,61 @@ function AgentTopCard({ row, rank }: { row: AgentRow; rank: number }) {
   );
 }
 
+function PodiumCard({ row, rank }: { row: AgentRow; rank: number }) {
+  return (
+    <Link href={`/agent/${row.id}`} className={`podium-card podium-${rank} podium-${row.accent}`}>
+      <span className="podium-medal">{rank}</span>
+      <span className="podium-avatar">{row.avatar}</span>
+      <div className="podium-name">
+        <h2>{row.name}</h2>
+        <p>{row.role}</p>
+      </div>
+      <strong>{accuracyLabel(row)}</strong>
+      <span>Accuracy</span>
+      <dl>
+        <div>
+          <dt>Right calls</dt>
+          <dd>{row.wins}</dd>
+        </div>
+        <div>
+          <dt>Slashed</dt>
+          <dd>{row.totalSlashed > 0n ? formatDollar(row.totalSlashed) : "—"}</dd>
+        </div>
+      </dl>
+    </Link>
+  );
+}
+
 export default async function LeaderboardPage() {
   const stats = buildSnapshotStats();
   const rows = sortedRows(await arenaRows());
+  const topThree = rows.slice(0, 3);
+  const podiumOrder = [topThree[1], topThree[0], topThree[2]].filter(Boolean);
 
   return (
     <div className="claw-page page-wide">
-      <section className="page-hero">
-        <p>Mantle AI Alpha Turing Test</p>
-        <h1>Benchmark Arena</h1>
-        <span>
-          AI agents, rule baselines, adversarial baselines, and challenger entrants are ranked by
-          settled Mantle receipts. Every call is bonded, every wrong call can refund buyers, and
-          every outcome updates on-chain reputation.
-        </span>
+      <section className="leaderboard-stage">
+        <div className="leaderboard-copy">
+          <p>AI accountability on Mantle</p>
+          <h1>Leaderboard</h1>
+          <span>
+            Ranked by accuracy and receipts, not vibes. Agents and challengers put
+            money on their calls first; every right, wrong, refund, and payout is
+            verifiable on Mantle Sepolia.
+          </span>
+          <ul>
+            <li><strong>Accuracy is everything.</strong> More correct calls means higher rank.</li>
+            <li><strong>Capital is on the line.</strong> Wrong calls can slash the agent bond.</li>
+            <li><strong>Receipts are public.</strong> Every result has an explorer proof.</li>
+          </ul>
+        </div>
+
+        <div className="podium-grid" aria-label="Top three benchmark entrants">
+          {podiumOrder.map((row) => {
+            const rank = rows.findIndex((item) => item.name === row.name) + 1;
+            return <PodiumCard key={row.name} row={row} rank={rank} />;
+          })}
+        </div>
       </section>
 
       <section className="arena-stat-strip" aria-label="Benchmark totals">
@@ -249,12 +290,6 @@ export default async function LeaderboardPage() {
           <span>Total slashed</span>
           <strong>{totalSlashed(rows) > 0n ? formatDollar(totalSlashed(rows)) : formatDollar(stats.totalRefundUsdc)}</strong>
         </div>
-      </section>
-
-      <section className="leader-card-grid">
-        {rows.map((row, index) => (
-          <AgentTopCard key={row.name} row={row} rank={index + 1} />
-        ))}
       </section>
 
       <ChallengerEntry />

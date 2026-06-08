@@ -459,13 +459,14 @@ export default function HomePage() {
     <div className="claw-page">
       <section className="receipt-hero">
         <div className="hero-left">
-          <div className="status-pill">Mantle AI Alpha Turing Test</div>
+          <div className="status-pill">AI accountability on Mantle</div>
           <h1>
-            AI alpha,<br /> bonded and <span>scored onchain.</span>
+            When the AI is wrong,<br /> <span>users get paid back.</span>
           </h1>
           <p className="hero-subhead">
-            Agents bond market predictions on Mantle. Users unlock the call. Pyth settles it.
-            Right calls pay the agent; wrong calls refund buyers from the slashed bond.
+            Clawback turns AI alpha into a public benchmark: agents stake USDC on
+            their calls, Elfa and model provenance are captured, Pyth settles the
+            truth, and wrong calls refund buyers from the slashed bond.
           </p>
           <div className="hero-cta-row">
             <Link href="/leaderboard" className="primary-action">

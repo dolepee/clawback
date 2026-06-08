@@ -106,6 +106,116 @@ function ProofTimeline({
   );
 }
 
+function SnapshotClaimFallback({
+  receipt,
+  stats,
+}: {
+  receipt: SnapshotReceipt;
+  stats: ReturnType<typeof buildSnapshotStats>;
+}) {
+  const isSettled = receipt.outcome === "right" || receipt.outcome === "wrong";
+  const agentRight = receipt.outcome === "right";
+  const isWrong = receipt.outcome === "wrong";
+  const finalTx = receipt.refundTx ?? receipt.payoutTx ?? receipt.settleTx ?? receipt.commitTx;
+  const amount =
+    stats.proofRefund?.claimId === receipt.claimId
+      ? formatDollar(stats.proofRefund.paidBack + stats.proofRefund.bonus)
+      : stats.proofPayout?.claimId === receipt.claimId
+        ? formatDollar(stats.proofPayout.amount)
+        : receipt.refundTx
+          ? "Refunded"
+          : receipt.payoutTx
+            ? "Agent earned"
+            : "Pending";
+  const callText = formatCall(receipt.direction, receipt.thresholdPriceUsd);
+  const provider = providerLabel(receipt.provider);
+
+  return (
+    <div className="claw-page page-wide">
+      <div className="detail-breadcrumb">
+        <div>
+          <Link href="/feed">Receipts</Link>
+          <span>/</span>
+          <span>Claim #{receipt.claimId}</span>
+        </div>
+      </div>
+
+      <section className={`receipt-summary-card ${agentRight ? "receipt-summary-earned" : "receipt-summary-refund"}`}>
+        <div className="summary-copy">
+          <div className="dot-label">Snapshot proof</div>
+          <h1>
+            {!isSettled
+              ? "Awaiting settlement"
+              : agentRight
+                ? "Right → agent earned"
+                : "Wrong → refund cleared"}
+          </h1>
+          <p>
+            Live contract reads are rate-limited, so this page is rendering the pinned proof snapshot.
+            The transaction links remain public Mantle receipts.
+          </p>
+        </div>
+        <dl className="summary-metrics">
+          <div>
+            <dt>Prediction</dt>
+            <dd>{callText}</dd>
+          </div>
+          <div>
+            <dt>Actual result</dt>
+            <dd>{isSettled ? (agentRight ? "Right" : "Wrong") : "Pending"}</dd>
+          </div>
+          <div>
+            <dt>Paid to</dt>
+            <dd>{agentRight ? "Agent" : isWrong ? "Payers" : "Pending"}</dd>
+          </div>
+          <div>
+            <dt>Amount</dt>
+            <dd>{amount}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="decision-dossier" aria-label="Snapshot decision dossier">
+        <article className="dossier-card dossier-main">
+          <div className="detail-kicker">Decision summary</div>
+          <h2>{isSettled ? (agentRight ? "The model was right." : "The model was wrong.") : "The model is still on the hook."}</h2>
+          <p>
+            {isSettled
+              ? agentRight
+                ? "The agent can claim earned revenue after the market settled in its favor."
+                : "The wrong call is accountable: the slashed bond backs the refund path."
+              : "The agent has committed capital and will be scored after expiry."}
+          </p>
+          <ul>
+            <li>Prediction: <strong>{callText}</strong></li>
+            <li>Outcome: <strong>{isSettled ? (agentRight ? "Right" : "Wrong") : "Pending"}</strong></li>
+            <li>Receipt value: <strong>{amount}</strong></li>
+          </ul>
+        </article>
+
+        <article className="dossier-card">
+          <div className="detail-kicker">AI provenance</div>
+          <h3>{receipt.agent}</h3>
+          <p>{provider}</p>
+          {receipt.elfa ? (
+            <div className="elfa-proof-pill">
+              <span>Elfa captured</span>
+              <strong>{receipt.elfa.signalCount} signals</strong>
+            </div>
+          ) : null}
+        </article>
+
+        <article className="dossier-card">
+          <div className="detail-kicker">Onchain proof</div>
+          <h3>Public tx</h3>
+          <p>Open the Mantle transaction to verify the pinned receipt independently.</p>
+          {txLink(finalTx, shortHex(finalTx, 6, 4), "Open snapshot proof transaction")}
+        </article>
+      </section>
+    </div>
+  );
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
@@ -131,10 +241,19 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
     notFound();
   }
 
-  const detail = await loadClaimDetail(claimId);
-  if (!detail) notFound();
-
   const stats = buildSnapshotStats();
+  let detail: Awaited<ReturnType<typeof loadClaimDetail>> | null = null;
+  try {
+    detail = await loadClaimDetail(claimId);
+  } catch (err) {
+    console.warn(`loadClaimDetail(${claimId.toString()}) failed; using snapshot fallback if available:`, err);
+  }
+  if (!detail) {
+    const snapshot = stats.latestReceipts.find((receipt) => receipt.claimId === Number(claimId));
+    if (!snapshot) notFound();
+    return <SnapshotClaimFallback receipt={snapshot} stats={stats} />;
+  }
+
   const { claim, agent, accounting } = detail;
   const proofRefund = stats.proofRefund?.claimId === Number(claim.id) ? stats.proofRefund : undefined;
   const proofPayout = stats.proofPayout?.claimId === Number(claim.id) ? stats.proofPayout : undefined;
@@ -259,6 +378,57 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
       </section>
 
       <ClaimLiveStatus settled={isSettled} expirySec={Number(claim.expiry)} />
+
+      <section className="decision-dossier" aria-label="Decision dossier">
+        <article className="dossier-card dossier-main">
+          <div className="detail-kicker">Decision summary</div>
+          <h2>
+            {isSettled
+              ? agentRight
+                ? "The model was right."
+                : "The model was wrong."
+              : "The model is still on the hook."}
+          </h2>
+          <p>
+            {isSettled
+              ? agentRight
+                ? "Pyth settled the market in the agent's favor, so the agent can claim the earned revenue."
+                : "Pyth settled against the prediction, so the agent bond becomes the refund source for buyers."
+              : "The agent has committed capital and the outcome will be scored after the expiry window closes."}
+          </p>
+          <ul>
+            <li>Prediction: <strong>{callText === "MNT price call" ? question : callText}</strong></li>
+            <li>Outcome: <strong>{isSettled ? (agentRight ? "Right" : "Wrong") : "Pending"}</strong></li>
+            <li>Receipt value: <strong>{paidAmount > 0n ? formatDollar(paidAmount) : "Pending"}</strong></li>
+          </ul>
+        </article>
+
+        <article className="dossier-card">
+          <div className="detail-kicker">AI provenance</div>
+          <h3>{agent.handle}</h3>
+          <p>{provider}</p>
+          {elfa ? (
+            <div className="elfa-proof-pill">
+              <span>Elfa captured</span>
+              <strong>{elfa.signalCount} signals</strong>
+            </div>
+          ) : (
+            <div className="elfa-proof-pill muted">
+              <span>Elfa</span>
+              <strong>Not attached</strong>
+            </div>
+          )}
+        </article>
+
+        <article className="dossier-card">
+          <div className="detail-kicker">Onchain accountability</div>
+          <h3>{formatUsdc(claim.bondAmount)} USDC</h3>
+          <p>
+            Agent bond locked before settlement. If the call is wrong, the refund path is paid from slashed capital.
+          </p>
+          {matchingReceipt?.commitTx ? txLink(matchingReceipt.commitTx, "Open commit proof", "Open commit transaction") : null}
+        </article>
+      </section>
 
       <section className="detail-grid">
         <ProofTimeline events={timeline} receipt={matchingReceipt} agentRight={agentRight} />

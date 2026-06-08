@@ -1,8 +1,21 @@
 import type { Metadata } from "next";
+import { Fraunces, Space_Grotesk } from "next/font/google";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { shortHex } from "@/lib/format";
 import { WalletButton } from "@/components/WalletButton";
 import "./globals.css";
+
+const display = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["600", "700", "800", "900"],
+});
+
+const body = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-body",
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://clawback-bay.vercel.app"),
@@ -28,14 +41,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: "/how-it-works", label: "How it works" },
-    { href: "/feed", label: "Receipts" },
-    { href: "/leaderboard", label: "Benchmark Arena" },
+    { href: "/feed", label: "Live receipts" },
     { href: "/agent/3", label: "Agents" },
+    { href: "/leaderboard", label: "Leaderboard" },
+    { href: "https://github.com/dolepee/clawback#readme", label: "Docs" },
   ];
 
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col">
+      <body className={`${display.variable} ${body.variable} min-h-screen flex flex-col`}>
         <header className="sticky top-0 z-20 border-b border-white/10 bg-black/62 px-4 py-3 backdrop-blur-xl md:px-8">
           <div className="mx-auto flex max-w-[1660px] items-center justify-between gap-4">
             <a href="/" className="flex shrink-0 items-center gap-3 text-lg font-black tracking-tight md:text-xl">
