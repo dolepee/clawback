@@ -64,5 +64,11 @@
     "provider": "bankr:deepseek-v3.2",
     "fellBack": false,
     "confidenceBps": 3000
+  },
+  "reveal": {
+    "txHash": "0x979a3acec03d1fb2e3dfb75c5e1bc0cbbb04d831d6445f06ec380582bdc0c30b",
+    "blockNumber": "39737133",
+    "claimText": "[LlmScout] MNT will be above $0.6240 by 2026-05-30T09:45:17.000Z. Commit price: $0.6435. Skill source: Merchant Moe Liquidity Book. Model: bankr:deepseek-v3.2 conf=3000bps fellBack=false reasoning: \"The baseline threshold at 0.624155 is 290 bps away from the current midpoint, which is over 15 times the recent range of 19 bps, indicating an extremely safe margin; the candidate confidence of 9000 bps is appropriate and no data-driven ov…\".",
+    "revealedAt": "2026-06-09T15:28:59.362Z"
   }
 }
