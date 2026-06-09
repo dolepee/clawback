@@ -2265,6 +2265,15 @@ body::before {
   line-height: 1;
 }
 
+.receipt-outcome-paid {
+  margin-top: 0.55rem;
+  color: rgb(110 231 183);
+  font-size: clamp(1.65rem, 2.15vw, 2.2rem);
+  font-weight: 950;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
 .receipt-prediction {
   margin-top: 0.68rem;
   color: rgb(245 245 245);

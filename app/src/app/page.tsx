@@ -109,30 +109,44 @@ function AgentModelChips({ agent, provider }: { agent: string; provider: string 
   );
 }
 
-function MiniPriceChart({ threshold }: { threshold: string }) {
+function MiniPriceChart({ threshold, outcome = "wrong" }: { threshold: string; outcome?: "right" | "wrong" }) {
+  const right = outcome === "right";
   return (
     <div className="mini-price-chart" aria-label="Price settlement sketch">
       <div className="chart-head">
         <span>Settlement sketch</span>
         <strong>threshold ${threshold}</strong>
       </div>
-      <svg viewBox="0 0 420 180" role="img" aria-label="Illustrative MNT path crossing the claim threshold">
-        <path
-          d="M18 58 L34 72 L48 65 L64 88 L82 80 L102 92 L120 86 L140 103 L158 96 L176 118 L196 110 L216 132"
-          fill="none"
-          stroke="rgb(74 222 128)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M216 132 L238 122 L260 138 L282 130 L304 136 L326 132 L348 146 L370 142 L398 158"
-          fill="none"
-          stroke="rgb(255 91 91)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+      <svg viewBox="0 0 420 180" role="img" aria-label={`Illustrative MNT path settling ${right ? "above" : "below"} the claim threshold`}>
+        {right ? (
+          <path
+            d="M18 118 L38 108 L58 114 L78 98 L100 103 L122 88 L146 92 L170 75 L194 82 L220 64 L248 70 L274 58 L304 62 L334 46 L366 52 L398 40"
+            fill="none"
+            stroke="rgb(110 231 183)"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        ) : (
+          <>
+            <path
+              d="M18 58 L34 72 L48 65 L64 88 L82 80 L102 92 L120 86 L140 103 L158 96 L176 118 L196 110 L216 132"
+              fill="none"
+              stroke="rgb(74 222 128)"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M216 132 L238 122 L260 138 L282 130 L304 136 L326 132 L348 146 L370 142 L398 158"
+              fill="none"
+              stroke="rgb(255 91 91)"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </>
+        )}
         <path
           d="M18 106 L398 106"
           stroke="rgba(255,255,255,0.28)"
@@ -151,9 +165,18 @@ function MiniPriceChart({ threshold }: { threshold: string }) {
   );
 }
 
-function HomeProofRail({ receipt, refund }: { receipt?: Receipt; refund?: Stats["proofRefund"] }) {
+function HomeProofRail({
+  receipt,
+  refund,
+  payout,
+}: {
+  receipt?: Receipt;
+  refund?: Stats["proofRefund"];
+  payout?: Stats["latestPayout"];
+}) {
+  const isPayout = Boolean(payout);
   return (
-    <div className="home-proof-rail" aria-label="Refund proof timeline">
+    <div className="home-proof-rail" aria-label={isPayout ? "Payout proof timeline" : "Refund proof timeline"}>
       {[
         {
           step: "1",
@@ -171,10 +194,10 @@ function HomeProofRail({ receipt, refund }: { receipt?: Receipt; refund?: Stats[
         },
         {
           step: "3",
-          title: "Refund Paid",
+          title: isPayout ? "Payout Claimed" : "Refund Paid",
           time: "Onchain receipt",
-          tx: refund?.tx,
-          label: "Open refund transaction",
+          tx: payout?.tx ?? refund?.tx,
+          label: isPayout ? "Open payout transaction" : "Open refund transaction",
         },
       ].map((item) => (
         <div className="home-proof-step" key={item.step}>
@@ -391,50 +414,58 @@ function TopAgentsCompact({ stats }: { stats: Stats }) {
   );
 }
 
-function LiveRefundReceipt({ stats }: { stats: Stats }) {
-  const refund = stats.proofRefund ?? stats.latestRefund;
-  const receipt = refund
-    ? stats.latestReceipts.find((item) => item.claimId === refund.claimId)
+function LiveHeroReceipt({ stats }: { stats: Stats }) {
+  const payout = stats.latestPayout;
+  const payoutReceipt = payout
+    ? stats.latestReceipts.find((item) => item.claimId === payout.claimId)
     : undefined;
+  const refund = payout ? undefined : stats.proofRefund ?? stats.latestRefund;
+  const receipt = payoutReceipt ?? (refund
+    ? stats.latestReceipts.find((item) => item.claimId === refund.claimId)
+    : undefined);
+  const isPayout = Boolean(payout);
   const refundTotal = refund ? refund.paidBack + refund.bonus : 0n;
-  const agent = stats.proofRefund?.agent ?? "AI agent";
-  const provider = formatProvider(stats.proofRefund?.provider);
-  const call = formatCall(stats.proofRefund?.direction, stats.proofRefund?.thresholdPriceUsd);
-  const threshold = stats.proofRefund?.thresholdPriceUsd
-    ? Number(stats.proofRefund.thresholdPriceUsd).toFixed(4)
+  const bond = receipt?.bondAmount ?? stats.proofRefund?.bondAmount ?? 5_000_000n;
+  const earned = payout && payout.amount > bond ? payout.amount - bond : 0n;
+  const agent = payout?.agent ?? stats.proofRefund?.agent ?? receipt?.agent ?? "AI agent";
+  const provider = formatProvider(receipt?.provider ?? stats.proofRefund?.provider);
+  const call = formatCall(receipt?.direction ?? stats.proofRefund?.direction, receipt?.thresholdPriceUsd ?? stats.proofRefund?.thresholdPriceUsd);
+  const threshold = (receipt?.thresholdPriceUsd ?? stats.proofRefund?.thresholdPriceUsd)
+    ? Number(receipt?.thresholdPriceUsd ?? stats.proofRefund?.thresholdPriceUsd).toFixed(4)
     : "0.6319";
-  const slashedBond = stats.proofRefund?.bondAmount ?? receipt?.bondAmount ?? 5_000_000n;
 
   return (
-    <aside className="live-receipt-card" id="refund-receipt" aria-label="Live refund receipt">
+    <aside className="live-receipt-card" id="proof-receipt" aria-label={isPayout ? "Live payout receipt" : "Live refund receipt"}>
       <div className="receipt-card-head">
-        <span className="dot-label">Live refund receipt</span>
+        <span className="dot-label">{isPayout ? "Live payout receipt" : "Live refund receipt"}</span>
       </div>
       <div className="style-receipt-grid">
         <div>
-          <div className="receipt-claim">Claim #{refund?.claimId ?? "—"}</div>
-          <h2 className="receipt-outcome-red">Wrong → Refunded</h2>
+          <div className="receipt-claim">Claim #{payout?.claimId ?? refund?.claimId ?? "—"}</div>
+          <h2 className={isPayout ? "receipt-outcome-paid" : "receipt-outcome-red"}>
+            {isPayout ? "Right → Paid" : "Wrong → Refunded"}
+          </h2>
           <p className="receipt-prediction">{call} at expiry?</p>
           <AgentModelChips agent={agent} provider={provider} />
           <div className="refund-metrics">
             <div>
-              <span>Refunded to users</span>
-              <strong className="text-emerald-200">{refund ? formatDollar(refundTotal) : "Pending"}</strong>
-              <small>+{refund ? formatDollar(refund.bonus) : "$0.00"} bonus</small>
+              <span>{isPayout ? "Agent payout" : "Refunded to users"}</span>
+              <strong className="text-emerald-200">{payout ? formatDollar(payout.amount) : refund ? formatDollar(refundTotal) : "Pending"}</strong>
+              <small>{isPayout ? `${formatDollar(bond)} bond + ${formatDollar(earned)} earned` : `+${refund ? formatDollar(refund.bonus) : "$0.00"} bonus`}</small>
             </div>
             <div>
-              <span>Agent bond slashed</span>
-              <strong className="text-red-300">{formatDollar(slashedBond)}</strong>
-              <small>Paid from agent stake</small>
+              <span>{isPayout ? "Agent bond risked" : "Agent bond slashed"}</span>
+              <strong className={isPayout ? "text-amber-200" : "text-red-300"}>{formatDollar(bond)}</strong>
+              <small>{isPayout ? "Would slash if wrong" : "Paid from agent stake"}</small>
             </div>
           </div>
         </div>
-        <MiniPriceChart threshold={threshold} />
+        <MiniPriceChart threshold={threshold} outcome={isPayout ? "right" : "wrong"} />
       </div>
 
       <div className="receipt-bottom-row">
-        <HomeProofRail receipt={receipt} refund={stats.proofRefund} />
-        {refund ? <Link href={`/claim/${refund.claimId}`} className="receipt-view-button">View full receipt <span aria-hidden>→</span></Link> : null}
+        <HomeProofRail receipt={receipt} refund={stats.proofRefund} payout={payout} />
+        {(payout || refund) ? <Link href={`/claim/${payout?.claimId ?? refund?.claimId}`} className="receipt-view-button">View full receipt <span aria-hidden>→</span></Link> : null}
       </div>
     </aside>
   );
@@ -527,7 +558,7 @@ export default function HomePage() {
         <div className="hero-left">
           <div className="status-pill">AI accountability on Mantle</div>
           <h1>
-            When the AI is wrong,<br /> <span>users get paid back.</span>
+            AI alpha gets scored.<br /> <span>Wrong calls pay back.</span>
           </h1>
           <p className="hero-subhead">
             Clawback turns AI alpha into a public benchmark: agents stake USDC on
@@ -544,7 +575,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-        <LiveRefundReceipt stats={stats} />
+        <LiveHeroReceipt stats={stats} />
         <div className="hero-support">
           <TrustBadges />
           <HomeStatsRow stats={stats} />
