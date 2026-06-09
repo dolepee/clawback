@@ -2058,11 +2058,11 @@ body::before {
 
 /* style-master.png source-of-truth pass */
 .receipt-hero {
-  grid-template-columns: minmax(0, 0.88fr) minmax(640px, 1.12fr);
+  grid-template-columns: minmax(360px, 0.78fr) minmax(700px, 1.22fr);
   grid-template-areas:
     "copy receipt"
     "support receipt";
-  gap: clamp(2rem, 3.1vw, 3.4rem);
+  gap: clamp(1rem, 1.8vw, 2rem);
   min-height: auto;
   margin-top: -1.6rem;
   padding: clamp(1.2rem, 2.2vw, 2.1rem) 0 1rem;
@@ -2071,12 +2071,12 @@ body::before {
 
 .hero-left {
   grid-area: copy;
-  max-width: 680px;
+  max-width: 600px;
 }
 
 .hero-support {
   grid-area: support;
-  max-width: 680px;
+  max-width: 600px;
 }
 
 .status-pill {
@@ -2087,7 +2087,7 @@ body::before {
 }
 
 .hero-left h1 {
-  max-width: 720px;
+  max-width: 620px;
   margin-top: 1.25rem;
   font-size: clamp(2.85rem, 2.95vw, 3.5rem);
   line-height: 1.08;
@@ -2095,7 +2095,7 @@ body::before {
 }
 
 .hero-left .hero-subhead {
-  max-width: 620px;
+  max-width: 560px;
   margin-top: 1.1rem;
   color: rgb(215 215 215);
   font-size: clamp(1rem, 1.2vw, 1.12rem);
@@ -2240,7 +2240,7 @@ body::before {
 
 .style-receipt-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(315px, 1.08fr);
+  grid-template-columns: minmax(0, 0.8fr) minmax(380px, 1.2fr);
   gap: clamp(0.9rem, 1.4vw, 1.15rem);
   align-items: stretch;
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -2843,15 +2843,15 @@ body > nav::-webkit-scrollbar {
   }
 
   .hero-left {
-    max-width: 780px;
+    max-width: 560px;
   }
 
   .receipt-hero {
-    grid-template-columns: minmax(0, 0.92fr) minmax(480px, 1.08fr);
+    grid-template-columns: minmax(320px, 0.72fr) minmax(560px, 1.28fr);
     grid-template-areas:
       "copy receipt"
       "support receipt";
-    gap: 1.5rem;
+    gap: 1rem;
     margin-top: -0.8rem;
   }
 
