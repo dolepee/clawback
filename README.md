@@ -39,10 +39,10 @@ These are the two receipts the public product leads with. Together they show the
 
 | Receipt | Why it matters | Proof |
 |---|---|---|
-| **#111: LlmScout was right** | Bankr `deepseek-v3.2` consumed the live market context plus **5 Elfa signals**, posted a bonded MNT threshold call, and Pyth settled it RIGHT on Mantle. This is the AI Alpha & Data proof. | [claim page](https://clawback-bay.vercel.app/claim/111) · [commit](https://sepolia.mantlescan.xyz/tx/0xfd7813b5649b54362a4fbd6df13f191701002cb750912ba75057c4765f73b558) · [settle](https://sepolia.mantlescan.xyz/tx/0xe5d229a2d19c3e3c0fea379cb9ad5b083c2b0a24e5546fa01a5bae225798dd92) |
+| **#115: LlmScout was right and paid** | Bankr `deepseek-v3.2` consumed live market context plus **5 Elfa signals**, posted a bonded MNT threshold call, Pyth settled it RIGHT, and the agent payout was collected automatically. LlmScout bonded **5.00 mUSDC**, earned **0.25 mUSDC** from the paid unlock, and received **5.25 mUSDC** total including returned bond. This is the AI Alpha & Data proof. | [claim page](https://clawback-bay.vercel.app/claim/115) · [commit](https://sepolia.mantlescan.xyz/tx/0x95607b8f42338164e2e496d4811b77bd20d2d957d9a7f1562337bc531f0a47df) · [settle](https://sepolia.mantlescan.xyz/tx/0xf7e30e7ca432e6d89c7b33f73ec37b91fb44f4a9b54ecf876c1bcb783d204485) · [payout](https://sepolia.mantlescan.xyz/tx/0x9195d91798c977ae7dfb0fa5e02b24514b9c892fb5a0097dd5be920c884a9855) |
 | **#112: Challenger was wrong** | A user-created challenger entered through the open registry, made a bonded call, Pyth settled it WRONG, and the payer was refunded from the slashed bond. This is the product/accountability proof. | [claim page](https://clawback-bay.vercel.app/claim/112) · [commit](https://sepolia.mantlescan.xyz/tx/0xdfdd717179ff02776e09d5c13192a34a625c801c29dfc5635606e7211fde260f) · [settle](https://sepolia.mantlescan.xyz/tx/0xdbf3bb66385cf24ca475661013256b1e8370ea37299dbb48c44bcd050abc2f24) · [refund](https://sepolia.mantlescan.xyz/tx/0x0e3f18feddb034009d728711baa6cefb9088d89d23706fc2a8a83fd6c7e35dc3) |
 
-Submission framing: **LlmScout consumes Bankr + Elfa + market data, bonds a price call on Mantle, and Pyth settles whether it was right. Claim #111 proves the AI signal path worked; claim #112 proves the refund path works when a challenger is wrong.**
+Submission framing: **LlmScout consumes Bankr + Elfa + market data, bonds a price call on Mantle, and Pyth settles whether it was right. Claim #115 proves the AI signal path, RIGHT settlement, and automated payout; claim #112 proves the refund path works when a challenger is wrong.**
 
 ## Live receipts
 
@@ -50,8 +50,9 @@ Fresh AI proof, fresh challenger proof, plus both older outcome paths:
 
 | Moment | Transaction |
 |---|---|
-| LlmScout claim 111 committed with 5 Elfa signals captured | [`0xfd7813b5`](https://sepolia.mantlescan.xyz/tx/0xfd7813b5649b54362a4fbd6df13f191701002cb750912ba75057c4765f73b558) |
-| Pyth settled claim 111 RIGHT | [`0xe5d229a2`](https://sepolia.mantlescan.xyz/tx/0xe5d229a2d19c3e3c0fea379cb9ad5b083c2b0a24e5546fa01a5bae225798dd92) |
+| LlmScout claim 115 committed with 5 Elfa signals captured | [`0x95607b8f`](https://sepolia.mantlescan.xyz/tx/0x95607b8f42338164e2e496d4811b77bd20d2d957d9a7f1562337bc531f0a47df) |
+| Pyth settled claim 115 RIGHT | [`0xf7e30e7c`](https://sepolia.mantlescan.xyz/tx/0xf7e30e7ca432e6d89c7b33f73ec37b91fb44f4a9b54ecf876c1bcb783d204485) |
+| LlmScout claimed 5.25 mUSDC earnings automatically (claim 115) | [`0x9195d917`](https://sepolia.mantlescan.xyz/tx/0x9195d91798c977ae7dfb0fa5e02b24514b9c892fb5a0097dd5be920c884a9855) |
 | Challenger-bad3 committed claim 112 through the open registry | [`0xdfdd7171`](https://sepolia.mantlescan.xyz/tx/0xdfdd717179ff02776e09d5c13192a34a625c801c29dfc5635606e7211fde260f) |
 | Pyth settled claim 112 WRONG | [`0xdbf3bb66`](https://sepolia.mantlescan.xyz/tx/0xdbf3bb66385cf24ca475661013256b1e8370ea37299dbb48c44bcd050abc2f24) |
 | Payer refunded on claim 112 | [`0x0e3f18fe`](https://sepolia.mantlescan.xyz/tx/0x0e3f18feddb034009d728711baa6cefb9088d89d23706fc2a8a83fd6c7e35dc3) |
@@ -62,7 +63,7 @@ Fresh AI proof, fresh challenger proof, plus both older outcome paths:
 | Pyth settled claim 14 RIGHT | [`0xe32d9aaa`](https://sepolia.mantlescan.xyz/tx/0xe32d9aaac29abb2a570992bd708619b1a727716bcc98625e63cb2ce0f09b1d0a) |
 | CatScout claimed 5.25 USDC earnings (claim 14) | [`0x5bc6e928`](https://sepolia.mantlescan.xyz/tx/0x5bc6e9281d591ab671c595d3dbd5956a29883e6aabab93f489d859452f4e3497) |
 
-Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats). Or scroll the [claim feed](https://clawback-bay.vercel.app/feed) and click any card. Claim `111` is the Elfa + Bankr model proof. Claim `112` is the live challenger refund proof. Claims `14` and `15` remain older settlement examples. For a full public reveal replay, use claims `4` and `5` in the verifier section below.
+Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats). Or scroll the [claim feed](https://clawback-bay.vercel.app/feed) and click any card. Claim `115` is the Elfa + Bankr model proof with RIGHT settlement and payout. Claim `112` is the live challenger refund proof. Claims `14` and `15` remain older settlement examples. For a full public reveal replay, use claims `4` and `5` in the verifier section below.
 
 ## Explore the live product
 
@@ -78,11 +79,11 @@ Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats).
 | Proof | What it proves | Link |
 |---|---|---|
 | AI committed alpha | LlmScout registered and began publishing model-driven threshold calls | [`claim #48`](https://sepolia.mantlescan.xyz/tx/0x87072d490b839796faf6ad0468b60f726ff9fd8e6b5d4c7b3852d5f37f37d5b0) |
-| Elfa signals captured | LlmScout claim provenance includes Elfa signal count/source for the model prompt | [`claim #111`](https://sepolia.mantlescan.xyz/tx/0xfd7813b5649b54362a4fbd6df13f191701002cb750912ba75057c4765f73b558) |
+| Elfa signals captured | LlmScout claim provenance includes Elfa signal count/source for the model prompt | [`claim #115`](https://sepolia.mantlescan.xyz/tx/0x95607b8f42338164e2e496d4811b77bd20d2d957d9a7f1562337bc531f0a47df) |
 | User paid to unlock | Q402 adapter records an unlock payment on Mantle | [`verify:q402 4`](https://clawback-bay.vercel.app/claim/4) |
 | Challenger game settled | A user-created Challenger-bad3 entry made a bonded call through the same market and settled WRONG | [`claim #112`](https://clawback-bay.vercel.app/claim/112) |
 | Challenger refund paid | The wrong challenger call refunded the payer from the slashed bond | [`refund tx`](https://sepolia.mantlescan.xyz/tx/0x0e3f18feddb034009d728711baa6cefb9088d89d23706fc2a8a83fd6c7e35dc3) |
-| AI / agent was right | RIGHT settlement pays the agent | [`claim #14 payout`](https://sepolia.mantlescan.xyz/tx/0x5bc6e9281d591ab671c595d3dbd5956a29883e6aabab93f489d859452f4e3497) |
+| AI / agent was right | RIGHT settlement pays the agent; #115 returned 5.00 mUSDC bond plus 0.25 mUSDC unlock revenue | [`claim #115 payout`](https://sepolia.mantlescan.xyz/tx/0x9195d91798c977ae7dfb0fa5e02b24514b9c892fb5a0097dd5be920c884a9855) |
 | AI / agent was wrong | WRONG settlement refunds the buyer from the slashed bond | [`claim #15 refund`](https://sepolia.mantlescan.xyz/tx/0x4f7f855b63e12724288c1e24909fefd467247239501f2bcd14c6f80258af0799) |
 | Reputation is permanent | Wins, losses, bonded, slashed, and earned are recorded in `ReputationLedger` | [`ReputationLedger`](https://sepolia.mantlescan.xyz/address/0x02aE8215844DC8AA962e44Fd07e537F05241f8E6#code) |
 | Agent identity exists | House agents have identity NFTs; challenger entrants are registered through `AgentRegistry` | [`AgentIdentity`](https://sepolia.mantlescan.xyz/address/0xa970639D01fCc63198a8D14d8b9Ed028364d1a00#code) |

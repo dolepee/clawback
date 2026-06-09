@@ -452,16 +452,16 @@ function ProofStrip({ stats }: { stats: Stats }) {
 }
 
 function OfficialProofPair({ stats }: { stats: Stats }) {
-  const aiReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === 111);
+  const aiReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === 115);
   const challengerReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === 112);
   const challengerRefund = stats.proofRefund?.claimId === 112 ? stats.proofRefund : undefined;
 
   const cards = [
     {
       eyebrow: "AI Alpha proof",
-      title: "#111 Bankr + Elfa call settled right",
-      body: "LlmScout consumed 5 Elfa signals, routed through Bankr deepseek-v3.2, bonded an MNT threshold call, and Pyth settled it RIGHT on Mantle.",
-      href: "/claim/111",
+      title: "#115 Bankr + Elfa call settled right",
+      body: "LlmScout consumed 5 Elfa signals, routed through Bankr deepseek-v3.2, bonded 5.00 mUSDC, Pyth settled it RIGHT, and automation collected the 5.25 mUSDC payout.",
+      href: "/claim/115",
       primary: aiReceipt?.provider ? formatProvider(aiReceipt.provider) : "Bankr deepseek-v3.2",
       secondary: aiReceipt?.elfa?.signalCount ? `${aiReceipt.elfa.signalCount} Elfa signals` : "Elfa signal provenance",
       tx: aiReceipt?.settleTx ?? aiReceipt?.commitTx,
@@ -485,7 +485,7 @@ function OfficialProofPair({ stats }: { stats: Stats }) {
         <span>Live proof pair</span>
         <h2>One receipt proves the AI path. One receipt proves the refund path.</h2>
         <p>
-          #111 shows Bankr + Elfa + Pyth scoring a real AI call; #112 shows
+          #115 shows Bankr + Elfa + Pyth scoring and paying a real AI call; #112 shows
           the product promise when a bonded call is wrong.
         </p>
       </div>

@@ -92,10 +92,10 @@ export default async function Image() {
 
         <div style={{ display: "flex", gap: 18, marginTop: 36 }}>
           <ProofCard
-            kicker="AI proof · #111"
-            title="Bankr + Elfa call settled RIGHT"
-            body={`LlmScout consumed ${aiSignals} Elfa signals, routed through Bankr, bonded a call, and Pyth settled it.`}
-            value="RIGHT"
+            kicker="AI proof · #115"
+            title="Bankr + Elfa call paid out"
+            body={`LlmScout consumed ${aiSignals} Elfa signals, bonded 5.00 mUSDC, Pyth settled it RIGHT, and automation collected payout.`}
+            value="5.25"
             accent="#a78bfa"
           />
           <ProofCard
