@@ -203,6 +203,17 @@ export function personaKeys(): PersonaKey[] {
   return keys;
 }
 
+function collectPersonaKeys(): PersonaKey[] {
+  const keys = personaKeys();
+  if (
+    !keys.includes("llm-scout") &&
+    (process.env.LLM_AGENT_PRIVATE_KEY || process.env.LLMSCOUT_PRIVATE_KEY)
+  ) {
+    keys.push("llm-scout");
+  }
+  return keys;
+}
+
 export function getPersona(key: string): PersonaConfig {
   if (key !== "cat-scout" && key !== "lobster-rogue" && key !== "llm-scout") {
     throw new Error(`unknown persona ${key}`);
@@ -744,7 +755,7 @@ export async function collectClaims(): Promise<void> {
   const addrs = addresses();
   const payer = payerAccount();
   const payerWallet = walletClient(payer);
-  const agentEntries = await Promise.all(personaKeys().map(async (key) => {
+  const agentEntries = await Promise.all(collectPersonaKeys().map(async (key) => {
     const persona = getPersona(key);
     const account = personaAccount(persona);
     const agentId = await withRetry(() => client.readContract({
