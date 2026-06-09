@@ -1,4 +1,4 @@
-import { createPublicClient, defineChain, http, parseAbi, keccak256, toHex } from "viem";
+import { createPublicClient, defineChain, fallback, http, parseAbi, keccak256, toHex } from "viem";
 
 export interface SkillsOutput {
   skillId: string;
@@ -33,12 +33,23 @@ const mantle = defineChain({
   rpcUrls: { default: { http: ["https://rpc.mantle.xyz"] } },
 });
 
+// A single public-RPC hiccup here kills the whole daily cycle (it did twice on
+// 2026-06-09), so observation reads go through a sticky-order fallback across
+// independent public Mantle endpoints with per-request retries.
+const MANTLE_FALLBACK_RPCS = ["https://mantle-rpc.publicnode.com", "https://mantle.drpc.org"] as const;
+const SKILL_TRANSPORT_OPTS = { retryCount: 6, retryDelay: 500, timeout: 15_000 } as const;
+
+function mantleTransport(rpcUrl: string) {
+  const urls = [rpcUrl, ...MANTLE_FALLBACK_RPCS.filter((u) => u !== rpcUrl)];
+  return fallback(urls.map((u) => http(u, SKILL_TRANSPORT_OPTS)), { rank: false });
+}
+
 function lbPriceTokenYPerTokenX(activeId: number, binStep: number): number {
   return Math.pow(1 + binStep / 10_000, activeId - 8_388_608);
 }
 
 async function readMantlePoolPrice(rpcUrl: string, pool: `0x${string}`) {
-  const client = createPublicClient({ chain: mantle, transport: http(rpcUrl) });
+  const client = createPublicClient({ chain: mantle, transport: mantleTransport(rpcUrl) });
   const [activeId, binStep, tokenX, tokenY] = await Promise.all([
     client.readContract({ address: pool, abi: LB_POOL_ABI, functionName: "getActiveId" }),
     client.readContract({ address: pool, abi: LB_POOL_ABI, functionName: "getBinStep" }),
@@ -72,7 +83,7 @@ export async function runSkill(skillId: string, params: Record<string, unknown> 
   if (skillId !== "merchant_moe_lb_mantle_v1") {
     throw new Error(`unknown skillId: ${skillId}`);
   }
-  const client = createPublicClient({ chain: mantle, transport: http(rpcUrl) });
+  const client = createPublicClient({ chain: mantle, transport: mantleTransport(rpcUrl) });
   const blockNumber = await client.getBlockNumber();
   const block = await client.getBlock({ blockNumber });
   const observedTimestamp = Number(block.timestamp);

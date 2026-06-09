@@ -5,6 +5,7 @@ import {
   defineChain,
   encodeAbiParameters,
   encodeFunctionData,
+  fallback,
   http,
   keccak256,
   nonceManager,
@@ -270,10 +271,21 @@ const RPC_TRANSPORT_OPTS = {
   timeout: 15_000,
 } as const;
 
+// Sticky-order fallback: the env-configured endpoint stays primary; the
+// independent public endpoint only serves requests the primary fails through
+// all retries (a single dropped request killed two cron cycles on 2026-06-09).
+const SEPOLIA_FALLBACK_RPC = "https://mantle-sepolia.drpc.org";
+
+function sepoliaTransport() {
+  const primary = env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc);
+  const urls = primary === SEPOLIA_FALLBACK_RPC ? [primary] : [primary, SEPOLIA_FALLBACK_RPC];
+  return fallback(urls.map((u) => http(u, RPC_TRANSPORT_OPTS)), { rank: false });
+}
+
 export function publicClient(): PublicClient {
   return createPublicClient({
     chain: mantleSepolia,
-    transport: http(env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc), RPC_TRANSPORT_OPTS),
+    transport: sepoliaTransport(),
   }) as PublicClient;
 }
 
@@ -285,7 +297,7 @@ export function walletClient(account: PrivateKeyAccount): WalletClient {
   return createWalletClient({
     account,
     chain: mantleSepolia,
-    transport: http(env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc), RPC_TRANSPORT_OPTS),
+    transport: sepoliaTransport(),
   }) as WalletClient;
 }
 
