@@ -492,7 +492,7 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     [thresholdPriceE8, directionId],
   );
 
-  const expirySeconds = BigInt(Number(process.env.CRON_EXPIRY_SECONDS ?? 12 * 60 * 60));
+  const expirySeconds = BigInt(Number(process.env.CRON_EXPIRY_SECONDS ?? 6 * 60 * 60));
   const publicReleaseExtra = BigInt(Number(process.env.CRON_PUBLIC_RELEASE_EXTRA_SECONDS ?? 12 * 60 * 60));
   const now = BigInt(Math.floor(Date.now() / 1000));
   const expiry = now + expirySeconds;
