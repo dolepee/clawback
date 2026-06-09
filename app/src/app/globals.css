@@ -2875,7 +2875,13 @@ body > nav::-webkit-scrollbar {
   }
 
   .hero-left h1 {
-    font-size: clamp(3rem, 12vw, 4.35rem);
+    max-width: 100%;
+    font-size: clamp(2.65rem, 10.5vw, 4rem);
+    line-height: 0.98;
+  }
+
+  .hero-cta-row {
+    flex-wrap: wrap;
   }
 
   .trust-badges,
@@ -3000,6 +3006,35 @@ body > nav::-webkit-scrollbar {
 
   .top-agent-row dl {
     text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-left h1 {
+    font-size: clamp(2.55rem, 10.4vw, 3.05rem);
+    letter-spacing: -0.055em;
+  }
+
+  .hero-left h1 span {
+    display: inline-block;
+    max-width: 100%;
+  }
+
+  .hero-left .hero-subhead {
+    max-width: 100%;
+    font-size: 0.96rem;
+  }
+
+  .hero-cta-row .primary-action,
+  .hero-cta-row .secondary-action {
+    width: 100%;
+  }
+
+  .trust-badges > span,
+  .live-receipt-card,
+  .style-receipt-grid,
+  .mini-price-chart {
+    min-width: 0;
   }
 }
 

@@ -62,14 +62,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span>Clawback</span>
             </a>
             <div className="flex min-w-0 items-center gap-3 md:gap-5">
-              <nav className="hidden items-center gap-7 text-sm font-medium text-neutral-300 md:flex">
+              <nav className="hidden items-center gap-7 text-sm font-medium text-neutral-300 lg:flex">
                 {navItems.map((item) => (
                   <a key={item.href} href={item.href} className="transition-colors hover:text-white">
                     {item.label}
                   </a>
                 ))}
               </nav>
-              <span className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-xs text-neutral-200 md:inline-flex">
+              <span className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.035] px-3 py-2 text-xs text-neutral-200 lg:inline-flex">
                 <span className="size-2 rounded-full bg-emerald-300" aria-hidden />
                 Mantle Sepolia
               </span>
@@ -77,7 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         </header>
-        <nav className="flex gap-4 overflow-x-auto border-b border-white/10 bg-black/45 px-4 py-2 text-xs text-neutral-300 backdrop-blur-xl md:hidden">
+        <nav className="flex gap-4 overflow-x-auto border-b border-white/10 bg-black/45 px-4 py-2 text-xs text-neutral-300 backdrop-blur-xl lg:hidden">
           {navItems.map((item) => (
             <a key={item.href} href={item.href} className="whitespace-nowrap hover:text-white">
               {item.label}
