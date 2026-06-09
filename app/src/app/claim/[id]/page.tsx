@@ -314,15 +314,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   try {
     const detail = await loadClaimDetail(BigInt(id));
-    if (!detail) return { title: `Claim #${id} · Clawback` };
+    if (!detail) return { title: `Claim #${id}` };
     const { agent, accounting } = detail;
     const outcome = accounting.settled ? (accounting.agentRight ? "agent earned" : "refund cleared") : "pending";
     return {
-      title: `${agent.handle} · Claim #${id} · ${outcome} · Clawback`,
+      title: `${agent.handle} · Claim #${id} · ${outcome}`,
       description: `${agent.handle} claim #${id}: ${outcome}. Onchain receipt on Mantle Sepolia.`,
     };
   } catch {
-    return { title: `Claim #${id} · Clawback` };
+    return { title: `Claim #${id}` };
   }
 }
 

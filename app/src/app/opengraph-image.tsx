@@ -17,10 +17,8 @@ export default async function Image() {
 
   const refundTotal = stats?.totalRefundUsdc ?? 0n;
   const totalSettled = (stats?.settledRight ?? 0) + (stats?.settledWrong ?? 0);
-  const aiReceipt = stats?.latestReceipts.find((receipt) => receipt.claimId === 111);
-  const challengerReceipt = stats?.latestReceipts.find((receipt) => receipt.claimId === 112);
-  const aiSignals = aiReceipt?.elfa?.signalCount ?? 5;
-  const refundTx = stats?.proofRefund?.claimId === 112 ? stats.proofRefund.tx : challengerReceipt?.refundTx;
+  const aiSignals = stats?.proofPayout?.elfa?.signalCount ?? 5;
+  const refundTx = stats?.proofRefund?.tx;
 
   return new ImageResponse(
     (
@@ -99,9 +97,9 @@ export default async function Image() {
             accent="#a78bfa"
           />
           <ProofCard
-            kicker="Refund proof · #112"
-            title="Challenger wrong, payer refunded"
-            body={refundTx ? "The wrong bonded call clawed back value from the slashed bond on Mantle." : "Wrong-call refund path verified on Mantle."}
+            kicker="Refund proof · #91"
+            title="Same agent wrong, buyer refunded"
+            body={refundTx ? "LlmScout was wrong on another bonded call, so the buyer was refunded from the slashed bond." : "Wrong-call refund path verified on Mantle."}
             value="REFUNDED"
             accent="#6ee7b7"
           />

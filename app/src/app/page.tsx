@@ -32,6 +32,10 @@ function formatUtcTime(seconds?: number): string {
   }).format(date)} UTC`;
 }
 
+function formatAccuracyPct(value: number, decimals = 0): string {
+  return `${(value * 100).toFixed(decimals)}%`;
+}
+
 function txLink(tx: `0x${string}`, label = shortHex(tx, 6, 4), ariaLabel = "Open transaction proof") {
   return (
     <a
@@ -474,7 +478,7 @@ function LiveHeroReceipt({ stats }: { stats: Stats }) {
 function ProofStrip({ stats }: { stats: Stats }) {
   return (
     <div className="proof-strip">
-      <span>Bonded alpha</span>
+      <span>{formatAccuracyPct(stats.catAccuracy)} CatScout vs {formatAccuracyPct(stats.lobsterAccuracy)} LobsterRogue</span>
       <span>Scored on Mantle</span>
       <span>Refunds on wrong calls</span>
       <span>{settledCount(stats)} settled receipts</span>
@@ -483,29 +487,31 @@ function ProofStrip({ stats }: { stats: Stats }) {
 }
 
 function OfficialProofPair({ stats }: { stats: Stats }) {
-  const aiReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === 115);
-  const challengerReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === 112);
-  const challengerRefund = stats.proofRefund?.claimId === 112 ? stats.proofRefund : undefined;
+  const aiReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === stats.proofPayout?.claimId);
+  const refundReceipt = stats.latestReceipts.find((receipt) => receipt.claimId === stats.proofRefund?.claimId);
+  const aiSignals = stats.proofPayout?.elfa?.signalCount ?? aiReceipt?.elfa?.signalCount;
+  const refundTotal = stats.proofRefund ? stats.proofRefund.paidBack + stats.proofRefund.bonus : undefined;
+  const slashedBond = stats.proofRefund?.bondAmount ?? refundReceipt?.bondAmount;
 
   const cards = [
     {
       eyebrow: "AI Alpha proof",
-      title: "#115 Bankr + Elfa call settled right",
-      body: "LlmScout consumed 5 Elfa signals, routed through Bankr deepseek-v3.2, bonded 5.00 mUSDC, Pyth settled it RIGHT, and automation collected the 5.25 mUSDC payout.",
-      href: "/claim/115",
+      title: `#${stats.proofPayout?.claimId ?? 115} LlmScout settled right`,
+      body: "LlmScout consumed live market context, routed through Bankr deepseek-v3.2, bonded 5.00 mUSDC, Pyth settled it RIGHT, and automation collected the 5.25 mUSDC payout.",
+      href: `/claim/${stats.proofPayout?.claimId ?? 115}`,
       primary: aiReceipt?.provider ? formatProvider(aiReceipt.provider) : "Bankr deepseek-v3.2",
-      secondary: aiReceipt?.elfa?.signalCount ? `${aiReceipt.elfa.signalCount} Elfa signals` : "Elfa signal provenance",
-      tx: aiReceipt?.settleTx ?? aiReceipt?.commitTx,
+      secondary: aiSignals ? `${aiSignals} Elfa signals` : "Model + market provenance",
+      tx: stats.proofPayout?.settleTx ?? aiReceipt?.settleTx ?? stats.proofPayout?.commitTx ?? aiReceipt?.commitTx,
       tone: "ai",
     },
     {
       eyebrow: "Accountability proof",
-      title: "#112 Challenger was wrong, payer refunded",
-      body: "A user-created challenger entered through the same registry, made a bonded call, lost, and the refund was paid from the slashed bond.",
-      href: "/claim/112",
-      primary: challengerRefund ? formatDollar(challengerRefund.paidBack + challengerRefund.bonus) : "Refund paid",
-      secondary: "Wrong call clawed back",
-      tx: challengerRefund?.tx ?? challengerReceipt?.refundTx ?? challengerReceipt?.settleTx ?? challengerReceipt?.commitTx,
+      title: `#${stats.proofRefund?.claimId ?? 91} LlmScout was wrong`,
+      body: "The same AI agent made another bonded MNT threshold call, Pyth settled it WRONG, and the buyer was refunded from the slashed bond.",
+      href: `/claim/${stats.proofRefund?.claimId ?? 91}`,
+      primary: refundTotal ? formatDollar(refundTotal) : "Refund paid",
+      secondary: slashedBond ? `${formatDollar(slashedBond)} bond slashed` : "Wrong call clawed back",
+      tx: stats.proofRefund?.tx ?? refundReceipt?.refundTx ?? stats.proofRefund?.settleTx ?? refundReceipt?.settleTx ?? stats.proofRefund?.commitTx ?? refundReceipt?.commitTx,
       tone: "refund",
     },
   ] as const;
@@ -514,10 +520,10 @@ function OfficialProofPair({ stats }: { stats: Stats }) {
     <section className="official-proof-pair" aria-label="Live proof pair">
       <div className="official-proof-copy">
         <span>Live proof pair</span>
-        <h2>One receipt proves the AI path. One receipt proves the refund path.</h2>
+        <h2>Same agent. Opposite outcomes. Different money flow.</h2>
         <p>
-          #115 shows Bankr + Elfa + Pyth scoring and paying a real AI call; #112 shows
-          the product promise when a bonded call is wrong.
+          #115 shows LlmScout being right and getting paid; #91 shows the same agent
+          being wrong and refunding the buyer from its slashed bond.
         </p>
       </div>
       <div className="official-proof-cards">

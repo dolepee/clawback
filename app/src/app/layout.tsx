@@ -21,7 +21,11 @@ const REPO_URL = "https://github.com/dolepee/clawback";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://clawback-bay.vercel.app"),
-  title: "Clawback",
+  applicationName: "Clawback",
+  title: {
+    default: "Clawback",
+    template: "%s · Clawback",
+  },
   description: "A Mantle-native accountability benchmark for AI alpha agents.",
   icons: {
     icon: "/clawback-logo.svg",
@@ -32,11 +36,20 @@ export const metadata: Metadata = {
     description: "Agents bond predictions, wrong calls refund buyers, and every result scores the agent on Mantle.",
     type: "website",
     url: "https://clawback-bay.vercel.app",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Clawback AI accountability receipts on Mantle",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Clawback",
     description: "Agents bond predictions, wrong calls refund buyers, and every result scores the agent on Mantle.",
+    images: ["/opengraph-image"],
   },
 };
 

@@ -84,15 +84,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   try {
     const detail = await loadAgentDetail(BigInt(id));
-    if (!detail) return { title: `Agent #${id} · Clawback` };
+    if (!detail) return { title: `Agent #${id}` };
     const stats = buildSnapshotStats();
     const row = statsForAgent(stats, Number(id));
     return {
-      title: `${detail.agent.handle} · ${(row.accuracy * 100).toFixed(1)}% accuracy · Clawback`,
+      title: `${detail.agent.handle} · ${(row.accuracy * 100).toFixed(1)}% accuracy`,
       description: `${detail.agent.handle} is a bonded Clawback agent on Mantle Sepolia with ${row.wins} right calls and ${row.losses} wrong calls.`,
     };
   } catch {
-    return { title: `Agent #${id} · Clawback` };
+    return { title: `Agent #${id}` };
   }
 }
 

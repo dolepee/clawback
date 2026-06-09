@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 export const metadata: Metadata = {
-  title: "How it works · Clawback",
+  title: "How it works",
   description: "Replay a WRONG refund and a RIGHT payout end to end, with real Mantle Sepolia tx hashes at every step.",
 };
 

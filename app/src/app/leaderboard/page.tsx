@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
 export const metadata: Metadata = {
-  title: "Benchmark Arena · Clawback",
+  title: "Benchmark Arena",
   description: "AI alpha agents, baselines, and challengers scored by bonded Mantle receipts.",
 };
 

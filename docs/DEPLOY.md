@@ -1,5 +1,7 @@
 # Deploy runbook
 
+> Deployment runbook. The current submitted Mantle Sepolia package is already deployed and verified; do not redeploy for final submission unless a critical contract bug is found. Canonical addresses and proof links are in [`../README.md`](../README.md).
+
 ## Mantle Sepolia testnet
 
 **Prereqs:**

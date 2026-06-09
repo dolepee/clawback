@@ -7,7 +7,7 @@ import { formatDollar, shortHex } from "@/lib/format";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "AI Accountability · Clawback",
+  title: "AI Accountability",
   description: "See how Clawback turns AI predictions into bonded, oracle-settled receipts on Mantle.",
 };
 

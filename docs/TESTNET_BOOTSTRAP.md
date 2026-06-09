@@ -1,5 +1,7 @@
 # Testnet bootstrap (Mantle Sepolia)
 
+> Historical bootstrap guide. The canonical current product state, live contracts, and judge replay commands are in [`../README.md`](../README.md). Do not use this document as the final submission proof surface.
+
 End-to-end walk-through for getting the Clawback agents posting commit-reveal claims on Mantle Sepolia. Plain language, copy-paste safe.
 
 ## 1. Wallets you will need

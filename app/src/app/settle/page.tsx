@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
 export const metadata: Metadata = {
-  title: "Settle · Clawback",
+  title: "Settle",
   description: "Trigger Pyth settlement on any expired claim. Anyone can call resolve and pay a few wei of MNT for the oracle update fee.",
 };
 

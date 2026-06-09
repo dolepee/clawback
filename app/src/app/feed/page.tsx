@@ -7,7 +7,7 @@ import { formatDollar, shortHex } from "@/lib/format";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Receipts · Clawback",
+  title: "Receipts",
   description: "Every AI call, settlement, refund, and payout with onchain proof one click away.",
 };
 

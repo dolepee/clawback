@@ -6,6 +6,8 @@
 
 AI agents publish alpha every day with no accountability. Clawback fixes that on Mantle: agents bond their market predictions, users pay to unlock the call, Pyth settles the result on chain, and every outcome scores the agent's permanent reputation. Right calls pay the agent. Wrong calls refund buyers from the slashed bond. The trust assumption shifts from "trust the model" to "the model is cryptoeconomically liable for being wrong."
 
+**Demo proof pair:** LlmScout RIGHT payout [`#115`](https://clawback-bay.vercel.app/claim/115) and LlmScout WRONG refund [`#91`](https://clawback-bay.vercel.app/claim/91), both replayable on Mantle Sepolia with the verifier commands below.
+
 The submitted benchmark has three live entrants: **LlmScout** is the model-driven AI alpha agent, **CatScout** is the rule-based baseline, and **LobsterRogue** is the adversarial bad-alpha baseline. They run live on Mantle Sepolia every day so the lifecycle (commit → unlock → settle → refund or payout) has a continuous receipt trail judges can replay. The deployed registry is permissionless, so challengers can register and publish bonded calls through the same contracts without a redeploy.
 
 The product loop:
@@ -40,9 +42,9 @@ These are the two receipts the public product leads with. Together they show the
 | Receipt | Why it matters | Proof |
 |---|---|---|
 | **#115: LlmScout was right and paid** | Bankr `deepseek-v3.2` consumed live market context plus **5 Elfa signals**, posted a bonded MNT threshold call, Pyth settled it RIGHT, and the agent payout was collected automatically. LlmScout bonded **5.00 mUSDC**, earned **0.25 mUSDC** from the paid unlock, and received **5.25 mUSDC** total including returned bond. This is the AI Alpha & Data proof. | [claim page](https://clawback-bay.vercel.app/claim/115) · [commit](https://sepolia.mantlescan.xyz/tx/0x95607b8f42338164e2e496d4811b77bd20d2d957d9a7f1562337bc531f0a47df) · [settle](https://sepolia.mantlescan.xyz/tx/0xf7e30e7ca432e6d89c7b33f73ec37b91fb44f4a9b54ecf876c1bcb783d204485) · [payout](https://sepolia.mantlescan.xyz/tx/0x9195d91798c977ae7dfb0fa5e02b24514b9c892fb5a0097dd5be920c884a9855) |
-| **#112: Challenger was wrong** | A user-created challenger entered through the open registry, made a bonded call, Pyth settled it WRONG, and the payer was refunded from the slashed bond. This is the product/accountability proof. | [claim page](https://clawback-bay.vercel.app/claim/112) · [commit](https://sepolia.mantlescan.xyz/tx/0xdfdd717179ff02776e09d5c13192a34a625c801c29dfc5635606e7211fde260f) · [settle](https://sepolia.mantlescan.xyz/tx/0xdbf3bb66385cf24ca475661013256b1e8370ea37299dbb48c44bcd050abc2f24) · [refund](https://sepolia.mantlescan.xyz/tx/0x0e3f18feddb034009d728711baa6cefb9088d89d23706fc2a8a83fd6c7e35dc3) |
+| **#91: LlmScout was wrong and refunded the buyer** | The same AI agent made a bonded MNT threshold call, Pyth settled it WRONG, the 5.00 mUSDC bond was slashed, and the buyer was refunded. This is the AI accountability proof: right calls pay the agent, wrong calls cost it capital. | [claim page](https://clawback-bay.vercel.app/claim/91) · [commit](https://sepolia.mantlescan.xyz/tx/0xa0ded7c0cdf33d3eba0fc6f75a1d0839740b0de47643915f3c7370e677cc4ef5) · [settle](https://sepolia.mantlescan.xyz/tx/0xf11a594fe4cc8bc575264e8faa9eff2d663172ef148cfae8710500244d751e9a) · [refund](https://sepolia.mantlescan.xyz/tx/0xa8841343732570c731c4a715100948c9f3243a409f23748372559f4b258aa4a8) |
 
-Submission framing: **LlmScout consumes Bankr + Elfa + market data, bonds a price call on Mantle, and Pyth settles whether it was right. Claim #115 proves the AI signal path, RIGHT settlement, and automated payout; claim #112 proves the refund path works when a challenger is wrong.**
+Submission framing: **LlmScout consumes Bankr + Elfa + market data, bonds a price call on Mantle, and Pyth settles whether it was right. Claim #115 proves the AI signal path, RIGHT settlement, and automated payout; claim #91 proves the same AI agent can be wrong, lose its bond, and refund the buyer. Claim #112 remains the open-challenger proof.**
 
 ## Live receipts
 
@@ -53,6 +55,9 @@ Fresh AI proof, fresh challenger proof, plus both older outcome paths:
 | LlmScout claim 115 committed with 5 Elfa signals captured | [`0x95607b8f`](https://sepolia.mantlescan.xyz/tx/0x95607b8f42338164e2e496d4811b77bd20d2d957d9a7f1562337bc531f0a47df) |
 | Pyth settled claim 115 RIGHT | [`0xf7e30e7c`](https://sepolia.mantlescan.xyz/tx/0xf7e30e7ca432e6d89c7b33f73ec37b91fb44f4a9b54ecf876c1bcb783d204485) |
 | LlmScout claimed 5.25 mUSDC earnings automatically (claim 115) | [`0x9195d917`](https://sepolia.mantlescan.xyz/tx/0x9195d91798c977ae7dfb0fa5e02b24514b9c892fb5a0097dd5be920c884a9855) |
+| LlmScout claim 91 committed (WRONG cycle) | [`0xa0ded7c`](https://sepolia.mantlescan.xyz/tx/0xa0ded7c0cdf33d3eba0fc6f75a1d0839740b0de47643915f3c7370e677cc4ef5) |
+| Pyth settled claim 91 WRONG | [`0xf11a594f`](https://sepolia.mantlescan.xyz/tx/0xf11a594fe4cc8bc575264e8faa9eff2d663172ef148cfae8710500244d751e9a) |
+| Payer refunded on claim 91 | [`0xa8841343`](https://sepolia.mantlescan.xyz/tx/0xa8841343732570c731c4a715100948c9f3243a409f23748372559f4b258aa4a8) |
 | Challenger-bad3 committed claim 112 through the open registry | [`0xdfdd7171`](https://sepolia.mantlescan.xyz/tx/0xdfdd717179ff02776e09d5c13192a34a625c801c29dfc5635606e7211fde260f) |
 | Pyth settled claim 112 WRONG | [`0xdbf3bb66`](https://sepolia.mantlescan.xyz/tx/0xdbf3bb66385cf24ca475661013256b1e8370ea37299dbb48c44bcd050abc2f24) |
 | Payer refunded on claim 112 | [`0x0e3f18fe`](https://sepolia.mantlescan.xyz/tx/0x0e3f18feddb034009d728711baa6cefb9088d89d23706fc2a8a83fd6c7e35dc3) |
@@ -63,7 +68,7 @@ Fresh AI proof, fresh challenger proof, plus both older outcome paths:
 | Pyth settled claim 14 RIGHT | [`0xe32d9aaa`](https://sepolia.mantlescan.xyz/tx/0xe32d9aaac29abb2a570992bd708619b1a727716bcc98625e63cb2ce0f09b1d0a) |
 | CatScout claimed 5.25 USDC earnings (claim 14) | [`0x5bc6e928`](https://sepolia.mantlescan.xyz/tx/0x5bc6e9281d591ab671c595d3dbd5956a29883e6aabab93f489d859452f4e3497) |
 
-Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats). Or scroll the [claim feed](https://clawback-bay.vercel.app/feed) and click any card. Claim `115` is the Elfa + Bankr model proof with RIGHT settlement and payout. Claim `112` is the live challenger refund proof. Claims `14` and `15` remain older settlement examples. For a full public reveal replay, use claims `4` and `5` in the verifier section below.
+Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats). Or scroll the [claim feed](https://clawback-bay.vercel.app/feed) and click any card. Claim `115` is the Elfa + Bankr model proof with RIGHT settlement and payout. Claim `91` is the LlmScout WRONG refund proof. Claim `112` is the live challenger refund proof. Claims `14` and `15` remain older settlement examples. For a full public reveal replay, use archived claims `4` and `5` in the verifier section below; the demo pair is intentionally pinned to `115` and `91` so the video shows the same AI agent winning and losing.
 
 ## Explore the live product
 
@@ -80,16 +85,16 @@ Full receipt history: [`/api/stats`](https://clawback-bay.vercel.app/api/stats).
 |---|---|---|
 | AI committed alpha | LlmScout registered and began publishing model-driven threshold calls | [`claim #48`](https://sepolia.mantlescan.xyz/tx/0x87072d490b839796faf6ad0468b60f726ff9fd8e6b5d4c7b3852d5f37f37d5b0) |
 | Elfa signals captured | LlmScout claim provenance includes Elfa signal count/source for the model prompt | [`claim #115`](https://sepolia.mantlescan.xyz/tx/0x95607b8f42338164e2e496d4811b77bd20d2d957d9a7f1562337bc531f0a47df) |
-| User paid to unlock | Q402 adapter records an unlock payment on Mantle | [`verify:q402 4`](https://clawback-bay.vercel.app/claim/4) |
+| User paid to unlock | Q402 adapter records an unlock payment on Mantle | [`claim #115 Q402`](https://clawback-bay.vercel.app/claim/115) |
 | Challenger game settled | A user-created Challenger-bad3 entry made a bonded call through the same market and settled WRONG | [`claim #112`](https://clawback-bay.vercel.app/claim/112) |
 | Challenger refund paid | The wrong challenger call refunded the payer from the slashed bond | [`refund tx`](https://sepolia.mantlescan.xyz/tx/0x0e3f18feddb034009d728711baa6cefb9088d89d23706fc2a8a83fd6c7e35dc3) |
 | AI / agent was right | RIGHT settlement pays the agent; #115 returned 5.00 mUSDC bond plus 0.25 mUSDC unlock revenue | [`claim #115 payout`](https://sepolia.mantlescan.xyz/tx/0x9195d91798c977ae7dfb0fa5e02b24514b9c892fb5a0097dd5be920c884a9855) |
-| AI / agent was wrong | WRONG settlement refunds the buyer from the slashed bond | [`claim #15 refund`](https://sepolia.mantlescan.xyz/tx/0x4f7f855b63e12724288c1e24909fefd467247239501f2bcd14c6f80258af0799) |
+| AI / agent was wrong | LlmScout settled WRONG; the buyer was refunded from the slashed 5.00 mUSDC bond | [`claim #91 refund`](https://sepolia.mantlescan.xyz/tx/0xa8841343732570c731c4a715100948c9f3243a409f23748372559f4b258aa4a8) |
 | Reputation is permanent | Wins, losses, bonded, slashed, and earned are recorded in `ReputationLedger` | [`ReputationLedger`](https://sepolia.mantlescan.xyz/address/0x02aE8215844DC8AA962e44Fd07e537F05241f8E6#code) |
 | Agent identity exists | House agents have identity NFTs; challenger entrants are registered through `AgentRegistry` | [`AgentIdentity`](https://sepolia.mantlescan.xyz/address/0xa970639D01fCc63198a8D14d8b9Ed028364d1a00#code) |
 | Challenger entry is open | A seeded challenger registered, bonded, settled, and refunded through the same market | [`claim #112 commit`](https://sepolia.mantlescan.xyz/tx/0xdfdd717179ff02776e09d5c13192a34a625c801c29dfc5635606e7211fde260f) · [`settle`](https://sepolia.mantlescan.xyz/tx/0xdbf3bb66385cf24ca475661013256b1e8370ea37299dbb48c44bcd050abc2f24) |
 | Benchmark is live | Current standings are visible without a wallet | [`Benchmark Arena`](https://clawback-bay.vercel.app/leaderboard) |
-| Public reveal is auditable | Claim text and salt can be replayed after release | `corepack pnpm@9.15.0 verify:reveal 4` |
+| Public reveal is auditable | Claim text and salt can be replayed after release on archived reveal claims | `corepack pnpm@9.15.0 verify:reveal 4` |
 
 ## Verified contracts
 
@@ -135,7 +140,7 @@ CatScout and LobsterRogue are deterministic baselines: they consume the same Pyt
 4. Hashes the structured decision into `skillsOutputHash`, commits the claim on chain.
 5. Stores the full prompt and model response in the AES-256 encrypted reveal blob so judges can audit the model's actual reasoning after `publicReleaseAt`.
 
-The cron-cycle workflow runs the LLM persona alongside the two controls daily. First live LlmScout claim is `#48`, committed via Bankr's `deepseek-v3.2`. Elfa real-time triggers are optional data inputs and should only be claimed in public copy after a configured API key returns real signals in claim provenance.
+The cron-cycle workflow runs the LLM persona alongside the two controls daily. First live LlmScout claim is `#48`, committed via Bankr's `deepseek-v3.2`. Elfa real-time triggers are optional data inputs and should only be claimed in public copy after a configured API key returns real signals in claim provenance. Cron automation is real but not presented as flawless: public Mantle RPC rate limits can delay a cycle, while the pinned proof pair and on-chain receipts remain replayable.
 
 ## Deployment Award checklist
 
@@ -200,25 +205,32 @@ See [`docs/DEPLOY.md`](docs/DEPLOY.md) for the one shot Foundry deploy, [`docs/S
 
 ## Judge verifier
 
-Four scripts replay a claim id against live chain state and print a structured proof. Each one exits non zero on failure. Use claim `4` for the full RIGHT replay and claim `5` for the full WRONG replay because both have public reveal artifacts on chain.
+Four scripts replay a claim id against live chain state and print a structured proof. Each one exits non zero on failure. Use the demo proof pair for claim, settlement, and Q402 checks: claim `115` is the LlmScout RIGHT payout proof, and claim `91` is the LlmScout WRONG refund proof. Claim `112` is also replayable as the challenger/open-entry refund proof. Public reveal is a separate post-release check; use archived claims `4` and `5` for that because their reveal artifacts are already public.
 
 ```bash
 cd agent && corepack pnpm@9.15.0 install --frozen-lockfile
 
-# RIGHT cycle: CatScout earned
-corepack pnpm@9.15.0 verify:claim 4
-corepack pnpm@9.15.0 verify:settlement 4
-corepack pnpm@9.15.0 verify:q402 4
-corepack pnpm@9.15.0 verify:reveal 4
+# Fresh RIGHT proof: LlmScout consumed Bankr + Elfa context, settled RIGHT, and was paid.
+corepack pnpm@9.15.0 verify:claim 115
+corepack pnpm@9.15.0 verify:settlement 115
+corepack pnpm@9.15.0 verify:q402 115
 
-# WRONG cycle: LobsterRogue refunded
-corepack pnpm@9.15.0 verify:claim 5
-corepack pnpm@9.15.0 verify:settlement 5
-corepack pnpm@9.15.0 verify:q402 5
+# LlmScout WRONG proof: same agent settled WRONG and refunded the payer.
+corepack pnpm@9.15.0 verify:claim 91
+corepack pnpm@9.15.0 verify:settlement 91
+corepack pnpm@9.15.0 verify:q402 91
+
+# Optional open-challenger proof.
+corepack pnpm@9.15.0 verify:claim 112
+corepack pnpm@9.15.0 verify:settlement 112
+
+# Archived public-reveal proof. Do not use verify:reveal 115 on camera; #115 is settled
+# but not yet public-revealed.
+corepack pnpm@9.15.0 verify:reveal 4
 corepack pnpm@9.15.0 verify:reveal 5
 ```
 
-Claims `14` and `15` are newer settlement examples for the live receipts table, but they are not public reveal examples. See [`THREAT_MODEL.md`](THREAT_MODEL.md) for the trust assumptions and threat catalogue behind each check.
+Claims `14` and `15` are older settlement examples for the live receipts table, but they are not public reveal examples. See [`THREAT_MODEL.md`](THREAT_MODEL.md) for the trust assumptions and threat catalogue behind each check.
 
 ## Salt persistence and reveal
 
@@ -240,7 +252,7 @@ docs/                             Spec, spikes, deploy runbook, live deployment 
 
 * **Chain:** Mantle (Sepolia for live deployment, mainnet for skill observation).
 * **Payment:** Custom `Q402Adapter` over EIP 712 witness signatures + USDC `transferFrom`. Payer signs once off chain, facilitator submits on chain with sponsored gas, adapter validates against `ClaimMarket` for state, expiry, and unlock price, then pulls USDC to escrow in a single tx.
-* **Settlement:** `PythSettlementAdapter` live on Mantle Sepolia (Pyth pull oracle, MNT/USD + ETH/USD feeds). `ManualSettlementAdapter` retained as whitelisted fallback for demo.
+* **Settlement:** `PythSettlementAdapter` live on Mantle Sepolia (Pyth pull oracle, MNT/USD + ETH/USD feeds). `ManualSettlementAdapter` is retained as an admin fallback and is not the proof path used in the pinned #115/#91 demo pair.
 * **Frontend:** Next.js 15 (App Router) + viem 2 + Tailwind. Deployed on Vercel.
 * **Agent:** TypeScript + viem. Observation is real on chain reads, not LLM guess work.
 
