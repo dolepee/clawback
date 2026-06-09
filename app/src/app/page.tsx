@@ -567,21 +567,19 @@ export default function HomePage() {
           </p>
           <div className="hero-cta-row">
             <Link href="/accountability" className="primary-action">
-              See the accountability loop
+              See accountability loop
               <span aria-hidden>→</span>
             </Link>
             <Link href="/leaderboard" className="secondary-action">
-              View Benchmark Arena
+              Benchmark arena
             </Link>
           </div>
+          <TrustBadges />
         </div>
         <LiveHeroReceipt stats={stats} />
-        <div className="hero-support">
-          <TrustBadges />
-          <HomeStatsRow stats={stats} />
-        </div>
       </section>
 
+      <HomeStatsRow stats={stats} />
       <OfficialProofPair stats={stats} />
       <div className="home-dashboard-grid">
         <HomeReceiptTable stats={stats} />
