@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MainnetSeason } from "@/components/MainnetSeason";
 import { EXPLORER } from "@/lib/addresses";
 import { buildSnapshotStats } from "@/lib/season-stats";
 import { formatDollar, shortHex } from "@/lib/format";
@@ -586,6 +587,7 @@ export default function HomePage() {
       </section>
 
       <HomeStatsRow stats={stats} />
+      <MainnetSeason />
       <OfficialProofPair stats={stats} />
       <div className="home-dashboard-grid">
         <HomeReceiptTable stats={stats} />

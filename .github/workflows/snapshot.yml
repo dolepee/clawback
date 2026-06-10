@@ -6,7 +6,7 @@ name: Snapshot refresh
 # claim/settle/reveal workflow, with an hourly schedule as a freshness backstop.
 on:
   workflow_run:
-    workflows: ["Cron Cycle", "Cron Resolve", "Cron Reveal"]
+    workflows: ["Cron Cycle", "Cron Resolve", "Cron Reveal", "Cron Mainnet"]
     types: [completed]
   schedule:
     - cron: "20 * * * *"
@@ -37,9 +37,12 @@ jobs:
       - name: build snapshot
         run: node scripts/build-snapshot.mjs
         working-directory: agent
+      - name: build mainnet snapshot
+        run: node scripts/build-mainnet-snapshot.mjs
+        working-directory: agent
       - name: commit snapshot if changed
         run: |
-          git add app/src/data/snapshot.json
+          git add app/src/data/snapshot.json app/src/data/snapshot-mainnet.json
           if git diff --cached --quiet; then
             echo "snapshot unchanged, nothing to commit"
             exit 0

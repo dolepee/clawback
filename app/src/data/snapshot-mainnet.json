@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-06-10T03:11:15.134Z",
+  "network": "mantle-mainnet",
+  "chainId": 5000,
+  "explorer": "https://mantlescan.xyz",
+  "scannedToBlock": "96465380",
+  "contracts": {
+    "agentRegistry": "0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd",
+    "claimMarket": "0x734c3037AEb58E5B60338C74318224bb5Dd70DB8",
+    "clawbackEscrow": "0xb4726194AEDA8677d2504b1c3B38bbA653cEDaEd",
+    "reputationLedger": "0x02e5A959253588D3ef5370fE7A8fdA990AD27B3e",
+    "pythSettlementAdapter": "0x9fE7585cd038Bf35d05dc153ae2E2612D8d4DfeD",
+    "q402Adapter": "0xAbA92B00871C8fE5975d297419109780D010444E",
+    "agentIdentity": "0x45a2802dcbf8fda3715f4cba7e59531da6161301",
+    "usdc": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9"
+  },
+  "totals": {
+    "claims": 2,
+    "unlocks": 2,
+    "settledRight": 0,
+    "settledWrong": 0,
+    "atStakeUsdc": "1500000",
+    "refundedUsdc": "0",
+    "earnedUsdc": "0"
+  },
+  "agents": [
+    {
+      "agentId": 1,
+      "handle": "LlmScout",
+      "wins": 0,
+      "losses": 0
+    },
+    {
+      "agentId": 2,
+      "handle": "LobsterRogue",
+      "wins": 0,
+      "losses": 0
+    }
+  ],
+  "claims": [
+    {
+      "id": 2,
+      "agentId": 2,
+      "handle": "LobsterRogue",
+      "bondUsdc": "1000000",
+      "unlockUsdc": "50000",
+      "expiry": 1781081136,
+      "commitTx": "0xfbf36ea8e18f3489547cc96e4d183b7f2d01f36de75a3f29fb1c3d9c66def3e1",
+      "unlocked": true,
+      "unlockTx": "0x6562e2819e7e30c237dab1e4b1d43906b3d86d54a45d6dac042f8f09f686a764",
+      "settled": false,
+      "agentRight": null,
+      "settleTx": null,
+      "refundTx": null,
+      "refundUsdc": null,
+      "payoutTx": null,
+      "payoutUsdc": null
+    },
+    {
+      "id": 1,
+      "agentId": 1,
+      "handle": "LlmScout",
+      "bondUsdc": "500000",
+      "unlockUsdc": "25000",
+      "expiry": 1781081117,
+      "commitTx": "0x894d3feadae0987b5c53b75944f019e1188692e5e51370d26741a1ee30102b39",
+      "unlocked": true,
+      "unlockTx": "0x0fc7c827d8ba6e6b5a6caacd466d076b72fce74fcd64bb371c5ab5b74a7b9ecf",
+      "settled": false,
+      "agentRight": null,
+      "settleTx": null,
+      "refundTx": null,
+      "refundUsdc": null,
+      "payoutTx": null,
+      "payoutUsdc": null
+    }
+  ]
+}
