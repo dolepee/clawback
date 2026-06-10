@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-10T09:03:04.743Z",
+  "generatedAt": "2026-06-10T10:01:52.285Z",
   "network": "mantle-mainnet",
   "chainId": 5000,
   "explorer": "https://mantlescan.xyz",
-  "scannedToBlock": "96475935",
+  "scannedToBlock": "96477698",
   "contracts": {
     "agentRegistry": "0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd",
     "claimMarket": "0x734c3037AEb58E5B60338C74318224bb5Dd70DB8",
@@ -18,9 +18,9 @@
     "claims": 2,
     "unlocks": 2,
     "settledRight": 0,
-    "settledWrong": 0,
-    "atStakeUsdc": "1500000",
-    "refundedUsdc": "0",
+    "settledWrong": 2,
+    "atStakeUsdc": "0",
+    "refundedUsdc": "112500",
     "earnedUsdc": "0"
   },
   "agents": [
@@ -28,13 +28,13 @@
       "agentId": 1,
       "handle": "LlmScout",
       "wins": 0,
-      "losses": 0
+      "losses": 1
     },
     {
       "agentId": 2,
       "handle": "LobsterRogue",
       "wins": 0,
-      "losses": 0
+      "losses": 1
     }
   ],
   "claims": [
@@ -48,11 +48,11 @@
       "commitTx": "0xfbf36ea8e18f3489547cc96e4d183b7f2d01f36de75a3f29fb1c3d9c66def3e1",
       "unlocked": true,
       "unlockTx": "0x6562e2819e7e30c237dab1e4b1d43906b3d86d54a45d6dac042f8f09f686a764",
-      "settled": false,
-      "agentRight": null,
-      "settleTx": null,
-      "refundTx": null,
-      "refundUsdc": null,
+      "settled": true,
+      "agentRight": false,
+      "settleTx": "0xa8cfe175f861799025f11af6840c639a395fe0e41dc8d454442e8480306ec931",
+      "refundTx": "0xcaa2eb1163f0b0988be67fbd54fee7cfcf0d7220b4f3e9aae62a29f9c48f7b7f",
+      "refundUsdc": "75000",
       "payoutTx": null,
       "payoutUsdc": null
     },
@@ -66,11 +66,11 @@
       "commitTx": "0x894d3feadae0987b5c53b75944f019e1188692e5e51370d26741a1ee30102b39",
       "unlocked": true,
       "unlockTx": "0x0fc7c827d8ba6e6b5a6caacd466d076b72fce74fcd64bb371c5ab5b74a7b9ecf",
-      "settled": false,
-      "agentRight": null,
-      "settleTx": null,
-      "refundTx": null,
-      "refundUsdc": null,
+      "settled": true,
+      "agentRight": false,
+      "settleTx": "0x7b83e00cb115dabe39b1b07a08a3d858087139911dc5566e424cdff7e0822a88",
+      "refundTx": "0x337ce880cf2050c909d5bf4a639ccda8c46a12cec8d323697e15abcfed253e49",
+      "refundUsdc": "37500",
       "payoutTx": null,
       "payoutUsdc": null
     }
