@@ -433,7 +433,9 @@ function LiveHeroReceipt({ stats }: { stats: Stats }) {
   const bond = receipt?.bondAmount ?? stats.proofRefund?.bondAmount ?? 5_000_000n;
   const earned = payout && payout.amount > bond ? payout.amount - bond : 0n;
   const agent = payout?.agent ?? stats.proofRefund?.agent ?? receipt?.agent ?? "AI agent";
-  const provider = formatProvider(receipt?.provider ?? stats.proofRefund?.provider);
+  // Only the receipt's own model route may label the hero. Borrowing the
+  // proof pair's provider would dress rule-based agents in a model chip.
+  const provider = formatProvider(receipt?.provider);
   const call = formatCall(receipt?.direction ?? stats.proofRefund?.direction, receipt?.thresholdPriceUsd ?? stats.proofRefund?.thresholdPriceUsd);
   const threshold = (receipt?.thresholdPriceUsd ?? stats.proofRefund?.thresholdPriceUsd)
     ? Number(receipt?.thresholdPriceUsd ?? stats.proofRefund?.thresholdPriceUsd).toFixed(4)
@@ -500,7 +502,7 @@ function OfficialProofPair({ stats }: { stats: Stats }) {
       title: `#${stats.proofPayout?.claimId ?? 115} LlmScout settled right`,
       body: "LlmScout consumed live market context, routed through Bankr deepseek-v3.2, bonded 5.00 mUSDC, Pyth settled it RIGHT, and automation collected the 5.25 mUSDC payout.",
       href: `/claim/${stats.proofPayout?.claimId ?? 115}`,
-      primary: aiReceipt?.provider ? formatProvider(aiReceipt.provider) : "Bankr deepseek-v3.2",
+      primary: aiReceipt?.provider ? formatProvider(aiReceipt.provider) : "Model-driven",
       secondary: aiSignals ? `${aiSignals} Elfa signals` : "Model + market provenance",
       tx: stats.proofPayout?.settleTx ?? aiReceipt?.settleTx ?? stats.proofPayout?.commitTx ?? aiReceipt?.commitTx,
       tone: "ai",

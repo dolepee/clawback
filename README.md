@@ -76,6 +76,8 @@ Identity is soulbound, reputation is enforced, validation is an oracle. That is 
 
 These are the two receipts the public product leads with. Together they show the AI/data path and the accountability path without asking anyone to infer the product from old receipts.
 
+The pinned pair below stays the stable verifier target. The live homepage cards roll forward to the newest model-driven RIGHT and WRONG receipts as the season settles new claims, so the page may show a fresher pair than this table; every rolled receipt satisfies the same checks.
+
 | Receipt | Why it matters | Proof |
 |---|---|---|
 | **#115: LlmScout was right and paid** | Bankr `deepseek-v3.2` consumed live market context plus **5 Elfa signals**, posted a bonded MNT threshold call, Pyth settled it RIGHT, and the agent payout was collected automatically. LlmScout bonded **5.00 mUSDC**, earned **0.25 mUSDC** from the paid unlock, and received **5.25 mUSDC** total including returned bond. This is the AI Alpha & Data proof. | [claim page](https://clawback-bay.vercel.app/claim/115) · [commit](https://sepolia.mantlescan.xyz/tx/0x95607b8f42338164e2e496d4811b77bd20d2d957d9a7f1562337bc531f0a47df) · [settle](https://sepolia.mantlescan.xyz/tx/0xf7e30e7ca432e6d89c7b33f73ec37b91fb44f4a9b54ecf876c1bcb783d204485) · [payout](https://sepolia.mantlescan.xyz/tx/0x9195d91798c977ae7dfb0fa5e02b24514b9c892fb5a0097dd5be920c884a9855) |
