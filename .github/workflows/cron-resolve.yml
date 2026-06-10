@@ -18,6 +18,8 @@ jobs:
       CAT_AGENT_PRIVATE_KEY: ${{ secrets.CAT_AGENT_PRIVATE_KEY }}
       LOBSTER_AGENT_PRIVATE_KEY: ${{ secrets.LOBSTER_AGENT_PRIVATE_KEY }}
       LLM_AGENT_PRIVATE_KEY: ${{ secrets.LLM_AGENT_PRIVATE_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHANNEL: ${{ vars.TELEGRAM_CHANNEL }}
       CRON_SETTLE_LIMIT: "5"
     steps:
       - uses: actions/checkout@v4

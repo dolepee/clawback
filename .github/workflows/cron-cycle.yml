@@ -33,6 +33,8 @@ jobs:
       # prompt context. Without it, LlmScout falls back to Pyth +
       # Merchant Moe observation alone.
       ELFA_API_KEY: ${{ secrets.ELFA_API_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHANNEL: ${{ vars.TELEGRAM_CHANNEL }}
       ELFA_BASE_URL: ${{ secrets.ELFA_BASE_URL }}
       ELFA_SYMBOL: ${{ secrets.ELFA_SYMBOL }}
     steps:

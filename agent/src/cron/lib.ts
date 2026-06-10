@@ -23,6 +23,7 @@ import { join } from "node:path";
 import { buildClaim, hashClaimText } from "../claim.js";
 import { fetchPythPriceE8, fetchPythUpdateBundle } from "../pyth.js";
 import { hashSkillsOutput, runSkill, type SkillsOutput } from "../skills.js";
+import { sendTelegram, usd } from "../telegram.js";
 
 const DEFAULTS = {
   rpc: "https://rpc.sepolia.mantle.xyz",
@@ -726,6 +727,16 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
   console.log(`expiry=${new Date(claim.expiry * 1000).toISOString()}`);
   console.log(`claimHash=${claimHash}`);
   console.log(`skillsOutputHash=${skillsOutputHash}`);
+
+  const econ = personaEconomics(persona);
+  await sendTelegram(
+    [
+      `${persona.handle} bonded a sealed price call on ${activeChain.name}`,
+      `Bond at risk: ${usd(econ.bondAmount)} ${IS_MAINNET ? "real USDC" : "mUSDC"} · unlock ${usd(econ.unlockPrice)} · settles ${new Date(claim.expiry * 1000).toISOString().slice(0, 16)}Z`,
+      `Wrong = bond slashed, buyers refunded. Right = agent earns.`,
+      `Receipt: ${activeChain.blockExplorers.default.url}/tx/${txHash}`,
+    ].join("\n"),
+  );
 }
 
 export async function unlockClaims(): Promise<void> {
@@ -787,6 +798,9 @@ export async function unlockClaims(): Promise<void> {
     console.log(`amount=${claim.unlockPrice}`);
     console.log(`tx=${txHash}`);
     console.log(`block=${receipt.blockNumber}`);
+    await sendTelegram(
+      `Claim #${claimId} unlocked for ${usd(claim.unlockPrice)} on ${activeChain.name}. The buyer is now covered by the bond.\nReceipt: ${activeChain.blockExplorers.default.url}/tx/${txHash}`,
+    );
   }
   if (completed === 0) console.log("CLAWBACK_Q402_UNLOCKED none");
 }
@@ -835,6 +849,9 @@ export async function settleClaims(): Promise<void> {
       console.log(`tx=${txHash}`);
       console.log(`fee=${fee}`);
       console.log(`block=${receipt.blockNumber}`);
+      await sendTelegram(
+        `Pyth settled claim #${claimId} on ${activeChain.name}: the agent was ${accounting.agentRight ? "RIGHT. Bond returns, agent earns the unlocks." : "WRONG. Bond slashed, buyers get refunded."}\nReceipt: ${activeChain.blockExplorers.default.url}/tx/${txHash}`,
+      );
       for (const snapshot of bundle.snapshots) {
         console.log(`priceFeed=${snapshot.id} priceE8=${snapshot.priceE8} publishTime=${snapshot.publishTime}`);
       }
@@ -929,6 +946,9 @@ async function processClaimForCollect(
     console.log(`recipient=${entry.account.address}`);
     console.log(`tx=${txHash}`);
     console.log(`block=${receipt.blockNumber}`);
+    await sendTelegram(
+      `RIGHT call paid out: ${entry.persona.handle} collected bond + unlock revenue on claim #${claimId} (${activeChain.name}).\nReceipt: ${activeChain.blockExplorers.default.url}/tx/${txHash}`,
+    );
   } else {
     const already = await withRetry(() => client.readContract({ address: addrs.clawbackEscrow, abi: ESCROW_ABI, functionName: "refundClaimed", args: [claimId, payer.address] }), 3, 800);
     const paid = await withRetry(() => client.readContract({ address: addrs.clawbackEscrow, abi: ESCROW_ABI, functionName: "paidAmount", args: [payer.address, claimId] }), 3, 800);
@@ -950,6 +970,9 @@ async function processClaimForCollect(
     console.log(`amount=${claimable[0] + claimable[1]}`);
     console.log(`tx=${txHash}`);
     console.log(`block=${receipt.blockNumber}`);
+    await sendTelegram(
+      `WRONG call clawed back on #${claimId} (${activeChain.name}): buyer refunded ${usd(claimable[0])} + ${usd(claimable[1])} bonus from the slashed bond.\nReceipt: ${activeChain.blockExplorers.default.url}/tx/${txHash}`,
+    );
   }
 }
 
