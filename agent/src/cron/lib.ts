@@ -39,6 +39,28 @@ const DEFAULTS = {
   ethFeed: "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
 } as const;
 
+// CLAWBACK_NETWORK=mainnet flips the whole cron + verifier stack to the
+// Mantle mainnet season: chain id 5000, real USDC, contract addresses
+// strictly from MAINNET_* env (never the Sepolia defaults, never the
+// generic env names a local .env may set for Sepolia), bonds at one
+// tenth of the Sepolia sizes, network-scoped provenance directories,
+// and no MockUSDC self-minting. Default behavior (unset / "sepolia")
+// is byte-identical to the original single-lane setup.
+export const IS_MAINNET = (process.env.CLAWBACK_NETWORK ?? "sepolia").toLowerCase() === "mainnet";
+const ECON_DIVISOR = IS_MAINNET ? 10n : 1n;
+
+const MAINNET_DEFAULTS = {
+  rpc: "https://rpc.mantle.xyz",
+  explorer: "https://mantlescan.xyz",
+  usdc: "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
+  pyth: "0xA2aa501b19aff244D90cc15a4Cf739D2725B5729",
+} as const;
+
+// Claim ids overlap across chains, so each lane keeps its own provenance
+// and reveal-vault directories.
+export const RUNS_DIR = IS_MAINNET ? "cron-runs-mainnet" : "cron-runs";
+export const PRIVATE_DIR = IS_MAINNET ? "cron-private-mainnet" : "cron-private";
+
 const AGENT_REGISTRY_ABI = parseAbi([
   "function registerAgent(string handle, uint8 faction, bytes32 metadataHash) returns (uint256)",
   "function agentIdByOwner(address) view returns (uint256)",
@@ -194,6 +216,14 @@ export type AccountingView = {
 };
 
 export function personaKeys(): PersonaKey[] {
+  // Explicit rotation override (e.g. the mainnet lane runs only
+  // "llm-scout,lobster-rogue" to keep real-money working capital small).
+  const override = process.env.CRON_PERSONAS;
+  if (override) {
+    const parsed = override.split(",").map((s) => s.trim()).filter(Boolean);
+    for (const key of parsed) getPersona(key);
+    return parsed as PersonaKey[];
+  }
   // llm-scout is opt-in via env: it only enters the rotation when both the
   // wallet key and an LLM provider key are configured. This keeps the cron
   // healthy on fresh clones that have not set up the LLM yet.
@@ -213,6 +243,15 @@ function collectPersonaKeys(): PersonaKey[] {
     keys.push("llm-scout");
   }
   return keys;
+}
+
+// Per-network claim economics. The persona table holds the Sepolia base
+// sizes; the mainnet season runs real USDC at one tenth of them.
+export function personaEconomics(persona: PersonaConfig): { bondAmount: bigint; unlockPrice: bigint } {
+  return {
+    bondAmount: persona.bondAmount / ECON_DIVISOR,
+    unlockPrice: persona.unlockPrice / ECON_DIVISOR,
+  };
 }
 
 export function getPersona(key: string): PersonaConfig {
@@ -237,6 +276,22 @@ function firstEnv(keys: string[]): string {
 }
 
 export function addresses() {
+  if (IS_MAINNET) {
+    // Mainnet contract addresses come exclusively from MAINNET_* env so a
+    // local .env holding Sepolia values can never cross the lanes.
+    return {
+      agentRegistry: env("MAINNET_AGENT_REGISTRY") as Address,
+      claimMarket: env("MAINNET_CLAIM_MARKET") as Address,
+      clawbackEscrow: env("MAINNET_CLAWBACK_ESCROW") as Address,
+      reputationLedger: env("MAINNET_REPUTATION_LEDGER") as Address,
+      pythSettlementAdapter: env("MAINNET_PYTH_SETTLEMENT_ADAPTER") as Address,
+      q402Adapter: env("MAINNET_Q402_ADAPTER") as Address,
+      usdc: env("MAINNET_USDC_ADDRESS", MAINNET_DEFAULTS.usdc) as Address,
+      pyth: env("MAINNET_PYTH_CONTRACT", MAINNET_DEFAULTS.pyth) as Address,
+      mntFeed: env("PYTH_MNT_USD_FEED_ID", DEFAULTS.mntFeed) as Hex,
+      ethFeed: env("PYTH_ETH_USD_FEED_ID", DEFAULTS.ethFeed) as Hex,
+    };
+  }
   return {
     agentRegistry: env("AGENT_REGISTRY", DEFAULTS.agentRegistry) as Address,
     claimMarket: env("CLAIM_MARKET", DEFAULTS.claimMarket) as Address,
@@ -251,14 +306,28 @@ export function addresses() {
   };
 }
 
-export const mantleSepolia = defineChain({
-  id: 5003,
-  name: "Mantle Sepolia",
+function primaryRpc(): string {
+  return IS_MAINNET
+    ? env("MANTLE_RPC_URL", MAINNET_DEFAULTS.rpc)
+    : env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc);
+}
+
+export const activeChain = defineChain({
+  id: IS_MAINNET ? 5000 : 5003,
+  name: IS_MAINNET ? "Mantle" : "Mantle Sepolia",
   nativeCurrency: { name: "MNT", symbol: "MNT", decimals: 18 },
-  rpcUrls: { default: { http: [env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc)] } },
-  blockExplorers: { default: { name: "Mantle Sepolia Explorer", url: DEFAULTS.explorer } },
-  testnet: true,
+  rpcUrls: { default: { http: [primaryRpc()] } },
+  blockExplorers: {
+    default: {
+      name: IS_MAINNET ? "Mantlescan" : "Mantle Sepolia Explorer",
+      url: IS_MAINNET ? MAINNET_DEFAULTS.explorer : DEFAULTS.explorer,
+    },
+  },
+  testnet: !IS_MAINNET,
 });
+
+// Legacy export name: every consumer follows CLAWBACK_NETWORK through this.
+export const mantleSepolia = activeChain;
 
 // Some Mantle Sepolia RPC providers (drpc.org in particular) return
 // "Unknown block" (code 26) immediately after a tx is submitted, before they
@@ -272,20 +341,22 @@ const RPC_TRANSPORT_OPTS = {
 } as const;
 
 // Sticky-order fallback: the env-configured endpoint stays primary; the
-// independent public endpoint only serves requests the primary fails through
+// independent public endpoints only serve requests the primary fails through
 // all retries (a single dropped request killed two cron cycles on 2026-06-09).
-const SEPOLIA_FALLBACK_RPC = "https://mantle-sepolia.drpc.org";
+const NETWORK_FALLBACK_RPCS = IS_MAINNET
+  ? ["https://mantle-rpc.publicnode.com", "https://mantle.drpc.org"]
+  : ["https://mantle-sepolia.drpc.org"];
 
-function sepoliaTransport() {
-  const primary = env("MANTLE_SEPOLIA_RPC_URL", DEFAULTS.rpc);
-  const urls = primary === SEPOLIA_FALLBACK_RPC ? [primary] : [primary, SEPOLIA_FALLBACK_RPC];
+function networkTransport() {
+  const primary = primaryRpc();
+  const urls = [primary, ...NETWORK_FALLBACK_RPCS.filter((u) => u !== primary)];
   return fallback(urls.map((u) => http(u, RPC_TRANSPORT_OPTS)), { rank: false });
 }
 
 export function publicClient(): PublicClient {
   return createPublicClient({
-    chain: mantleSepolia,
-    transport: sepoliaTransport(),
+    chain: activeChain,
+    transport: networkTransport(),
   }) as PublicClient;
 }
 
@@ -296,8 +367,8 @@ export function accountFromPrivateKey(privateKey: string): PrivateKeyAccount {
 export function walletClient(account: PrivateKeyAccount): WalletClient {
   return createWalletClient({
     account,
-    chain: mantleSepolia,
-    transport: sepoliaTransport(),
+    chain: activeChain,
+    transport: networkTransport(),
   }) as WalletClient;
 }
 
@@ -559,15 +630,15 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     agentId,
     marketId: MARKET_ID_THRESHOLD,
     claimText,
-    bondAmount: persona.bondAmount,
-    unlockPrice: persona.unlockPrice,
+    bondAmount: personaEconomics(persona).bondAmount,
+    unlockPrice: personaEconomics(persona).unlockPrice,
     expiry: Number(expiry),
     publicReleaseAt: Number(expiry + publicReleaseExtra),
     skillsOutputHash,
   });
   const claimHash = hashClaimText(claim.claimText, claim.salt);
 
-  await approveIfNeeded(account, addrs.usdc, addrs.clawbackEscrow, persona.bondAmount, client, wallet, "bond");
+  await approveIfNeeded(account, addrs.usdc, addrs.clawbackEscrow, personaEconomics(persona).bondAmount, client, wallet, "bond");
 
   const txHash = await wallet.writeContract({
     address: addrs.claimMarket,
@@ -576,8 +647,8 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
     args: [
       agentId,
       claimHash,
-      persona.bondAmount,
-      persona.unlockPrice,
+      personaEconomics(persona).bondAmount,
+      personaEconomics(persona).unlockPrice,
       BigInt(claim.expiry),
       BigInt(claim.publicReleaseAt),
       MARKET_ID_THRESHOLD,
@@ -902,7 +973,7 @@ async function recentPriceHistory(limit: number): Promise<Array<{ publishTime: n
   // GitHub Actions runner after actions/checkout. Returns up to `limit`
   // snapshots (newest first by file scan, sorted oldest→newest at the
   // call site) so the LLM has volatility context for confidence calibration.
-  const root = join(process.cwd(), "cron-runs");
+  const root = join(process.cwd(), RUNS_DIR);
   let days: string[];
   try {
     days = (await readdir(root)).sort().reverse();
@@ -946,7 +1017,7 @@ interface PrivateClaimRecord {
 }
 
 async function loadPrivateClaimRecord(claimId: bigint): Promise<PrivateClaimRecord | null> {
-  const root = join(process.cwd(), "cron-private");
+  const root = join(process.cwd(), PRIVATE_DIR);
   let days: string[];
   try {
     days = await readdir(root);
@@ -966,7 +1037,7 @@ async function loadPrivateClaimRecord(claimId: bigint): Promise<PrivateClaimReco
 }
 
 async function findPublicCommitPath(claimId: bigint): Promise<string | null> {
-  const root = join(process.cwd(), "cron-runs");
+  const root = join(process.cwd(), RUNS_DIR);
   let days: string[];
   try {
     days = await readdir(root);
@@ -1036,7 +1107,7 @@ export async function revealClaims(): Promise<void> {
       console.log(`provenance=${commitPath} reveal=merged`);
     } else {
       const day = new Date().toISOString().slice(0, 10);
-      const dir = join(process.cwd(), "cron-runs", day);
+      const dir = join(process.cwd(), RUNS_DIR, day);
       await mkdir(dir, { recursive: true });
       const path = join(dir, `claim-${claimId}.json`);
       await writeFile(
@@ -1075,6 +1146,12 @@ export async function preflight(): Promise<void> {
       client.readContract({ address: addrs.usdc, abi: ERC20_ABI, functionName: "balanceOf", args: [actor.account.address] }),
     ]);
     console.log(`${actor.label} ${actor.account.address} MNT=${mnt} USDC=${usdc}`);
+    // Real USDC is never minted: on mainnet a low balance is reported and
+    // the commit/unlock step fails loudly if truly short.
+    if (IS_MAINNET) {
+      if (usdc === 0n) console.warn(`  ! ${actor.label} holds no mainnet USDC; bond/unlock will revert if it needs any`);
+      continue;
+    }
     if (usdc < MIN_USDC_BALANCE) {
       console.log(`  → topping up ${actor.label} with ${TOPUP_AMOUNT} mUSDC (current ${usdc} < min ${MIN_USDC_BALANCE})`);
       const txHash = await minterWallet.writeContract({
@@ -1138,7 +1215,7 @@ async function writeProvenance(
   opts: { visibility: "public" | "private" } = { visibility: "public" },
 ): Promise<void> {
   const day = new Date().toISOString().slice(0, 10);
-  const root = opts.visibility === "private" ? "cron-private" : "cron-runs";
+  const root = opts.visibility === "private" ? PRIVATE_DIR : RUNS_DIR;
   const dir = join(process.cwd(), root, day);
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, `claim-${claimId}.json`), `${JSON.stringify(payload, null, 2)}\n`);

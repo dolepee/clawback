@@ -1,0 +1,201 @@
+name: Cron Mainnet
+
+# Mantle mainnet season lane. Dispatch-only by design until the mainnet
+# deployment is live and proven; a schedule is added after the first clean
+# cycle + resolve. Contract addresses come from repo variables (MAINNET_*)
+# so this file never changes on redeploy, and the lane writes its own
+# provenance dirs (cron-runs-mainnet/, cron-private-encrypted-mainnet/) so
+# it can never collide with the Sepolia season.
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "Which stage to run"
+        type: choice
+        options: [cycle, resolve, reveal]
+        default: cycle
+
+permissions:
+  contents: write
+
+env:
+  CLAWBACK_NETWORK: mainnet
+  CRON_PERSONAS: "llm-scout,lobster-rogue"
+  MANTLE_RPC_URL: https://rpc.mantle.xyz
+  MAINNET_AGENT_REGISTRY: ${{ vars.MAINNET_AGENT_REGISTRY }}
+  MAINNET_CLAIM_MARKET: ${{ vars.MAINNET_CLAIM_MARKET }}
+  MAINNET_CLAWBACK_ESCROW: ${{ vars.MAINNET_CLAWBACK_ESCROW }}
+  MAINNET_REPUTATION_LEDGER: ${{ vars.MAINNET_REPUTATION_LEDGER }}
+  MAINNET_PYTH_SETTLEMENT_ADAPTER: ${{ vars.MAINNET_PYTH_SETTLEMENT_ADAPTER }}
+  MAINNET_Q402_ADAPTER: ${{ vars.MAINNET_Q402_ADAPTER }}
+  LOBSTER_AGENT_PRIVATE_KEY: ${{ secrets.LOBSTER_AGENT_PRIVATE_KEY }}
+  LLM_AGENT_PRIVATE_KEY: ${{ secrets.LLM_AGENT_PRIVATE_KEY }}
+  PAYER_PRIVATE_KEY: ${{ secrets.PAYER_PRIVATE_KEY }}
+  SETTLER_PRIVATE_KEY: ${{ secrets.SETTLER_PRIVATE_KEY }}
+  BANKR_LLM_KEY: ${{ secrets.BANKR_LLM_KEY }}
+  BANKR_LLM_MODEL: ${{ secrets.BANKR_LLM_MODEL }}
+  ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
+  LLM_REQUIRE_PROVIDER_SUCCESS: "1"
+  LLM_SKIP_ON_PROVIDER_FAILURE: "1"
+  ELFA_API_KEY: ${{ secrets.ELFA_API_KEY }}
+  ELFA_BASE_URL: ${{ secrets.ELFA_BASE_URL }}
+  ELFA_SYMBOL: ${{ secrets.ELFA_SYMBOL }}
+
+jobs:
+  cycle:
+    if: inputs.stage == 'cycle'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: agent/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+
+      - name: balance preflight
+        run: pnpm tsx src/cron/preflight.ts
+
+      - name: commit llm-scout
+        run: pnpm tsx src/cron/commit.ts llm-scout
+
+      - name: commit lobster
+        run: pnpm tsx src/cron/commit.ts lobster-rogue
+
+      - name: unlock new claims
+        run: pnpm tsx src/cron/unlock.ts
+
+      - name: encrypt mainnet salts
+        env:
+          CRON_PRIVATE_KEY: ${{ secrets.CRON_PRIVATE_KEY }}
+        run: |
+          if [ -z "$CRON_PRIVATE_KEY" ]; then
+            echo "::error::CRON_PRIVATE_KEY secret missing — cannot persist salts for reveal"
+            exit 1
+          fi
+          if [ ! -d cron-private-mainnet ]; then
+            echo "no cron-private-mainnet dir produced this run"
+            exit 0
+          fi
+          find cron-private-mainnet -type f -name "*.json" -print0 | while IFS= read -r -d '' f; do
+            rel="${f#cron-private-mainnet/}"
+            out="cron-private-encrypted-mainnet/${rel}.enc"
+            mkdir -p "$(dirname "$out")"
+            openssl enc -aes-256-cbc -pbkdf2 -salt -in "$f" -out "$out" -pass "env:CRON_PRIVATE_KEY"
+            echo "encrypted $f -> $out"
+          done
+
+      - name: commit provenance
+        working-directory: .
+        run: |
+          git config user.name "clawback-cron"
+          git config user.email "cron@clawback.local"
+          git pull --rebase --autostash origin main
+          git add agent/cron-runs-mainnet/ agent/cron-private-encrypted-mainnet/ || true
+          if git diff --staged --quiet; then
+            echo "no provenance changes"
+          else
+            git commit -m "cron mainnet provenance $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+  resolve:
+    if: inputs.stage == 'resolve'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: agent/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+
+      - name: settle expired claims
+        run: pnpm tsx src/cron/settle.ts
+
+      - name: collect refunds and earnings
+        run: pnpm tsx src/cron/collect.ts
+
+      - name: commit provenance
+        working-directory: .
+        run: |
+          git config user.name "clawback-cron"
+          git config user.email "cron@clawback.local"
+          git pull --rebase --autostash origin main
+          git add agent/cron-runs-mainnet/ || true
+          if git diff --staged --quiet; then
+            echo "no provenance changes"
+          else
+            git commit -m "cron mainnet resolve $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+  reveal:
+    if: inputs.stage == 'reveal'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: agent/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+
+      - name: decrypt mainnet salts
+        env:
+          CRON_PRIVATE_KEY: ${{ secrets.CRON_PRIVATE_KEY }}
+        run: |
+          if [ -z "$CRON_PRIVATE_KEY" ]; then
+            echo "::error::CRON_PRIVATE_KEY secret missing — cannot decrypt reveal vault"
+            exit 1
+          fi
+          if [ ! -d cron-private-encrypted-mainnet ]; then
+            echo "no encrypted mainnet vault yet"
+            exit 0
+          fi
+          find cron-private-encrypted-mainnet -type f -name "*.enc" -print0 | while IFS= read -r -d '' f; do
+            rel="${f#cron-private-encrypted-mainnet/}"
+            out="cron-private-mainnet/${rel%.enc}"
+            mkdir -p "$(dirname "$out")"
+            openssl enc -d -aes-256-cbc -pbkdf2 -in "$f" -out "$out" -pass "env:CRON_PRIVATE_KEY"
+            echo "decrypted $f -> $out"
+          done
+
+      - name: public reveal due claims
+        run: pnpm tsx src/cron/reveal.ts
+
+      - name: commit provenance
+        working-directory: .
+        run: |
+          git config user.name "clawback-cron"
+          git config user.email "cron@clawback.local"
+          git pull --rebase --autostash origin main
+          git add agent/cron-runs-mainnet/ || true
+          if git diff --staged --quiet; then
+            echo "no provenance changes"
+          else
+            git commit -m "cron mainnet reveal $(date -u +%Y-%m-%d)"
+            git push
+          fi

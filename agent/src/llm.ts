@@ -189,7 +189,7 @@ export async function decideThresholdClaim(
       ].join("\n")
     : null;
   const userPrompt = [
-    `Live Mantle Sepolia observation at block ${observation.blockNumber}:`,
+    `Live Mantle market observation at block ${observation.blockNumber}:`,
     `- ${observation.pair} = ${observation.observedPrice}`,
     `- MNT/USDT (Merchant Moe) = ${observation.mntPriceUsdt}`,
     `- mETH/USDT (Merchant Moe) = ${observation.methPriceUsdt}`,
