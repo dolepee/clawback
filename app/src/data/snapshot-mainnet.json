@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-10T12:48:01.365Z",
+  "generatedAt": "2026-06-10T13:58:31.556Z",
   "network": "mantle-mainnet",
   "chainId": 5000,
   "explorer": "https://mantlescan.xyz",
-  "scannedToBlock": "96482683",
+  "scannedToBlock": "96484798",
   "contracts": {
     "agentRegistry": "0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd",
     "claimMarket": "0x734c3037AEb58E5B60338C74318224bb5Dd70DB8",
@@ -15,11 +15,11 @@
     "usdc": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9"
   },
   "totals": {
-    "claims": 2,
-    "unlocks": 2,
+    "claims": 4,
+    "unlocks": 4,
     "settledRight": 0,
     "settledWrong": 2,
-    "atStakeUsdc": "0",
+    "atStakeUsdc": "1500000",
     "refundedUsdc": "112500",
     "earnedUsdc": "0"
   },
@@ -38,6 +38,42 @@
     }
   ],
   "claims": [
+    {
+      "id": 4,
+      "agentId": 2,
+      "handle": "LobsterRogue",
+      "bondUsdc": "1000000",
+      "unlockUsdc": "50000",
+      "expiry": 1781121393,
+      "commitTx": "0xa9415f48ce9900a90d8c169d5357fbe761cd36ec3d93f1c86f257226e1b84cff",
+      "unlocked": true,
+      "unlockTx": "0x9cb31e1179efb81decbc08e32c1b4ef32828d3212e6a74ec1434ae79314da057",
+      "settled": false,
+      "agentRight": null,
+      "settleTx": null,
+      "refundTx": null,
+      "refundUsdc": null,
+      "payoutTx": null,
+      "payoutUsdc": null
+    },
+    {
+      "id": 3,
+      "agentId": 1,
+      "handle": "LlmScout",
+      "bondUsdc": "500000",
+      "unlockUsdc": "25000",
+      "expiry": 1781121384,
+      "commitTx": "0x943f901309076177aa9ce12e8c7ed70233247393849b25fb4c7cf42bedd6cff6",
+      "unlocked": true,
+      "unlockTx": "0xd6a9d0bb166fd91c67b4b554e4da16d2819c0bd8946facd2058088eeea45b915",
+      "settled": false,
+      "agentRight": null,
+      "settleTx": null,
+      "refundTx": null,
+      "refundUsdc": null,
+      "payoutTx": null,
+      "payoutUsdc": null
+    },
     {
       "id": 2,
       "agentId": 2,
