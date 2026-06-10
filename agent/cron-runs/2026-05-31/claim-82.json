@@ -66,5 +66,11 @@
     "fellBack": true,
     "confidenceBps": 6000,
     "modelConfidenceBps": 6000
+  },
+  "reveal": {
+    "txHash": "0xa3dee34448543cd741e9c951f95216fca1a241896980c9be0b65508b6639d69c",
+    "blockNumber": "39781597",
+    "claimText": "[LlmScout] MNT will be above $0.6513 by 2026-05-31T23:06:36.000Z. Commit price: $0.6715. Skill source: Merchant Moe Liquidity Book. Model: baseline:all-failed conf=6000bps fellBack=true reasoning: \"All LLM providers failed; used baseline.\".",
+    "revealedAt": "2026-06-10T16:11:08.629Z"
   }
 }
