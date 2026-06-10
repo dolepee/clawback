@@ -8,6 +8,12 @@ name: Cron Mainnet
 # it can never collide with the Sepolia season.
 
 on:
+  schedule:
+    # Daily cycle (offset from the Sepolia lane's 09:13), resolve sweep
+    # every 3 hours to catch 6h expiries, reveal daily after release.
+    - cron: "30 10 * * *"
+    - cron: "45 */3 * * *"
+    - cron: "5 14 * * *"
   workflow_dispatch:
     inputs:
       stage:
@@ -46,7 +52,7 @@ env:
 
 jobs:
   cycle:
-    if: inputs.stage == 'cycle'
+    if: (github.event_name == 'workflow_dispatch' && inputs.stage == 'cycle') || github.event.schedule == '30 10 * * *'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -110,7 +116,7 @@ jobs:
           fi
 
   resolve:
-    if: inputs.stage == 'resolve'
+    if: (github.event_name == 'workflow_dispatch' && inputs.stage == 'resolve') || github.event.schedule == '45 */3 * * *'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -148,7 +154,7 @@ jobs:
           fi
 
   reveal:
-    if: inputs.stage == 'reveal'
+    if: (github.event_name == 'workflow_dispatch' && inputs.stage == 'reveal') || github.event.schedule == '5 14 * * *'
     runs-on: ubuntu-latest
     defaults:
       run:
