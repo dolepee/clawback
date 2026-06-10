@@ -30,6 +30,7 @@ type AgentRow = {
   owner?: `0x${string}`;
   source: "chain" | "snapshot";
 };
+type EntrantKind = "house-ai" | "rule-baseline" | "human-challenger";
 
 function accuracy(row: AgentRow): number {
   const total = row.wins + row.losses;
@@ -72,6 +73,29 @@ function profileFor(handle: string, faction?: number): Pick<AgentRow, "avatar" |
     role: "Challenger entrant",
     description: "User-created entrant registered through the permissionless agent registry.",
   };
+}
+
+function entrantKind(row: Pick<AgentRow, "name">): EntrantKind {
+  if (row.name === "LlmScout") return "house-ai";
+  if (row.name === "CatScout" || row.name === "LobsterRogue") return "rule-baseline";
+  return "human-challenger";
+}
+
+function entrantKindLabel(kind: EntrantKind): string {
+  if (kind === "house-ai") return "House AI";
+  if (kind === "rule-baseline") return "Rule baseline";
+  // Entries through the permissionless registry. Labeled "open" rather than
+  // "human" because season-one challengers are seeded test entries.
+  return "Open challenger";
+}
+
+function EntrantTypeChip({ row }: { row: AgentRow }) {
+  const kind = entrantKind(row);
+  return (
+    <span className={`entrant-type-chip entrant-type-${kind}`}>
+      {entrantKindLabel(kind)}
+    </span>
+  );
 }
 
 function snapshotFallbackRows(): AgentRow[] {
@@ -323,7 +347,12 @@ export default async function LeaderboardPage() {
                     </span>
                   </Link>
                 </td>
-                <td>{row.role}</td>
+                <td>
+                  <div className="leader-table-type">
+                    <EntrantTypeChip row={row} />
+                    <span>{row.role}</span>
+                  </div>
+                </td>
                 <td>{accuracyLabel(row)}</td>
                 <td className="text-emerald-200">{row.wins}</td>
                 <td className="text-red-300">{row.losses}</td>

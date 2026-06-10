@@ -3,6 +3,7 @@ export const maxDuration = 60;
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { decodeAbiParameters } from "viem";
 import { CLAIM_STATE, MARKET_LABEL } from "@/lib/abi";
 import { ADDRESSES, EXPLORER } from "@/lib/addresses";
 import { loadClaimTimeline, type TimelineEvent } from "@/lib/claim-timeline";
@@ -18,6 +19,7 @@ import {
 import { buildSnapshotStats } from "@/lib/season-stats";
 import ClaimActions from "@/components/ClaimActions";
 import ClaimLiveStatus from "@/components/ClaimLiveStatus";
+import SettlementReplay from "@/components/SettlementReplay";
 import ShareClaim from "@/components/ShareClaim";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +30,12 @@ type ProofTimelineRow = {
   label: string;
   body: string;
   tx: `0x${string}` | undefined;
+};
+type SettlementProof = {
+  mntPrice: bigint;
+  ethPrice: bigint;
+  publishTime: bigint;
+  marketId: number;
 };
 
 function formatCall(direction?: "above" | "below", thresholdPriceUsd?: string): string {
@@ -64,6 +72,53 @@ function receiptTx(receipt: SnapshotReceipt | undefined, kind: "commit" | "settl
   if (kind === "settle") return receipt.settleTx;
   if (kind === "refund") return receipt.refundTx;
   return receipt.payoutTx;
+}
+
+function decodeSettlementProof(proof: `0x${string}` | undefined): SettlementProof | undefined {
+  if (!proof || proof === "0x") return undefined;
+  try {
+    const [mntPrice, ethPrice, publishTime, marketId] = decodeAbiParameters(
+      [{ type: "int64" }, { type: "int64" }, { type: "uint256" }, { type: "uint8" }],
+      proof,
+    );
+    return { mntPrice, ethPrice, publishTime, marketId };
+  } catch {
+    return undefined;
+  }
+}
+
+function formatOraclePrice(price: bigint | undefined): string | undefined {
+  if (price === undefined) return undefined;
+  return `$${(Number(price) / 1e8).toLocaleString(undefined, {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 6,
+  })}`;
+}
+
+function formatDollarExact(amount: bigint): string {
+  const value = Number(amount) / 1e6;
+  return `$${value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 3,
+  })}`;
+}
+
+function thresholdLabel(prediction: ReturnType<typeof decodePredictionParams>): string | undefined {
+  if (prediction.kind === "threshold") {
+    return `${prediction.direction} $${prediction.thresholdPriceUsd.toFixed(4)}`;
+  }
+  if (prediction.kind === "outperform") {
+    return `MNT vs mETH +${(prediction.minOutperformBps / 100).toFixed(2)}%`;
+  }
+  return undefined;
+}
+
+function timelineRefund(events: TimelineEvent[]) {
+  return events.find((event): event is Extract<TimelineEvent, { kind: "refund" }> => event.kind === "refund");
+}
+
+function timelinePayout(events: TimelineEvent[]) {
+  return events.find((event): event is Extract<TimelineEvent, { kind: "payout" }> => event.kind === "payout");
 }
 
 function ProofTimeline({
@@ -216,6 +271,23 @@ function SnapshotClaimFallback({
             : "Pending";
   const callText = formatCall(receipt.direction, receipt.thresholdPriceUsd);
   const provider = providerLabel(receipt.provider);
+  const snapshotRefund = stats.proofRefund?.claimId === receipt.claimId ? stats.proofRefund : undefined;
+  const snapshotPayout = stats.proofPayout?.claimId === receipt.claimId ? stats.proofPayout : undefined;
+  const replayMoneyLabel = agentRight
+    ? snapshotPayout
+      ? formatDollarExact(snapshotPayout.amount)
+      : amount
+    : snapshotRefund
+      ? `${formatDollarExact(snapshotRefund.paidBack)} + ${formatDollarExact(snapshotRefund.bonus)} bonus`
+      : amount;
+  const replayMoneyDetail = agentRight
+    ? `${receipt.agent} received ${replayMoneyLabel} from the settled claim path.`
+    : snapshotRefund
+      ? `Buyer refund: ${formatDollarExact(snapshotRefund.paidBack)} paid back plus ${formatDollarExact(snapshotRefund.bonus)} bonus from the slashed bond.`
+      : "The final refund transaction is recorded on Mantle.";
+  const replayThreshold = receipt.thresholdPriceUsd
+    ? `$${Number(receipt.thresholdPriceUsd).toFixed(4)}${receipt.direction ? ` ${receipt.direction}` : ""}`
+    : undefined;
 
   return (
     <div className="claw-page page-wide">
@@ -306,6 +378,23 @@ function SnapshotClaimFallback({
         prediction={callText}
         receipt={receipt}
       />
+
+      {isSettled ? (
+        <SettlementReplay
+          claimId={String(receipt.claimId)}
+          agentHandle={receipt.agent}
+          agentRight={agentRight}
+          callText={callText}
+          bondLabel={receipt.bondAmount ? formatDollarExact(receipt.bondAmount) : "the recorded bond"}
+          unlockLabel={amount}
+          thresholdLabel={replayThreshold}
+          moneyLabel={replayMoneyLabel}
+          moneyDetail={replayMoneyDetail}
+          commitTx={receipt.commitTx}
+          settleTx={receipt.settleTx}
+          finalTx={agentRight ? receipt.payoutTx : receipt.refundTx}
+        />
+      ) : null}
     </div>
   );
 }
@@ -426,6 +515,30 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
   const receiptValueLabel = receiptValue > 0n ? formatDollar(receiptValue) : isSettled ? "—" : "No unlock yet";
   const beneficiaryLabel = !isSettled ? (totalUnlocked > 0n ? "Escrowed" : "Pending") : agentRight ? "Agent" : "Payers";
   const valueLabel = !isSettled ? "Unlocks paid" : paidLabel;
+  const settlementProof = decodeSettlementProof(accounting.settlementProof);
+  const replayCallText = callText === "MNT price call" ? question : callText;
+  const replayCommitTx = eventTx(timeline, "commit") ?? receiptTx(matchingReceipt, "commit");
+  const replaySettleTx = eventTx(timeline, "settle") ?? receiptTx(matchingReceipt, "settle");
+  const replayFinalTx = agentRight
+    ? eventTx(timeline, "payout") ?? receiptTx(matchingReceipt, "payout")
+    : eventTx(timeline, "refund") ?? receiptTx(matchingReceipt, "refund");
+  const refundEvent = timelineRefund(timeline);
+  const payoutEvent = timelinePayout(timeline);
+  const refundPaidBack = proofRefund?.paidBack ?? refundEvent?.paidBack;
+  const refundBonus = proofRefund?.bonus ?? refundEvent?.bonus;
+  const payoutAmount = proofPayout?.amount ?? payoutEvent?.amount ?? (agentRight ? paidAmount : undefined);
+  const replayMoneyLabel = agentRight
+    ? payoutAmount
+      ? formatDollarExact(payoutAmount)
+      : receiptValueLabel
+    : refundPaidBack !== undefined && refundBonus !== undefined
+      ? `${formatDollarExact(refundPaidBack)} + ${formatDollarExact(refundBonus)} bonus`
+      : receiptValueLabel;
+  const replayMoneyDetail = agentRight
+    ? `${agent.handle} received ${replayMoneyLabel} after the Pyth result landed on the agent side.`
+    : refundPaidBack !== undefined && refundBonus !== undefined
+      ? `Buyer refund: ${formatDollarExact(refundPaidBack)} paid back plus ${formatDollarExact(refundBonus)} bonus from the slashed bond.`
+      : "The wrong call sent the final refund through the escrow receipt path.";
 
   return (
     <div className="claw-page page-wide">
@@ -537,6 +650,25 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
         receipt={matchingReceipt}
         skillsHash={claim.skillsOutputHash}
       />
+
+      {isSettled ? (
+        <SettlementReplay
+          claimId={claim.id.toString()}
+          agentHandle={agent.handle}
+          agentRight={agentRight}
+          callText={replayCallText}
+          bondLabel={formatDollarExact(claim.bondAmount)}
+          unlockLabel={totalUnlocked > 0n ? formatDollarExact(totalUnlocked) : `${formatDollarExact(claim.unlockPrice)} per unlock`}
+          thresholdLabel={thresholdLabel(prediction)}
+          settlementPriceLabel={formatOraclePrice(settlementProof?.mntPrice)}
+          publishTimeLabel={settlementProof?.publishTime ? formatTimestamp(settlementProof.publishTime) : undefined}
+          moneyLabel={replayMoneyLabel}
+          moneyDetail={replayMoneyDetail}
+          commitTx={replayCommitTx}
+          settleTx={replaySettleTx}
+          finalTx={replayFinalTx}
+        />
+      ) : null}
 
       <section className="detail-grid">
         <ProofTimeline

@@ -304,12 +304,12 @@ export function ChallengerEntry() {
   return (
     <section className="challenger-entry" aria-label="Join the benchmark">
       <div>
-        <p>Open benchmark entry</p>
-        <h2>Challenge the AI alpha board</h2>
+        <p>Human vs AI entry</p>
+        <h2>Beat the model</h2>
         <span>
-          Register a wallet-owned challenger and bond a standard MNT threshold call. The deployed
-          market scores your result from public receipts: right calls improve your arena record,
-          wrong calls can slash the bond.
+          Think the AI is wrong? Bond your own call through the same contracts. Same rules,
+          same receipts, same slashing. Seeded test entries are labeled as challengers until
+          external wallets join the open registry.
         </span>
         <div className="challenge-preflight" aria-label="Challenge transaction preflight">
           <strong>{promptsLabel}</strong>
