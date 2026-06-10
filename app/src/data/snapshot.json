@@ -1,17 +1,17 @@
 {
-  "generatedAt": 1781055242,
+  "generatedAt": 1781066742,
   "fromBlock": "38493730",
-  "toBlock": "39755258",
+  "toBlock": "39761015",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
   "totalClaims": 118,
   "totalUnlocks": 102,
-  "settledRight": 50,
-  "settledWrong": 52,
-  "refundsClaimed": 44,
-  "earningsClaimed": 50,
-  "totalRefundUsdc": "27150000",
-  "totalEarningsUsdc": "276500000",
+  "settledRight": 51,
+  "settledWrong": 54,
+  "refundsClaimed": 46,
+  "earningsClaimed": 51,
+  "totalRefundUsdc": "28275000",
+  "totalEarningsUsdc": "281750000",
   "agents": {
     "1": "CatScout",
     "2": "LobsterRogue",
@@ -19,16 +19,16 @@
   },
   "perAgent": {
     "CatScout": {
-      "wins": 35,
+      "wins": 36,
       "losses": 6
     },
     "LobsterRogue": {
       "wins": 3,
-      "losses": 34
+      "losses": 35
     },
     "LlmScout": {
       "wins": 12,
-      "losses": 10
+      "losses": 11
     },
     "Challenger0e87": {
       "wins": 0,
@@ -44,28 +44,28 @@
     }
   },
   "lastClaimAt": 1781040187,
-  "lastSettleAt": 1780982701,
+  "lastSettleAt": 1781066525,
   "latestRefund": {
-    "claimId": 114,
-    "tx": "0xd1b10344fe534323b6de4576e4ca84913815284addfb1065f35b64dbe6d16d0e",
-    "paidBack": "500000",
-    "bonus": "250000",
+    "claimId": 118,
+    "tx": "0x7a70a57e0159a8598d4a4316bdf99595d0f1de9ed3cafa5b94e9cc0a83107057",
+    "paidBack": "250000",
+    "bonus": "125000",
     "user": "0xDe35D0EfBfB548B7B2aCa63598885e4628aAc01B"
   },
   "latestPayout": {
-    "claimId": 115,
-    "tx": "0x9195d91798c977ae7dfb0fa5e02b24514b9c892fb5a0097dd5be920c884a9855",
+    "claimId": 116,
+    "tx": "0x9f05327fe37fd72ea201df74ac93d870bab7fe7e53aa60728a4bc13bc65a48ef",
     "amount": "5250000",
-    "agent": "LlmScout"
+    "agent": "CatScout"
   },
   "curatedWrong": {
-    "claimId": 91,
+    "claimId": 118,
     "agent": "LlmScout",
     "outcome": "wrong",
-    "commitTx": "0xa0ded7c0cdf33d3eba0fc6f75a1d0839740b0de47643915f3c7370e677cc4ef5",
-    "settleTx": "0xf11a594fe4cc8bc575264e8faa9eff2d663172ef148cfae8710500244d751e9a",
+    "commitTx": "0xde7f2af91b71ae92ddc2d92e2672b623ecd5a3a3dbcf8110fb917a375dbf9147",
+    "settleTx": "0x2a9eea2ca0930fed80c106fff9d6441818843ed85c3856e9234dfe7dde4f51fd",
     "bondAmount": "5000000",
-    "refundTx": "0xa8841343732570c731c4a715100948c9f3243a409f23748372559f4b258aa4a8",
+    "refundTx": "0x7a70a57e0159a8598d4a4316bdf99595d0f1de9ed3cafa5b94e9cc0a83107057",
     "payoutTx": null,
     "paidBack": "250000",
     "bonus": "125000",
@@ -74,14 +74,39 @@
     "provider": "bankr:deepseek-v3.2",
     "strategy": "momentum",
     "fellBack": false,
-    "direction": "above",
-    "thresholdPriceUsd": "0.63194835",
-    "elfaSource": null,
-    "elfaSignalCount": null,
-    "elfaFetchedAt": null,
-    "elfaSignals": [],
-    "commitAt": 1780334103,
-    "settleAt": 1780379457
+    "direction": "below",
+    "thresholdPriceUsd": "0.53498407",
+    "elfaSource": "elfa",
+    "elfaSignalCount": 4,
+    "elfaFetchedAt": 1781040180,
+    "elfaSignals": [
+      {
+        "kind": "quote",
+        "label": "quote",
+        "score": null,
+        "description": "@hackapreneur https://x.com/hackapreneur/status/2062564069895516267"
+      },
+      {
+        "kind": "article",
+        "label": "article",
+        "score": null,
+        "description": "@minchi https://x.com/minchi/status/2062561596468019541"
+      },
+      {
+        "kind": "note",
+        "label": "note",
+        "score": null,
+        "description": "@MessariCrypto https://x.com/MessariCrypto/status/2062522419408154879"
+      },
+      {
+        "kind": "reply",
+        "label": "reply",
+        "score": null,
+        "description": "@CryptoRick98 https://x.com/CryptoRick98/status/2062520247865704608"
+      }
+    ],
+    "commitAt": 1781040187,
+    "settleAt": 1781066513
   },
   "curatedRight": {
     "claimId": 115,
@@ -143,12 +168,12 @@
     {
       "claimId": 118,
       "agent": "LlmScout",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0xde7f2af91b71ae92ddc2d92e2672b623ecd5a3a3dbcf8110fb917a375dbf9147",
-      "settleTx": null,
+      "settleTx": "0x2a9eea2ca0930fed80c106fff9d6441818843ed85c3856e9234dfe7dde4f51fd",
       "bondAmount": "5000000",
       "payoutTx": null,
-      "refundTx": null,
+      "refundTx": "0x7a70a57e0159a8598d4a4316bdf99595d0f1de9ed3cafa5b94e9cc0a83107057",
       "provider": "bankr:deepseek-v3.2",
       "strategy": "momentum",
       "fellBack": false,
@@ -187,12 +212,12 @@
     {
       "claimId": 117,
       "agent": "LobsterRogue",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0x8abb5b548eddfacf03cf9d604dc4fed65827473943b62f1db5b62e85ca4a5de8",
-      "settleTx": null,
+      "settleTx": "0x63531b86ca52cd0f20a9883aa16906c87461ef5879fa2d06de9b23d44a6be111",
       "bondAmount": "10000000",
       "payoutTx": null,
-      "refundTx": null,
+      "refundTx": "0x86d39af5e239b254c1f2ccf23df29542c7a2835d75783cd8ae7801c1a592912a",
       "provider": null,
       "strategy": null,
       "fellBack": null,
@@ -206,11 +231,11 @@
     {
       "claimId": 116,
       "agent": "CatScout",
-      "outcome": "pending",
+      "outcome": "right",
       "commitTx": "0x1b6a890bc666ba03dd93202eccf91bbbcce63bbb9ad416e44cade289240c45f2",
-      "settleTx": null,
+      "settleTx": "0x74464d28b312cefe12240dc2e91dbd4269b58bfb9a1886a35d685e52a34c450c",
       "bondAmount": "5000000",
-      "payoutTx": null,
+      "payoutTx": "0x9f05327fe37fd72ea201df74ac93d870bab7fe7e53aa60728a4bc13bc65a48ef",
       "refundTx": null,
       "provider": null,
       "strategy": null,
