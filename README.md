@@ -2,9 +2,11 @@
 
 # Clawback
 
-**The Mantle-native accountability benchmark for AI alpha agents.**
+**The Turing Test, instrumented: the Mantle accountability benchmark where AI agents bond real money on their alpha.**
 
 AI agents publish alpha every day with no accountability. Clawback fixes that on Mantle: agents bond their market predictions, users pay to unlock the call, Pyth settles the result on chain, and every outcome scores the agent's permanent reputation. Right calls pay the agent. Wrong calls refund buyers from the slashed bond. The trust assumption shifts from "trust the model" to "the model is cryptoeconomically liable for being wrong."
+
+The benchmark runs on two lanes: a 100+ settlement season on Mantle Sepolia that proves the loop at volume, and a **Mantle mainnet season with real USDC at stake** through the same verified contracts. Every receipt posts live to the public [Telegram receipts channel](https://t.me/clawbackreciepts).
 
 **Demo proof pair:** LlmScout RIGHT payout [`#115`](https://clawback-bay.vercel.app/claim/115) and LlmScout WRONG refund [`#91`](https://clawback-bay.vercel.app/claim/91), both replayable on Mantle Sepolia with the verifier commands below.
 
@@ -27,6 +29,41 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 * **Secondary prizes:** 20 Project Deployment Award, Best UI/UX, Community Voting.
 
 Clawback fits Alpha & Data because it turns an AI model's market call into a bonded on-chain commitment with verifiable data inputs, settlement, refunds, payouts, and long-term reputation. The goal is not to claim guaranteed profit. The goal is to make AI alpha accountable.
+
+## Live on Mantle mainnet (real USDC)
+
+The mainnet season is the credibility layer: the same agents, the same contracts, real money. **LlmScout** (the model-driven agent) and **LobsterRogue** (the adversarial baseline) bond real USDC on Mantle mainnet, buyers unlock with real USDC through the Q402 witness flow, and Pyth settles outcomes on chain. Stakes are deliberately small (bonds $0.50 to $1.00) and the unlock payer is a house wallet for season one; what matters is that every dollar that moves is real and every receipt is public. The lane runs autonomously: new claims daily, settlement sweeps every 3 hours, reveals after release.
+
+| Contract (Mantle mainnet, chain id 5000) | Address |
+|---|---|
+| ClaimMarket | [`0x734c3037AEb58E5B60338C74318224bb5Dd70DB8`](https://mantlescan.xyz/address/0x734c3037AEb58E5B60338C74318224bb5Dd70DB8#code) |
+| ClawbackEscrow | [`0xb4726194AEDA8677d2504b1c3B38bbA653cEDaEd`](https://mantlescan.xyz/address/0xb4726194AEDA8677d2504b1c3B38bbA653cEDaEd#code) |
+| AgentRegistry | [`0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd`](https://mantlescan.xyz/address/0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd#code) |
+| ReputationLedger | [`0x02e5A959253588D3ef5370fE7A8fdA990AD27B3e`](https://mantlescan.xyz/address/0x02e5A959253588D3ef5370fE7A8fdA990AD27B3e#code) |
+| PythSettlementAdapter | [`0x9fE7585cd038Bf35d05dc153ae2E2612D8d4DfeD`](https://mantlescan.xyz/address/0x9fE7585cd038Bf35d05dc153ae2E2612D8d4DfeD#code) |
+| ManualSettlementAdapter | [`0xDbf0Ff11961F579549a2FfC5Da67A06566ad0Eb9`](https://mantlescan.xyz/address/0xDbf0Ff11961F579549a2FfC5Da67A06566ad0Eb9#code) |
+| Q402Adapter | [`0xAbA92B00871C8fE5975d297419109780D010444E`](https://mantlescan.xyz/address/0xAbA92B00871C8fE5975d297419109780D010444E#code) |
+| AgentIdentity (soulbound) | [`0x45a2802dcbf8fda3715f4cba7e59531da6161301`](https://mantlescan.xyz/address/0x45a2802dcbf8fda3715f4cba7e59531da6161301#code) |
+| USDC (payment token) | [`0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9`](https://mantlescan.xyz/address/0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9) |
+
+All eight Clawback contracts are source-verified on Mantlescan. Live mainnet season state renders on the [home page](https://clawback-bay.vercel.app/) Mainnet season panel, rebuilt from a full-history chain scan after every cron run (`agent/scripts/build-mainnet-snapshot.mjs`).
+
+## ERC-8004 alignment
+
+The hackathon's flagship standard is ERC-8004 agent identity. Clawback implements the ERC-8004 trust model with money attached:
+
+* **Identity Registry** → `AgentRegistry` plus the soulbound `AgentIdentity` ERC-721 (token id mirrors agentId, fully on-chain JSON manifest, non-transferable).
+* **Reputation Registry** → `ReputationLedger`, except entries are not voluntary feedback: every win, loss, bonded amount, and slash is written by escrow settlement, so reputation is paid for in slashed bonds.
+* **Validation Registry** → `PythSettlementAdapter`, except validation is not a vote: it is a pull-oracle price print that deterministically decides the claim.
+
+Identity is soulbound, reputation is enforced, validation is an oracle. That is the ERC-8004 architecture with cryptoeconomic teeth.
+
+## How it makes money
+
+* Buyers pay per-claim unlock fees today; agents only earn when right, and the protocol can take a small cut of unlock flow later without touching the bond math.
+* Wrong-call refunds are funded entirely by slashed agent bonds, never by the protocol.
+* The expansion path is every feed Pyth supports, and accountability-as-a-service for agent platforms that want their models to carry portable, bonded track records.
+* No token.
 
 ## Live on Mantle Sepolia
 
@@ -135,10 +172,11 @@ CatScout and LobsterRogue are deterministic baselines: they consume the same Pyt
 **LlmScout** is the model-driven persona that ships on the same persona interface. Implementation lives in [`agent/src/llm.ts`](agent/src/llm.ts) and the `llm-scout` config in [`agent/src/cron/lib.ts`](agent/src/cron/lib.ts). Per commit, the persona:
 
 1. Reads the same Merchant Moe + Pyth observation the rule-based personas use.
-2. Sends the observation through a structured-output LLM call (Bankr LLM gateway is the live route; Z.ai can be enabled when a valid key is configured; deterministic baseline is the last-resort fallback).
-3. Receives `{thresholdPriceUsd, direction, confidenceBps, reasoning}` from the model.
-4. Hashes the structured decision into `skillsOutputHash`, commits the claim on chain.
-5. Stores the full prompt and model response in the AES-256 encrypted reveal blob so judges can audit the model's actual reasoning after `publicReleaseAt`.
+2. Runs the on-chain anomaly scan ([`agent/src/anomaly.ts`](agent/src/anomaly.ts)): live Merchant Moe mainnet swap flow vs the prior window, unique traders, active-bin drift, whale swaps, and the pool's native volatility accumulator, with static documented flag heuristics. The full scan rides in claim provenance.
+3. Sends the observation, anomaly scan, and Elfa triggers through a structured-output LLM call (Bankr LLM gateway is the live route; Z.ai can be enabled when a valid key is configured; deterministic baseline is the last-resort fallback).
+4. Receives `{thresholdPriceUsd, direction, confidenceBps, reasoning}` from the model.
+5. Hashes the structured decision into `skillsOutputHash`, commits the claim on chain.
+6. Stores the full prompt and model response in the AES-256 encrypted reveal blob so judges can audit the model's actual reasoning after `publicReleaseAt`.
 
 The cron-cycle workflow runs the LLM persona alongside the two controls daily. First live LlmScout claim is `#48`, committed via Bankr's `deepseek-v3.2`. Elfa real-time triggers are optional data inputs and should only be claimed in public copy after a configured API key returns real signals in claim provenance. Cron automation is real but not presented as flawless: public Mantle RPC rate limits can delay a cycle, while the pinned proof pair and on-chain receipts remain replayable.
 
@@ -146,11 +184,11 @@ The cron-cycle workflow runs the LLM persona alongside the two controls daily. F
 
 | Requirement | Status |
 |---|---|
-| Smart contract deployed on Mantle mainnet or testnet | Mantle Sepolia deployment live |
-| Contract verified on Mantle Explorer | All submitted contracts link to verified Mantlescan pages above |
-| At least one AI-powered function callable on-chain | `ClaimMarket.commitClaim` records the AI claim hash, data hash, bond, expiry, and settlement params |
+| Smart contract deployed on Mantle mainnet or testnet | Both: Mantle mainnet (real USDC) and Mantle Sepolia (benchmark season) |
+| Contract verified on Mantle Explorer | All contracts verified on Mantlescan, mainnet and Sepolia tables above |
+| At least one AI-powered function callable on-chain | `ClaimMarket.commitClaim` records the AI claim hash, data hash, bond, expiry, and settlement params, live on both chains |
 | Public frontend demo | https://clawback-bay.vercel.app |
-| Deployment address in submission | Use the verified-contract table above |
+| Deployment address in submission | Use the verified-contract tables above |
 | Demo video at least 2 minutes | Pending recording |
 | Open-source GitHub repo | Public repo with setup, architecture, addresses, and replay commands |
 
@@ -250,7 +288,7 @@ docs/                             Spec, spikes, deploy runbook, live deployment 
 
 ## Stack
 
-* **Chain:** Mantle (Sepolia for live deployment, mainnet for skill observation).
+* **Chain:** Mantle mainnet (real-USDC season + skill observation) and Mantle Sepolia (high-volume benchmark season).
 * **Payment:** Custom `Q402Adapter` over EIP 712 witness signatures + USDC `transferFrom`. Payer signs once off chain, facilitator submits on chain with sponsored gas, adapter validates against `ClaimMarket` for state, expiry, and unlock price, then pulls USDC to escrow in a single tx.
 * **Settlement:** `PythSettlementAdapter` live on Mantle Sepolia (Pyth pull oracle, MNT/USD + ETH/USD feeds). `ManualSettlementAdapter` is retained as an admin fallback and is not the proof path used in the pinned #115/#91 demo pair.
 * **Frontend:** Next.js 15 (App Router) + viem 2 + Tailwind. Deployed on Vercel.
