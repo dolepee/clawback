@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-10T22:22:27.487Z",
+  "generatedAt": "2026-06-10T23:00:08.022Z",
   "network": "mantle-mainnet",
   "chainId": 5000,
   "explorer": "https://mantlescan.xyz",
-  "scannedToBlock": "96499916",
+  "scannedToBlock": "96501047",
   "contracts": {
     "agentRegistry": "0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd",
     "claimMarket": "0x734c3037AEb58E5B60338C74318224bb5Dd70DB8",
@@ -20,7 +20,7 @@
     "settledRight": 0,
     "settledWrong": 4,
     "atStakeUsdc": "0",
-    "refundedUsdc": "225000",
+    "refundedUsdc": "112500",
     "earnedUsdc": "0"
   },
   "agents": [
@@ -51,8 +51,8 @@
       "settled": true,
       "agentRight": false,
       "settleTx": "0x7fd138668d6f1f52bf16f17d74dfe678ad18a5648c9b16beaff74e7f1222f5cf",
-      "refundTx": "0x6ffe5e90e51db96fba75db3cfe4b7baefd6b6e150a95b223666fda86a5efee4d",
-      "refundUsdc": "75000",
+      "refundTx": null,
+      "refundUsdc": null,
       "payoutTx": null,
       "payoutUsdc": null
     },
@@ -69,8 +69,8 @@
       "settled": true,
       "agentRight": false,
       "settleTx": "0x62dbfac43108b42ca42027ce0a1f259c17d75eb04e0593641916761392841452",
-      "refundTx": "0x60fc617c99347e759f5cbd6994dd573182c7fdcc49747f77d6771ca22022211a",
-      "refundUsdc": "37500",
+      "refundTx": null,
+      "refundUsdc": null,
       "payoutTx": null,
       "payoutUsdc": null
     },
