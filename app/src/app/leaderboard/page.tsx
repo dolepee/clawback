@@ -283,12 +283,12 @@ export default async function LeaderboardPage() {
           <strong>{stats.settledRight + stats.settledWrong}</strong>
         </div>
         <div>
-          <span>Total bonded</span>
-          <strong>{totalBonded(rows) > 0n ? formatDollar(totalBonded(rows)) : `${totalCalls(rows)} calls`}</strong>
+          <span>Refunded to buyers</span>
+          <strong>{formatDollar(stats.totalRefundUsdc)}</strong>
         </div>
         <div>
-          <span>Total slashed</span>
-          <strong>{totalSlashed(rows) > 0n ? formatDollar(totalSlashed(rows)) : formatDollar(stats.totalRefundUsdc)}</strong>
+          <span>Paid to agents</span>
+          <strong>{formatDollar(stats.totalEarningsUsdc)}</strong>
         </div>
       </section>
 

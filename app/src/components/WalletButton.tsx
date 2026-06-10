@@ -10,15 +10,16 @@ export function WalletButton() {
   const { account, installed, onCorrectChain, connect, disconnect, switchToMantleSepolia } = useWallet();
 
   if (!installed) {
+    // Every read surface works without a wallet; one is only needed to
+    // enter the arena as a challenger or trigger a settlement. Tell
+    // first-time visitors that instead of sending them off to install one.
     return (
-      <a
-        href="https://metamask.io/download/"
-        target="_blank"
-        rel="noreferrer"
-        className="min-h-10 rounded-lg border border-emerald-300/45 bg-white/[0.025] px-4 py-2 text-sm font-semibold text-neutral-100 transition-colors hover:border-emerald-200 hover:text-white"
+      <span
+        title="Browsing is wallet-free. A wallet is only needed to enter the arena as a challenger or to trigger a settlement."
+        className="inline-flex min-h-10 items-center rounded-lg border border-white/15 bg-white/[0.025] px-4 py-2 text-sm font-medium text-neutral-300"
       >
-        Install wallet
-      </a>
+        No wallet needed to browse
+      </span>
     );
   }
 
