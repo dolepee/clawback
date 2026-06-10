@@ -1,0 +1,107 @@
+{
+  "kind": "claim_commit",
+  "persona": "LlmScout",
+  "agentId": "1",
+  "claimId": "3",
+  "txHash": "0x943f901309076177aa9ce12e8c7ed70233247393849b25fb4c7cf42bedd6cff6",
+  "blockNumber": "96484738",
+  "claimHash": "0xf83219b8de112433e7a4c1dd765d3b80a1107e58871cd38ecf77ae7239c5d5c9",
+  "marketId": 1,
+  "thresholdPriceE8": "51998015",
+  "thresholdPriceUsd": "0.51998015",
+  "direction": "below",
+  "commitMntPriceE8": "53967842",
+  "pythSnapshot": {
+    "id": "0x4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585",
+    "priceE8": "53967842",
+    "publishTime": 1781099768
+  },
+  "skillsOutputHash": "0x7e46494b93b6bb80bfe914ef7ab9ebac1daaa1ca2d37b59f86caaa2965e1669b",
+  "skillsOutput": {
+    "skillId": "merchant_moe_lb_mantle_v1",
+    "pair": "MNT/mETH",
+    "observedPrice": "3796.00660285",
+    "observedTimestamp": 1781099772,
+    "source": "merchant_moe_liquidity_book",
+    "raw": {
+      "block": "96484730",
+      "mntPriceUsdt": "0.53865421",
+      "methPriceUsdt": "2044.73494384",
+      "mntPerMeth": "3796.00660285",
+      "pools": {
+        "wmntUsdt": {
+          "pool": "0x365722f12ceb2063286a268b03c654df81b7c00f",
+          "tokenX": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "WMNT",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8377294,
+          "binStep": 25,
+          "priceYPerX": 0.5386542115891233
+        },
+        "methUsdt": {
+          "pool": "0x3f0047606dcad6177c13742f1854fc8c999cd2b6",
+          "tokenX": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "mETH",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8368590,
+          "binStep": 10,
+          "priceYPerX": 2044.7349438444976
+        }
+      }
+    }
+  },
+  "predictionParams": "0x0000000000000000000000000000000000000000000000000000000003196d3f0000000000000000000000000000000000000000000000000000000000000001",
+  "expiry": 1781121384,
+  "publicReleaseAt": 1781164584,
+  "createdAt": "2026-06-10T13:56:28.650Z",
+  "elfa": {
+    "source": "elfa",
+    "fetchedAt": 1781099776,
+    "signalCount": 5,
+    "signals": [
+      {
+        "kind": "note",
+        "label": "note",
+        "score": null,
+        "description": "https://x.com/Bybit_Official/status/2064619984068747534"
+      },
+      {
+        "kind": "quote",
+        "label": "quote",
+        "score": null,
+        "description": "@hackapreneur https://x.com/hackapreneur/status/2062564069895516267"
+      },
+      {
+        "kind": "article",
+        "label": "article",
+        "score": null,
+        "description": "@minchi https://x.com/minchi/status/2062561596468019541"
+      },
+      {
+        "kind": "note",
+        "label": "note",
+        "score": null,
+        "description": "@MessariCrypto https://x.com/MessariCrypto/status/2062522419408154879"
+      },
+      {
+        "kind": "reply",
+        "label": "reply",
+        "score": null,
+        "description": "@CryptoRick98 https://x.com/CryptoRick98/status/2062520247865704608"
+      }
+    ]
+  },
+  "llm": {
+    "provider": "bankr:deepseek-v3.2",
+    "strategy": "balanced",
+    "fellBack": false,
+    "confidenceBps": 6000,
+    "modelConfidenceBps": 6000
+  }
+}
