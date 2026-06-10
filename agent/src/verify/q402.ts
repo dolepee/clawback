@@ -23,7 +23,7 @@ async function main() {
 
   console.log("CLAWBACK_Q402");
   console.log(`${pad("claim id:")}${claimId}`);
-  console.log(`${pad("adapter:")}${addrs.q402Adapter} on Mantle Sepolia (chain id 5003)`);
+  console.log(`${pad("adapter:")}${addrs.q402Adapter} on ${mantleSepolia.name} (chain id ${mantleSepolia.id})`);
 
   const logs = await findPaymentSettledLogs(claimId, client);
   if (logs.length === 0) fail("CLAWBACK_Q402", `no PaymentSettled events for claim ${claimId}`);

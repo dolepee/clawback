@@ -763,7 +763,7 @@ export async function unlockClaims(): Promise<void> {
       nonce,
     };
     const sig = await payer.signTypedData({
-      domain: { name: "Clawback Q402", version: "1", chainId: 5003, verifyingContract: addrs.q402Adapter },
+      domain: { name: "Clawback Q402", version: "1", chainId: activeChain.id, verifyingContract: addrs.q402Adapter },
       types: {
         Witness: [
           { name: "owner", type: "address" },
