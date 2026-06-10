@@ -445,13 +445,24 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
   if (persona.useLlm) {
     const { providersFromEnv, decideWithProviders } = await import("../llm.js");
     const { fetchElfaTriggers } = await import("../elfa.js");
+    const { fetchPoolAnomalies } = await import("../anomaly.js");
     const providers = providersFromEnv();
-    // Pull Elfa real-time triggers in parallel with the LLM request setup.
-    // When ELFA_API_KEY is unset (current state) this resolves to null and
-    // the prompt context falls back to Pyth + Merchant Moe alone.
-    elfaSnapshot = await fetchElfaTriggers();
+    // Pull Elfa real-time triggers and the on-chain anomaly scan in
+    // parallel. Either may resolve null (no key / RPC trouble); the
+    // prompt context degrades gracefully and the cycle never dies here.
+    let anomalySnapshot: Awaited<ReturnType<typeof fetchPoolAnomalies>> = null;
+    [elfaSnapshot, anomalySnapshot] = await Promise.all([
+      fetchElfaTriggers().catch(() => null),
+      fetchPoolAnomalies().catch(() => null),
+    ]);
     if (elfaSnapshot) {
       console.log(`[${persona.handle}] elfa: ${elfaSnapshot.signals.length} signals fetched at ${elfaSnapshot.fetchedAt}`);
+    }
+    if (anomalySnapshot) {
+      const summary = anomalySnapshot.pools
+        .map((p) => `${p.pool}:${p.swapCount} swaps${p.flags.length > 0 ? ` [${p.flags.join("+")}]` : ""}`)
+        .join(", ");
+      console.log(`[${persona.handle}] anomaly-scan: ${summary} (blocks ${anomalySnapshot.fromBlock}..${anomalySnapshot.toBlock})`);
     }
     const priceHistory = await recentPriceHistory(8);
     if (priceHistory.length > 0) {
@@ -470,6 +481,7 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
         pythMntE8: pythSnapshot.priceE8,
         blockNumber: String((skillOutput.raw as { block?: string }).block ?? ""),
         elfaTriggers: elfaSnapshot,
+        anomalyScan: anomalySnapshot,
         priceHistory,
       },
       providers,
@@ -495,6 +507,9 @@ export async function commitDailyClaim(persona: PersonaConfig): Promise<void> {
       reasoning: decision.reasoning,
       providerCount: providers.length,
       fellBack: decision.fellBack,
+      // Full anomaly scan rides in provenance so the claim page can show
+      // exactly what on-chain flow the model saw before it bonded.
+      anomalyScan: anomalySnapshot ?? undefined,
     };
     console.log(
       `[${persona.handle}] llm: ${decision.model} → ${decision.strategy} | ${decision.direction} $${decision.thresholdPriceUsd.toFixed(4)} ` +

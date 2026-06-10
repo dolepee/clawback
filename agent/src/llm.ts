@@ -12,6 +12,8 @@
 
 import type { ElfaSnapshot } from "./elfa.js";
 import { renderForPrompt as renderElfaForPrompt } from "./elfa.js";
+import type { AnomalySnapshot } from "./anomaly.js";
+import { renderForPrompt as renderAnomalyForPrompt } from "./anomaly.js";
 
 export interface MarketObservation {
   pair: string;
@@ -25,6 +27,10 @@ export interface MarketObservation {
   // null otherwise. The prompt builder appends the rendered signals to
   // the user message when this is non-null.
   elfaTriggers?: ElfaSnapshot | null;
+  // Optional on-chain anomaly scan over Merchant Moe pools (Mantle
+  // mainnet swap flow, bin drift, volatility accumulator). Null when the
+  // scan is unavailable; the prompt builder appends it when present.
+  anomalyScan?: AnomalySnapshot | null;
   // Recent MNT/USD snapshots from prior commits, ordered oldest first.
   // Lets the model anchor confidence on observed volatility instead of
   // defaulting to the schema floor when given only a single spot price.
@@ -166,6 +172,7 @@ export async function decideThresholdClaim(
   fallback: { thresholdPriceUsd: number; direction: "above" | "below"; confidenceBps: number },
 ): Promise<LlmDecision> {
   const elfaSection = renderElfaForPrompt(observation.elfaTriggers ?? null);
+  const anomalySection = renderAnomalyForPrompt(observation.anomalyScan ?? null);
   const historySection = renderPriceHistoryForPrompt(observation.priceHistory ?? []);
   const calibration = computeCalibrationInputs(observation, fallback);
   const calibrationSection = calibration
@@ -198,8 +205,10 @@ export async function decideThresholdClaim(
     calibrationSection || null,
     elfaSection ? "" : null,
     elfaSection || null,
+    anomalySection ? "" : null,
+    anomalySection || null,
     "",
-    "Pick a 6h threshold claim. Use the precomputed calibration as your anchor — only override with a specific data-backed reason.",
+    "Pick a 6h threshold claim. Use the precomputed calibration as your anchor — only override with a specific data-backed reason (an anomaly flag or Elfa signal counts).",
   ]
     .filter(Boolean)
     .join("\n");
