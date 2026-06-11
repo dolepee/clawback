@@ -1,17 +1,17 @@
 {
-  "generatedAt": 1781199766,
+  "generatedAt": 1781207163,
   "fromBlock": "38493730",
-  "toBlock": "39827516",
+  "toBlock": "39831220",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
   "totalClaims": 124,
   "totalUnlocks": 104,
-  "settledRight": 53,
-  "settledWrong": 55,
+  "settledRight": 54,
+  "settledWrong": 57,
   "refundsClaimed": 47,
-  "earningsClaimed": 53,
+  "earningsClaimed": 54,
   "totalRefundUsdc": "29025000",
-  "totalEarningsUsdc": "292000000",
+  "totalEarningsUsdc": "297000000",
   "agents": {
     "1": "CatScout",
     "2": "LobsterRogue",
@@ -19,16 +19,16 @@
   },
   "perAgent": {
     "CatScout": {
-      "wins": 37,
+      "wins": 38,
       "losses": 6
     },
     "LobsterRogue": {
       "wins": 3,
-      "losses": 36
+      "losses": 37
     },
     "LlmScout": {
       "wins": 13,
-      "losses": 11
+      "losses": 12
     },
     "Challenger0e87": {
       "wins": 0,
@@ -44,7 +44,7 @@
     }
   },
   "lastClaimAt": 1781182529,
-  "lastSettleAt": 1781120657,
+  "lastSettleAt": 1781206907,
   "latestRefund": {
     "claimId": 120,
     "tx": "0xf2b72647d8c4afc4e1f907de95ccea218580a78d8aa0fb6fab64e754f6e7ab81",
@@ -53,10 +53,10 @@
     "user": "0xDe35D0EfBfB548B7B2aCa63598885e4628aAc01B"
   },
   "latestPayout": {
-    "claimId": 121,
-    "tx": "0xd5073947e39fdee5e16f3f55d8158f2e251d38a7183653783b72f7747efd67ef",
+    "claimId": 122,
+    "tx": "0x0ddb0e25d53bb2fb15ea72bb14f0dfc03f0971592879033153136e3220d0b7b0",
     "amount": "5000000",
-    "agent": "LlmScout"
+    "agent": "CatScout"
   },
   "curatedWrong": {
     "claimId": 118,
@@ -168,9 +168,9 @@
     {
       "claimId": 124,
       "agent": "LlmScout",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0x37edc416804dfcc680571d2e13ab0dae99c14793703059454906c6023461deab",
-      "settleTx": null,
+      "settleTx": "0x2188546475fc75fbc97923ad377d44aa315fdcfb055c0538a3196970cc497ff7",
       "bondAmount": "5000000",
       "payoutTx": null,
       "refundTx": null,
@@ -224,9 +224,9 @@
     {
       "claimId": 123,
       "agent": "LobsterRogue",
-      "outcome": "pending",
+      "outcome": "wrong",
       "commitTx": "0x2e01ab4af417f078413baa40102cecd42a889c3685130113e0ea00773545ad42",
-      "settleTx": null,
+      "settleTx": "0xfd80f29f7f68582870b2c5ef502eb54263e29738ada437640ac4b8628f65d0f2",
       "bondAmount": "10000000",
       "payoutTx": null,
       "refundTx": null,
@@ -243,11 +243,11 @@
     {
       "claimId": 122,
       "agent": "CatScout",
-      "outcome": "pending",
+      "outcome": "right",
       "commitTx": "0x7be2ebf68a9d242309659639027be6578832064c0ad4b25eb0deb981bccb377e",
-      "settleTx": null,
+      "settleTx": "0x1b61bce0ad8f4dd0c5bd7cb3d29ddeaaef4ad02f014fa79fe9dab324ad4fc359",
       "bondAmount": "5000000",
-      "payoutTx": null,
+      "payoutTx": "0x0ddb0e25d53bb2fb15ea72bb14f0dfc03f0971592879033153136e3220d0b7b0",
       "refundTx": null,
       "provider": null,
       "strategy": null,
