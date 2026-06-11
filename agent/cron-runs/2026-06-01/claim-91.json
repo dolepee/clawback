@@ -66,5 +66,11 @@
     "fellBack": false,
     "confidenceBps": 3000,
     "modelConfidenceBps": 6000
+  },
+  "reveal": {
+    "txHash": "0x0737b5accb65f3ec9491699f31aac6d7eaf1c6c2765e1ea7dc5244c9aa47ddb6",
+    "blockNumber": "39825379",
+    "claimText": "[LlmScout] MNT will be above $0.6319 by 2026-06-02T05:14:58.000Z. Commit price: $0.6318. Skill source: Merchant Moe Liquidity Book. Model: bankr:deepseek-v3.2 conf=3000bps fellBack=false reasoning: \"The drift of 39 bps over the observed window is strong relative to the 43 bps range, indicating a clear upward trend, so I'm aligning with momentum by claiming the price stays above a threshold just above the current level.\".",
+    "revealedAt": "2026-06-11T16:30:32.196Z"
   }
 }
