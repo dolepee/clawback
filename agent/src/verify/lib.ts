@@ -1,5 +1,5 @@
 import { decodeAbiParameters, decodeEventLog, formatUnits, parseAbi, type Address, type Hex, type Log, type PublicClient } from "viem";
-import { addresses, claimIds, mantleSepolia, publicClient, readAccounting, readClaim, type AccountingView, type ClaimView } from "../cron/lib.js";
+import { IS_MAINNET, activeChain, addresses, claimIds, mantleSepolia, publicClient, readAccounting, readClaim, type AccountingView, type ClaimView } from "../cron/lib.js";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -98,7 +98,7 @@ export async function readAgentScore(agentId: bigint, client: PublicClient = pub
 }
 
 export function formatUsdc(amount: bigint): string {
-  return `${formatUnits(amount, 6)} mUSDC`;
+  return `${formatUnits(amount, 6)} ${IS_MAINNET ? "USDC" : "mUSDC"}`;
 }
 
 export function formatTimestamp(unixSeconds: bigint): string {
@@ -273,7 +273,7 @@ export function pass(verdictTag: string): void {
 }
 
 export function blockExplorerTx(hash: string): string {
-  return `https://sepolia.mantlescan.xyz/tx/${hash}`;
+  return `${activeChain.blockExplorers.default.url}/tx/${hash}`;
 }
 
 export function decodeCommitArgs(log: Log) {
