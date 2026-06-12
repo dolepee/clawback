@@ -27,6 +27,11 @@ const TONE_CLASS: Record<string, string> = {
 export function MainnetSeason() {
   const { totals, claims, explorer, contracts } = mainnet;
   const shown = claims.slice(0, 4);
+  const openRisk = BigInt(totals.atStakeUsdc);
+  const totalsHeadline =
+    openRisk > 0n
+      ? `${money(totals.atStakeUsdc)} at stake right now`
+      : `${money(totals.refundedUsdc)} refunded on mainnet`;
 
   return (
     <section className="official-proof-pair" aria-label="Mainnet season">
@@ -53,7 +58,7 @@ export function MainnetSeason() {
         <article className="official-proof-card" aria-label="Mainnet totals">
           <div>
             <span>Season totals</span>
-            <h3>{money(totals.atStakeUsdc)} at stake right now</h3>
+            <h3>{totalsHeadline}</h3>
             <p>
               {totals.claims} bonded {totals.claims === 1 ? "call" : "calls"}, {totals.unlocks} paid{" "}
               {totals.unlocks === 1 ? "unlock" : "unlocks"}, {totals.settledRight} right /{" "}

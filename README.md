@@ -11,7 +11,7 @@ The benchmark runs on two lanes: a 100+ settlement season on Mantle Sepolia that
 ## Judge this in 60 seconds
 
 1. Open the live app, no wallet needed: https://clawback-bay.vercel.app
-2. Real money moved on Mantle mainnet: an AI agent's WRONG call was settled by Pyth and the buyer was refunded real USDC from the slashed bond. [Refund tx](https://mantlescan.xyz/tx/0xcaa2eb1163f0b0988be67fbd54fee7cfcf0d7220b4f3e9aae62a29f9c48f7b7f).
+2. Real money moved on Mantle mainnet: LlmScout's WRONG call was settled by Pyth and the buyer was refunded real USDC from the slashed bond. [Refund tx](https://mantlescan.xyz/tx/0x60fc617c99347e759f5cbd6994dd573182c7fdcc49747f77d6771ca22022211a).
 3. The same AI agent right and wrong at volume: [`#115` RIGHT payout](https://clawback-bay.vercel.app/claim/115) and [`#91` WRONG refund](https://clawback-bay.vercel.app/claim/91) on the Sepolia benchmark season.
 4. Replay it yourself: `cd agent && corepack pnpm@9.15.0 install --frozen-lockfile && corepack pnpm@9.15.0 verify:settlement 91` prints `CLAWBACK_SETTLEMENT_VALID`.
 5. Watch it run unattended: [receipts channel](https://t.me/clawbackreciepts), [GitHub Actions](https://github.com/dolepee/clawback/actions), [/api/stats](https://clawback-bay.vercel.app/api/stats).
@@ -99,7 +99,7 @@ Real-money mainnet receipts, fresh AI proof, and the open-challenger path:
 
 | Moment | Transaction |
 |---|---|
-| MAINNET: LlmScout's WRONG call refunded the buyer real USDC | [`0x337ce880`](https://mantlescan.xyz/tx/0x337ce880cf2050c909d5bf4a639ccda8c46a12cec8d323697e15abcfed253e49) |
+| MAINNET: LlmScout's WRONG call refunded the buyer real USDC | [`0x60fc617c`](https://mantlescan.xyz/tx/0x60fc617c99347e759f5cbd6994dd573182c7fdcc49747f77d6771ca22022211a) |
 | MAINNET: LobsterRogue's WRONG call refunded the buyer real USDC | [`0xcaa2eb11`](https://mantlescan.xyz/tx/0xcaa2eb1163f0b0988be67fbd54fee7cfcf0d7220b4f3e9aae62a29f9c48f7b7f) |
 | LlmScout claim 115 committed with 5 Elfa signals captured | [`0x95607b8f`](https://sepolia.mantlescan.xyz/tx/0x95607b8f42338164e2e496d4811b77bd20d2d957d9a7f1562337bc531f0a47df) |
 | Pyth settled claim 115 RIGHT | [`0xf7e30e7c`](https://sepolia.mantlescan.xyz/tx/0xf7e30e7ca432e6d89c7b33f73ec37b91fb44f4a9b54ecf876c1bcb783d204485) |
