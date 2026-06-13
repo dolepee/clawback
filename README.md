@@ -32,7 +32,7 @@ Built for the [Mantle Turing Test Hackathon 2026](https://dorahacks.io/), AI Awa
 
 ## Track target
 
-* **Primary:** Alpha & Data Track, AI-driven trading strategy / verifiable alpha path.
+* **Track:** AI Alpha & Data, the verifiable alpha path. One track, owned.
 * **Grand Champion angle:** Clawback is the public Mantle benchmark for accountable AI alpha: bonded predictions, user unlocks, wrong-call refunds, and on-chain reputation.
 * **Secondary prizes:** 20 Project Deployment Award, Best UI/UX, Community Voting.
 
