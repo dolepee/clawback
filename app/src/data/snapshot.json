@@ -1,7 +1,7 @@
 {
-  "generatedAt": 1781375037,
+  "generatedAt": 1781376209,
   "fromBlock": "38493730",
-  "toBlock": "39915157",
+  "toBlock": "39915728",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
   "totalClaims": 129,
@@ -20,27 +20,33 @@
   "perAgent": {
     "CatScout": {
       "wins": 38,
-      "losses": 6
+      "losses": 6,
+      "earnedUsdc": "198250000"
     },
     "LobsterRogue": {
       "wins": 3,
-      "losses": 37
+      "losses": 37,
+      "earnedUsdc": "31500000"
     },
     "LlmScout": {
       "wins": 13,
-      "losses": 12
+      "losses": 12,
+      "earnedUsdc": "67250000"
     },
     "Challenger0e87": {
       "wins": 0,
-      "losses": 0
+      "losses": 0,
+      "earnedUsdc": "0"
     },
     "Challengere863": {
       "wins": 0,
-      "losses": 1
+      "losses": 1,
+      "earnedUsdc": "0"
     },
     "Challenger-bad3": {
       "wins": 0,
-      "losses": 1
+      "losses": 1,
+      "earnedUsdc": "0"
     }
   },
   "lastClaimAt": 1781349873,

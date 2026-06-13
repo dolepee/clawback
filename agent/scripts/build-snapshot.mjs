@@ -218,6 +218,17 @@ async function main() {
   let totalEarned = 0n;
   for (const p of payoutByClaim.values()) totalEarned += p.amount;
 
+  // Per-agent earnings. EarningsClaimed carries agentId (indexed), so attribute exactly
+  // instead of guessing from a single curated payout.
+  const earnedByAgent = new Map();
+  for (const l of payouts) {
+    const h = handleByAgent.get(l.args.agentId?.toString());
+    if (!h) continue;
+    earnedByAgent.set(h, (earnedByAgent.get(h) ?? 0n) + (l.args.amount ?? 0n));
+  }
+  for (const h of earnedByAgent.keys()) perAgent[h] ??= { wins: 0, losses: 0 };
+  for (const h of Object.keys(perAgent)) perAgent[h].earnedUsdc = usdc(earnedByAgent.get(h) ?? 0n);
+
   // latest refund / payout (highest claimId)
   const maxKey = (m) => [...m.keys()].map(Number).sort((a, b) => b - a)[0];
   const latestRefundId = refundByClaim.size ? maxKey(refundByClaim) : null;

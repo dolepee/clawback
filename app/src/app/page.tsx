@@ -361,7 +361,7 @@ function TopAgentsCompact({ stats }: { stats: Stats }) {
       wins: stats.catWins,
       losses: stats.catLosses,
       accuracy: stats.catAccuracy,
-      earned: stats.proofPayout?.agent === "CatScout" ? formatDollar(stats.proofPayout.amount) : "—",
+      earned: (stats.catEarnedUsdc ?? 0n) > 0n ? formatDollar(stats.catEarnedUsdc ?? 0n) : "—",
     },
     {
       id: stats.llmAgentId,
@@ -370,7 +370,7 @@ function TopAgentsCompact({ stats }: { stats: Stats }) {
       wins: stats.llmWins,
       losses: stats.llmLosses,
       accuracy: stats.llmAccuracy,
-      earned: stats.proofPayout?.agent === "LlmScout" ? formatDollar(stats.proofPayout.amount) : "—",
+      earned: (stats.llmEarnedUsdc ?? 0n) > 0n ? formatDollar(stats.llmEarnedUsdc ?? 0n) : "—",
     },
     {
       id: stats.lobsterAgentId,
@@ -379,7 +379,7 @@ function TopAgentsCompact({ stats }: { stats: Stats }) {
       wins: stats.lobsterWins,
       losses: stats.lobsterLosses,
       accuracy: stats.lobsterAccuracy,
-      earned: stats.proofPayout?.agent === "LobsterRogue" ? formatDollar(stats.proofPayout.amount) : "—",
+      earned: (stats.lobsterEarnedUsdc ?? 0n) > 0n ? formatDollar(stats.lobsterEarnedUsdc ?? 0n) : "—",
     },
   ].sort((a, b) => b.accuracy - a.accuracy || b.wins - a.wins);
 
