@@ -59,7 +59,10 @@ type SnapshotShape = {
   earningsClaimed: number;
   totalRefundUsdc: string;
   totalEarningsUsdc: string;
-  perAgent: Record<string, { wins: number; losses: number; earnedUsdc?: string }>;
+  perAgent: Record<
+    string,
+    { wins: number; losses: number; earnedUsdc?: string; slashedUsdc?: string; bondedUsdc?: string }
+  >;
   lastClaimAt: number;
   lastSettleAt: number;
   latestRefund: { claimId: number; tx: string; paidBack: string; bonus: string; user: string } | null;
@@ -109,8 +112,14 @@ function snapshotStats(): LiveStats {
     llmWins: llm.wins,
     llmLosses: llm.losses,
     catEarnedUsdc: BigInt(cat.earnedUsdc ?? "0"),
+    catSlashedUsdc: BigInt(cat.slashedUsdc ?? "0"),
+    catBondedUsdc: BigInt(cat.bondedUsdc ?? "0"),
     lobsterEarnedUsdc: BigInt(lob.earnedUsdc ?? "0"),
+    lobsterSlashedUsdc: BigInt(lob.slashedUsdc ?? "0"),
+    lobsterBondedUsdc: BigInt(lob.bondedUsdc ?? "0"),
     llmEarnedUsdc: BigInt(llm.earnedUsdc ?? "0"),
+    llmSlashedUsdc: BigInt(llm.slashedUsdc ?? "0"),
+    llmBondedUsdc: BigInt(llm.bondedUsdc ?? "0"),
     totalRefundUsdc: BigInt(snap.totalRefundUsdc),
     totalEarningsUsdc: BigInt(snap.totalEarningsUsdc),
     latestRefund: snap.latestRefund

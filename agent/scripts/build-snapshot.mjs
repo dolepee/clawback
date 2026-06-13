@@ -218,16 +218,31 @@ async function main() {
   let totalEarned = 0n;
   for (const p of payoutByClaim.values()) totalEarned += p.amount;
 
-  // Per-agent earnings. EarningsClaimed carries agentId (indexed), so attribute exactly
-  // instead of guessing from a single curated payout.
+  // Per-agent money, attributed exactly instead of guessing from a single curated payout.
+  // Earned: EarningsClaimed carries agentId, and the per-agent sum equals the $297 the
+  // page reports as "Paid to agents". Bonded/Slashed mirror ReputationLedger.recordOutcome:
+  // bonded += bond on every settle; slashed += bond on a WRONG settle.
   const earnedByAgent = new Map();
   for (const l of payouts) {
     const h = handleByAgent.get(l.args.agentId?.toString());
     if (!h) continue;
     earnedByAgent.set(h, (earnedByAgent.get(h) ?? 0n) + (l.args.amount ?? 0n));
   }
+  const bondedByAgent = new Map();
+  const slashedByAgent = new Map();
+  for (const [id, s] of settleByClaim) {
+    const h = agentByClaim.get(id);
+    if (!h) continue;
+    const bond = commitByClaim.get(id)?.bondAmount ?? 0n;
+    bondedByAgent.set(h, (bondedByAgent.get(h) ?? 0n) + bond);
+    if (!s.right) slashedByAgent.set(h, (slashedByAgent.get(h) ?? 0n) + bond);
+  }
   for (const h of earnedByAgent.keys()) perAgent[h] ??= { wins: 0, losses: 0 };
-  for (const h of Object.keys(perAgent)) perAgent[h].earnedUsdc = usdc(earnedByAgent.get(h) ?? 0n);
+  for (const h of Object.keys(perAgent)) {
+    perAgent[h].earnedUsdc = usdc(earnedByAgent.get(h) ?? 0n);
+    perAgent[h].bondedUsdc = usdc(bondedByAgent.get(h) ?? 0n);
+    perAgent[h].slashedUsdc = usdc(slashedByAgent.get(h) ?? 0n);
+  }
 
   // latest refund / payout (highest claimId)
   const maxKey = (m) => [...m.keys()].map(Number).sort((a, b) => b - a)[0];

@@ -21,32 +21,44 @@
     "CatScout": {
       "wins": 38,
       "losses": 6,
-      "earnedUsdc": "198250000"
+      "earnedUsdc": "198250000",
+      "bondedUsdc": "220000000",
+      "slashedUsdc": "30000000"
     },
     "LobsterRogue": {
       "wins": 3,
       "losses": 37,
-      "earnedUsdc": "31500000"
+      "earnedUsdc": "31500000",
+      "bondedUsdc": "400000000",
+      "slashedUsdc": "370000000"
     },
     "LlmScout": {
       "wins": 13,
       "losses": 12,
-      "earnedUsdc": "67250000"
+      "earnedUsdc": "67250000",
+      "bondedUsdc": "125000000",
+      "slashedUsdc": "60000000"
     },
     "Challenger0e87": {
       "wins": 0,
       "losses": 0,
-      "earnedUsdc": "0"
+      "earnedUsdc": "0",
+      "bondedUsdc": "0",
+      "slashedUsdc": "0"
     },
     "Challengere863": {
       "wins": 0,
       "losses": 1,
-      "earnedUsdc": "0"
+      "earnedUsdc": "0",
+      "bondedUsdc": "1000000",
+      "slashedUsdc": "1000000"
     },
     "Challenger-bad3": {
       "wins": 0,
       "losses": 1,
-      "earnedUsdc": "0"
+      "earnedUsdc": "0",
+      "bondedUsdc": "1000000",
+      "slashedUsdc": "1000000"
     }
   },
   "lastClaimAt": 1781349873,

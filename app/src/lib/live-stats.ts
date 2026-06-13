@@ -47,8 +47,14 @@ export type LiveStats = {
   totalRefundUsdc: bigint;
   totalEarningsUsdc: bigint;
   catEarnedUsdc?: bigint;
+  catSlashedUsdc?: bigint;
+  catBondedUsdc?: bigint;
   lobsterEarnedUsdc?: bigint;
+  lobsterSlashedUsdc?: bigint;
+  lobsterBondedUsdc?: bigint;
   llmEarnedUsdc?: bigint;
+  llmSlashedUsdc?: bigint;
+  llmBondedUsdc?: bigint;
   latestRefund?: { claimId: number; tx: `0x${string}`; paidBack: bigint; bonus: bigint; user: `0x${string}` };
   latestPayout?: { claimId: number; tx: `0x${string}`; amount: bigint; agent: AgentHandle };
   proofRefund?: {
