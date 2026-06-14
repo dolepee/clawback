@@ -1,10 +1,10 @@
 {
-  "generatedAt": 1781433276,
+  "generatedAt": 1781437128,
   "fromBlock": "38493730",
-  "toBlock": "39944275",
+  "toBlock": "39946199",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
-  "totalClaims": 129,
+  "totalClaims": 131,
   "totalUnlocks": 104,
   "settledRight": 54,
   "settledWrong": 57,
@@ -61,7 +61,7 @@
       "slashedUsdc": "1000000"
     }
   },
-  "lastClaimAt": 1781349873,
+  "lastClaimAt": 1781437019,
   "lastSettleAt": 1781206907,
   "latestRefund": {
     "claimId": 120,
@@ -183,6 +183,75 @@
     "settleAt": 1780982687
   },
   "latestReceipts": [
+    {
+      "claimId": 131,
+      "agent": "LlmScout",
+      "outcome": "pending",
+      "commitTx": "0x7be3ccb4708fd23e4712268d437fd6e48d49f6fce9f367c8a664b8484ebab111",
+      "settleTx": null,
+      "bondAmount": "5000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": "bankr:deepseek-v3.2",
+      "strategy": "momentum",
+      "fellBack": false,
+      "direction": "above",
+      "thresholdPriceUsd": "0.54496721",
+      "elfaSource": "elfa",
+      "elfaSignalCount": 5,
+      "elfaFetchedAt": 1781437009,
+      "elfaSignals": [
+        {
+          "kind": "repost",
+          "label": "repost",
+          "score": null,
+          "description": "@MerchantMoe_xyz https://x.com/MerchantMoe_xyz/status/2065709562695451130"
+        },
+        {
+          "kind": "repost",
+          "label": "repost",
+          "score": null,
+          "description": "@MerchantMoe_xyz https://x.com/MerchantMoe_xyz/status/2065709198801801235"
+        },
+        {
+          "kind": "repost",
+          "label": "repost",
+          "score": null,
+          "description": "@MerchantMoe_xyz https://x.com/MerchantMoe_xyz/status/2065709188026614123"
+        },
+        {
+          "kind": "repost",
+          "label": "repost",
+          "score": null,
+          "description": "@cryptofishx https://x.com/cryptofishx/status/2065534152305197555"
+        },
+        {
+          "kind": "repost",
+          "label": "repost",
+          "score": null,
+          "description": "@DavideFi https://x.com/DavideFi/status/2065529264691147100"
+        }
+      ]
+    },
+    {
+      "claimId": 130,
+      "agent": "LobsterRogue",
+      "outcome": "pending",
+      "commitTx": "0x33da895de8b01781114da56fd06b5561664e9a42859ba77a0fe2799c0d87be45",
+      "settleTx": null,
+      "bondAmount": "10000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null,
+      "direction": "below",
+      "thresholdPriceUsd": "0.54446952",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
+    },
     {
       "claimId": 129,
       "agent": "LobsterRogue",
@@ -364,44 +433,6 @@
           "description": "@MessariCrypto https://x.com/MessariCrypto/status/2062522419408154879"
         }
       ]
-    },
-    {
-      "claimId": 123,
-      "agent": "LobsterRogue",
-      "outcome": "wrong",
-      "commitTx": "0x2e01ab4af417f078413baa40102cecd42a889c3685130113e0ea00773545ad42",
-      "settleTx": "0xfd80f29f7f68582870b2c5ef502eb54263e29738ada437640ac4b8628f65d0f2",
-      "bondAmount": "10000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "below",
-      "thresholdPriceUsd": "0.52216284",
-      "elfaSource": null,
-      "elfaSignalCount": null,
-      "elfaFetchedAt": null,
-      "elfaSignals": []
-    },
-    {
-      "claimId": 122,
-      "agent": "CatScout",
-      "outcome": "right",
-      "commitTx": "0x7be2ebf68a9d242309659639027be6578832064c0ad4b25eb0deb981bccb377e",
-      "settleTx": "0x1b61bce0ad8f4dd0c5bd7cb3d29ddeaaef4ad02f014fa79fe9dab324ad4fc359",
-      "bondAmount": "5000000",
-      "payoutTx": "0x0ddb0e25d53bb2fb15ea72bb14f0dfc03f0971592879033153136e3220d0b7b0",
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "above",
-      "thresholdPriceUsd": "0.52756304",
-      "elfaSource": null,
-      "elfaSignalCount": null,
-      "elfaFetchedAt": null,
-      "elfaSignals": []
     }
   ]
 }
