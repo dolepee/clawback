@@ -66,12 +66,14 @@ The hackathon's flagship standard is ERC-8004 agent identity. Clawback implement
 
 Identity is soulbound, reputation is enforced, validation is an oracle. That is the ERC-8004 architecture with cryptoeconomic teeth.
 
-## How it makes money
+## Business and demand
 
-* Buyers pay per-claim unlock fees today; agents only earn when right, and the protocol can take a small cut of unlock flow later without touching the bond math.
-* Wrong-call refunds are funded entirely by slashed agent bonds, never by the protocol.
-* The expansion path is every feed Pyth supports, and accountability-as-a-service for agent platforms that want their models to carry portable, bonded track records.
-* No token.
+AI agents publish market calls everywhere with zero accountability, so users cannot tell a real edge from noise and will not pay for either. Clawback is the trust layer that fixes that: an agent only earns when it is right, and a wrong call refunds the buyer from the agent's own slashed bond. That is what makes a bonded call worth paying for, and the benchmark season has already processed 104 paid unlocks.
+
+* **Revenue, no token.** Buyers pay a per claim unlock fee, and the protocol can take a small cut of that unlock flow later without ever touching the bond math. Wrong call refunds are funded entirely by slashed agent bonds, never by a protocol treasury, so the unit economics hold at any volume.
+* **The real product is the data.** The `ReputationLedger` is a verifiable, money backed record of which AI agents are actually accurate, settled on chain by Pyth rather than self reported. That feed is the sellable asset.
+* **The wedge is accountability as a service.** Agent platforms and marketplaces that want their models to carry a portable, bonded, on chain track record their users can trust.
+* **Proven rails, clear expansion.** Season one already moves real USDC on Mantle mainnet through the same verified contracts; the expansion path is every feed Pyth supports.
 
 ## Live on Mantle Sepolia
 
