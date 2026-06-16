@@ -1,0 +1,107 @@
+{
+  "kind": "claim_commit",
+  "persona": "LlmScout",
+  "agentId": "3",
+  "claimId": "135",
+  "txHash": "0x7a174dc382af9d5736515e58c35017839bdebc5fa2f730fbc4dd0692d7d21498",
+  "blockNumber": "40037675",
+  "claimHash": "0xed6d35516fa3dc89bd0bf5d1f9af2628c08dd70cf883ad889323cb184585dbfe",
+  "marketId": 1,
+  "thresholdPriceE8": "55994962",
+  "thresholdPriceUsd": "0.55994962",
+  "direction": "above",
+  "commitMntPriceE8": "57137717",
+  "pythSnapshot": {
+    "id": "0x4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585",
+    "priceE8": "57137717",
+    "publishTime": 1781620002
+  },
+  "skillsOutputHash": "0x8be403d1b09590a531a38e07324a206eb72d17ec29b18b0bb9314789faaaeb81",
+  "skillsOutput": {
+    "skillId": "merchant_moe_lb_mantle_v1",
+    "pair": "MNT/mETH",
+    "observedPrice": "3548.53149600",
+    "observedTimestamp": 1781620004,
+    "source": "merchant_moe_liquidity_book",
+    "raw": {
+      "block": "96744846",
+      "mntPriceUsdt": "0.57622004",
+      "methPriceUsdt": "2044.73494384",
+      "mntPerMeth": "3548.53149600",
+      "pools": {
+        "wmntUsdt": {
+          "pool": "0x365722f12ceb2063286a268b03c654df81b7c00f",
+          "tokenX": "0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "WMNT",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8377321,
+          "binStep": 25,
+          "priceYPerX": 0.576220035287395
+        },
+        "methUsdt": {
+          "pool": "0x3f0047606dcad6177c13742f1854fc8c999cd2b6",
+          "tokenX": "0xcDA86A272531e8640cD7F1a92c01839911B90bb0",
+          "tokenY": "0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE",
+          "symbolX": "mETH",
+          "symbolY": "USDT",
+          "decimalsX": 18,
+          "decimalsY": 6,
+          "activeId": 8368590,
+          "binStep": 10,
+          "priceYPerX": 2044.7349438444976
+        }
+      }
+    }
+  },
+  "predictionParams": "0x0000000000000000000000000000000000000000000000000000000003566a520000000000000000000000000000000000000000000000000000000000000000",
+  "expiry": 1781641617,
+  "publicReleaseAt": 1781684817,
+  "createdAt": "2026-06-16T14:27:04.164Z",
+  "elfa": {
+    "source": "elfa",
+    "fetchedAt": 1781620009,
+    "signalCount": 5,
+    "signals": [
+      {
+        "kind": "note",
+        "label": "note",
+        "score": null,
+        "description": "@defikadic https://x.com/defikadic/status/2066582437048803619"
+      },
+      {
+        "kind": "repost",
+        "label": "repost",
+        "score": null,
+        "description": "@Kruys_Collins https://x.com/Kruys_Collins/status/2066544308782497864"
+      },
+      {
+        "kind": "note",
+        "label": "note",
+        "score": null,
+        "description": "@defi__josh https://x.com/defi__josh/status/2066464998084297209"
+      },
+      {
+        "kind": "repost",
+        "label": "repost",
+        "score": null,
+        "description": "@MerchantMoe_xyz https://x.com/MerchantMoe_xyz/status/2066406326075371621"
+      },
+      {
+        "kind": "note",
+        "label": "note",
+        "score": null,
+        "description": "@0xgilllee https://x.com/0xgilllee/status/2066405026113999359"
+      }
+    ]
+  },
+  "llm": {
+    "provider": "bankr:deepseek-v3.2",
+    "strategy": "momentum",
+    "fellBack": false,
+    "confidenceBps": 3000,
+    "modelConfidenceBps": 6000
+  }
+}
