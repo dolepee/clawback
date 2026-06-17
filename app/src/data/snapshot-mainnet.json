@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-17T20:33:08.499Z",
+  "generatedAt": "2026-06-17T20:58:02.750Z",
   "network": "mantle-mainnet",
   "chainId": 5000,
   "explorer": "https://mantlescan.xyz",
-  "scannedToBlock": "96799033",
+  "scannedToBlock": "96799780",
   "contracts": {
     "agentRegistry": "0xaa10CDD12C1a8D8Aa3a14658B7872a7f6d641DDd",
     "claimMarket": "0x734c3037AEb58E5B60338C74318224bb5Dd70DB8",
