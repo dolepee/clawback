@@ -1,10 +1,10 @@
 {
-  "generatedAt": 1781695501,
+  "generatedAt": 1781701203,
   "fromBlock": "38493730",
-  "toBlock": "40075388",
+  "toBlock": "40078233",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
-  "totalClaims": 135,
+  "totalClaims": 137,
   "totalUnlocks": 104,
   "settledRight": 54,
   "settledWrong": 57,
@@ -61,7 +61,7 @@
       "slashedUsdc": "1000000"
     }
   },
-  "lastClaimAt": 1781620023,
+  "lastClaimAt": 1781701089,
   "lastSettleAt": 1781206907,
   "latestRefund": {
     "claimId": 120,
@@ -183,6 +183,81 @@
     "settleAt": 1780982687
   },
   "latestReceipts": [
+    {
+      "claimId": 137,
+      "agent": "LlmScout",
+      "outcome": "pending",
+      "commitTx": "0x994743b5ef8378e52c5ab3d23432e5b89581e8f034100bb5f9171d2ab568273e",
+      "settleTx": null,
+      "bondAmount": "5000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": "bankr:deepseek-v3.2",
+      "strategy": "momentum",
+      "fellBack": false,
+      "direction": "above",
+      "thresholdPriceUsd": "0.56495731",
+      "elfaSource": "elfa",
+      "elfaSignalCount": 7,
+      "elfaFetchedAt": 1781701071,
+      "elfaSignals": [
+        {
+          "kind": "note",
+          "label": "note",
+          "score": null,
+          "description": "https://x.com/Infinit_Labs/status/2067215723928404410"
+        },
+        {
+          "kind": "repost",
+          "label": "repost",
+          "score": null,
+          "description": "https://x.com/AltCryptoTalk/status/2067143232874528801"
+        },
+        {
+          "kind": "note",
+          "label": "note",
+          "score": null,
+          "description": "@Infinit_Labs https://x.com/Infinit_Labs/status/2067215723928404410"
+        },
+        {
+          "kind": "article",
+          "label": "article",
+          "score": null,
+          "description": "@Mantle_Official https://x.com/Mantle_Official/status/2066880937271722093"
+        },
+        {
+          "kind": "note",
+          "label": "note",
+          "score": null,
+          "description": "@defikadic https://x.com/defikadic/status/2066582437048803619"
+        },
+        {
+          "kind": "repost",
+          "label": "repost",
+          "score": null,
+          "description": "@Kruys_Collins https://x.com/Kruys_Collins/status/2066544308782497864"
+        }
+      ]
+    },
+    {
+      "claimId": 136,
+      "agent": "LobsterRogue",
+      "outcome": "pending",
+      "commitTx": "0x57349607d7c049b65b2b7108c9d67cec20b2d02b67509c528148533ee0e7e882",
+      "settleTx": null,
+      "bondAmount": "10000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null,
+      "direction": "below",
+      "thresholdPriceUsd": "0.53806928",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
+    },
     {
       "claimId": 135,
       "agent": "LlmScout",
@@ -391,44 +466,6 @@
       "fellBack": null,
       "direction": "below",
       "thresholdPriceUsd": "0.54446952",
-      "elfaSource": null,
-      "elfaSignalCount": null,
-      "elfaFetchedAt": null,
-      "elfaSignals": []
-    },
-    {
-      "claimId": 129,
-      "agent": "LobsterRogue",
-      "outcome": "pending",
-      "commitTx": "0x4efb3ac8957a7bb4e159dcffe9c84265a762a8bc81945206888598072d0e20a9",
-      "settleTx": null,
-      "bondAmount": "10000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "below",
-      "thresholdPriceUsd": "0.52702698",
-      "elfaSource": null,
-      "elfaSignalCount": null,
-      "elfaFetchedAt": null,
-      "elfaSignals": []
-    },
-    {
-      "claimId": 128,
-      "agent": "CatScout",
-      "outcome": "pending",
-      "commitTx": "0x528b8fd129af443bc0f4d246af4c322f721a7ea88dc2c0b1147ed3ed1bedcdac",
-      "settleTx": null,
-      "bondAmount": "5000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "above",
-      "thresholdPriceUsd": "0.53246027",
       "elfaSource": null,
       "elfaSignalCount": null,
       "elfaFetchedAt": null,
