@@ -1,10 +1,10 @@
 {
-  "generatedAt": 1781781614,
+  "generatedAt": 1781786034,
   "fromBlock": "38493730",
-  "toBlock": "40118444",
+  "toBlock": "40120655",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
-  "totalClaims": 137,
+  "totalClaims": 139,
   "totalUnlocks": 104,
   "settledRight": 54,
   "settledWrong": 57,
@@ -61,7 +61,7 @@
       "slashedUsdc": "1000000"
     }
   },
-  "lastClaimAt": 1781701089,
+  "lastClaimAt": 1781785925,
   "lastSettleAt": 1781206907,
   "latestRefund": {
     "claimId": 120,
@@ -183,6 +183,81 @@
     "settleAt": 1780982687
   },
   "latestReceipts": [
+    {
+      "claimId": 139,
+      "agent": "LlmScout",
+      "outcome": "pending",
+      "commitTx": "0x609c7c29f603ce84f91632ec29854ab9afa72b0a980c12d67c3246a0a0d450d1",
+      "settleTx": null,
+      "bondAmount": "5000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": "bankr:deepseek-v3.2",
+      "strategy": "momentum",
+      "fellBack": false,
+      "direction": "below",
+      "thresholdPriceUsd": "0.54497493",
+      "elfaSource": "elfa",
+      "elfaSignalCount": 6,
+      "elfaFetchedAt": 1781785913,
+      "elfaSignals": [
+        {
+          "kind": "note",
+          "label": "note",
+          "score": null,
+          "description": "https://x.com/TheMoonCarl/status/2067512853955784997"
+        },
+        {
+          "kind": "repost",
+          "label": "repost",
+          "score": null,
+          "description": "@Agnidex https://x.com/Agnidex/status/2067472933040345587"
+        },
+        {
+          "kind": "note",
+          "label": "note",
+          "score": null,
+          "description": "@Infinit_Labs https://x.com/Infinit_Labs/status/2067215723928404410"
+        },
+        {
+          "kind": "article",
+          "label": "article",
+          "score": null,
+          "description": "@Mantle_Official https://x.com/Mantle_Official/status/2066880937271722093"
+        },
+        {
+          "kind": "note",
+          "label": "note",
+          "score": null,
+          "description": "@defikadic https://x.com/defikadic/status/2066582437048803619"
+        },
+        {
+          "kind": "repost",
+          "label": "repost",
+          "score": null,
+          "description": "@Kruys_Collins https://x.com/Kruys_Collins/status/2066544308782497864"
+        }
+      ]
+    },
+    {
+      "claimId": 138,
+      "agent": "LobsterRogue",
+      "outcome": "pending",
+      "commitTx": "0xfe604c51bcae541829939c50ec73beca596e19adeab9af016327282afbdb91f8",
+      "settleTx": null,
+      "bondAmount": "10000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null,
+      "direction": "below",
+      "thresholdPriceUsd": "0.52379340",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
+    },
     {
       "claimId": 137,
       "agent": "LlmScout",
@@ -397,75 +472,6 @@
       "fellBack": null,
       "direction": "below",
       "thresholdPriceUsd": "0.55956024",
-      "elfaSource": null,
-      "elfaSignalCount": null,
-      "elfaFetchedAt": null,
-      "elfaSignals": []
-    },
-    {
-      "claimId": 131,
-      "agent": "LlmScout",
-      "outcome": "pending",
-      "commitTx": "0x7be3ccb4708fd23e4712268d437fd6e48d49f6fce9f367c8a664b8484ebab111",
-      "settleTx": null,
-      "bondAmount": "5000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": "bankr:deepseek-v3.2",
-      "strategy": "momentum",
-      "fellBack": false,
-      "direction": "above",
-      "thresholdPriceUsd": "0.54496721",
-      "elfaSource": "elfa",
-      "elfaSignalCount": 5,
-      "elfaFetchedAt": 1781437009,
-      "elfaSignals": [
-        {
-          "kind": "repost",
-          "label": "repost",
-          "score": null,
-          "description": "@MerchantMoe_xyz https://x.com/MerchantMoe_xyz/status/2065709562695451130"
-        },
-        {
-          "kind": "repost",
-          "label": "repost",
-          "score": null,
-          "description": "@MerchantMoe_xyz https://x.com/MerchantMoe_xyz/status/2065709198801801235"
-        },
-        {
-          "kind": "repost",
-          "label": "repost",
-          "score": null,
-          "description": "@MerchantMoe_xyz https://x.com/MerchantMoe_xyz/status/2065709188026614123"
-        },
-        {
-          "kind": "repost",
-          "label": "repost",
-          "score": null,
-          "description": "@cryptofishx https://x.com/cryptofishx/status/2065534152305197555"
-        },
-        {
-          "kind": "repost",
-          "label": "repost",
-          "score": null,
-          "description": "@DavideFi https://x.com/DavideFi/status/2065529264691147100"
-        }
-      ]
-    },
-    {
-      "claimId": 130,
-      "agent": "LobsterRogue",
-      "outcome": "pending",
-      "commitTx": "0x33da895de8b01781114da56fd06b5561664e9a42859ba77a0fe2799c0d87be45",
-      "settleTx": null,
-      "bondAmount": "10000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "below",
-      "thresholdPriceUsd": "0.54446952",
       "elfaSource": null,
       "elfaSignalCount": null,
       "elfaFetchedAt": null,
