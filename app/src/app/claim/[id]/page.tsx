@@ -103,6 +103,97 @@ function formatDollarExact(amount: bigint): string {
   })}`;
 }
 
+function ReceiptPricePanel({
+  threshold,
+  resultPrice,
+  agentRight,
+}: {
+  threshold?: string;
+  resultPrice?: string;
+  agentRight: boolean;
+}) {
+  const thresholdText = threshold ? `$${Number(threshold).toFixed(4)}` : "threshold";
+  return (
+    <aside className="receipt-price-panel" aria-label="Settlement price chart">
+      <div className="receipt-price-head">
+        <span>MNT price (USD)</span>
+        <strong>{agentRight ? "Right path" : "Refund path"}</strong>
+      </div>
+      <svg viewBox="0 0 620 250" role="img" aria-label="Illustrative MNT settlement chart">
+        {agentRight ? (
+          <path
+            d="M28 142 C60 126 78 136 106 116 S160 96 190 112 244 116 278 92 332 70 370 88 422 74 470 66 534 74 590 52"
+            fill="none"
+            stroke="rgb(110 231 183)"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="5"
+          />
+        ) : (
+          <>
+            <path
+              d="M28 102 C60 82 78 112 106 92 S160 76 190 96 244 116 278 96 332 72 370 96"
+              fill="none"
+              stroke="rgb(110 231 183)"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="5"
+            />
+            <path
+              className="receipt-price-loss"
+              d="M370 96 C408 118 430 132 470 118 S534 116 590 142"
+              fill="none"
+              stroke="rgb(255 91 91)"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="5"
+            />
+          </>
+        )}
+        <path d="M28 126 H590" stroke="rgba(255,255,255,0.28)" strokeDasharray="9 12" strokeWidth="2" />
+        <text x="454" y="118" fill="rgb(245 245 245)" fontSize="18" fontWeight="800">
+          {thresholdText}
+        </text>
+        <circle cx="590" cy={agentRight ? "52" : "142"} r="7" fill={agentRight ? "rgb(110 231 183)" : "rgb(255 91 91)"} />
+      </svg>
+      <div className="receipt-price-foot">
+        <span>Commit</span>
+        <strong className={agentRight ? "price-green" : ""}>{resultPrice ?? "Pyth settled"}</strong>
+        <span>Expiry</span>
+      </div>
+    </aside>
+  );
+}
+
+function ReceiptStepStrip({
+  commitTx,
+  settleTx,
+  finalTx,
+  agentRight,
+}: {
+  commitTx?: `0x${string}`;
+  settleTx?: `0x${string}`;
+  finalTx?: `0x${string}`;
+  agentRight: boolean;
+}) {
+  const steps = [
+    { n: 1, label: "Committed", tx: commitTx },
+    { n: 2, label: "Settled by Pyth", tx: settleTx },
+    { n: 3, label: agentRight ? "Agent paid" : "Refund paid", tx: finalTx },
+  ];
+  return (
+    <section className="receipt-step-strip" aria-label="Receipt settlement steps">
+      {steps.map((step) => (
+        <div key={step.label}>
+          <span>{step.n}</span>
+          <strong>{step.label}</strong>
+          {step.tx ? txLink(step.tx, shortHex(step.tx, 5, 4), `Open ${step.label} transaction`) : <em>recorded</em>}
+        </div>
+      ))}
+    </section>
+  );
+}
+
 function thresholdLabel(prediction: ReturnType<typeof decodePredictionParams>): string | undefined {
   if (prediction.kind === "threshold") {
     return `${prediction.direction} $${prediction.thresholdPriceUsd.toFixed(4)}`;
@@ -299,40 +390,53 @@ function SnapshotClaimFallback({
         </div>
       </div>
 
-      <section className={`receipt-summary-card ${agentRight ? "receipt-summary-earned" : "receipt-summary-refund"}`}>
-        <div className="summary-copy">
-          <div className="dot-label">Snapshot proof</div>
-          <h1>
-            {!isSettled
-              ? "Awaiting settlement"
-              : agentRight
-                ? "Right → agent earned"
-                : "Wrong → refund cleared"}
-          </h1>
-          <p>
-            Live contract reads are rate-limited, so this page is rendering the pinned proof snapshot.
-            The transaction links remain public Mantle receipts.
-          </p>
-        </div>
-        <dl className="summary-metrics">
-          <div>
-            <dt>Prediction</dt>
-            <dd>{callText}</dd>
+      <div className="receipt-detail-topgrid">
+        <section className={`receipt-summary-card ${agentRight ? "receipt-summary-earned" : "receipt-summary-refund"}`}>
+          <div className="summary-copy">
+            <div className="dot-label">Snapshot proof</div>
+            <h1>
+              {!isSettled
+                ? "Awaiting settlement"
+                : agentRight
+                  ? "Right → agent earned"
+                  : "Wrong → refund cleared"}
+            </h1>
+            <p>
+              Live contract reads are rate-limited, so this page is rendering the pinned proof snapshot.
+              The transaction links remain public Mantle receipts.
+            </p>
           </div>
-          <div>
-            <dt>Actual result</dt>
-            <dd>{isSettled ? (agentRight ? "Right" : "Wrong") : "Pending"}</dd>
-          </div>
-          <div>
-            <dt>Paid to</dt>
-            <dd>{agentRight ? "Agent" : isWrong ? "Payers" : "Pending"}</dd>
-          </div>
-          <div>
-            <dt>Amount</dt>
-            <dd>{amount}</dd>
-          </div>
-        </dl>
-      </section>
+          <dl className="summary-metrics">
+            <div>
+              <dt>Prediction</dt>
+              <dd>{callText}</dd>
+            </div>
+            <div>
+              <dt>Actual result</dt>
+              <dd>{isSettled ? (agentRight ? "Right" : "Wrong") : "Pending"}</dd>
+            </div>
+            <div>
+              <dt>Paid to</dt>
+              <dd>{agentRight ? "Agent" : isWrong ? "Payers" : "Pending"}</dd>
+            </div>
+            <div>
+              <dt>Amount</dt>
+              <dd>{amount}</dd>
+            </div>
+          </dl>
+        </section>
+        <ReceiptPricePanel
+          threshold={receipt.thresholdPriceUsd}
+          agentRight={agentRight}
+        />
+      </div>
+
+      <ReceiptStepStrip
+        commitTx={receipt.commitTx}
+        settleTx={receipt.settleTx}
+        finalTx={agentRight ? receipt.payoutTx : receipt.refundTx}
+        agentRight={agentRight}
+      />
 
       <section className="decision-dossier" aria-label="Snapshot decision dossier">
         <article className="dossier-card dossier-main">
@@ -512,7 +616,13 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
   const unlockEvents = timeline.filter((event): event is Extract<TimelineEvent, { kind: "unlock" }> => event.kind === "unlock");
   const totalUnlocked = unlockEvents.reduce((sum, event) => sum + event.amount, 0n) || accounting.totalPaid;
   const receiptValue = isSettled ? paidAmount : totalUnlocked;
-  const receiptValueLabel = receiptValue > 0n ? formatDollar(receiptValue) : isSettled ? "—" : "No unlock yet";
+  const receiptValueLabel = receiptValue > 0n
+    ? formatDollar(receiptValue)
+    : isSettled
+      ? agentRight
+        ? "Earned onchain"
+        : "Refunded onchain"
+      : "No unlock yet";
   const beneficiaryLabel = !isSettled ? (totalUnlocked > 0n ? "Escrowed" : "Pending") : agentRight ? "Agent" : "Payers";
   const valueLabel = !isSettled ? "Unlocks paid" : paidLabel;
   const settlementProof = decodeSettlementProof(accounting.settlementProof);
@@ -557,38 +667,56 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
         />
       </div>
 
-      <section className={`receipt-summary-card ${agentRight ? "receipt-summary-earned" : "receipt-summary-refund"}`}>
-        <div className="summary-copy">
-          <div className="dot-label">Outcome</div>
-          <h1>{outcomeText}</h1>
-          <p>
-            {agent.handle} predicted {callText === "MNT price call" ? question : callText}.{" "}
-            {isSettled
-              ? agentRight
-                ? "The call settled right, so the agent kept the earned payment."
-                : "The call settled wrong, so the slashed bond paid users back."
-              : "The call is still live and will settle after expiry."}
-          </p>
-        </div>
-        <dl className="summary-metrics">
-          <div>
-            <dt>Prediction</dt>
-            <dd>{callText}</dd>
+      <div className="receipt-detail-topgrid">
+        <section className={`receipt-summary-card ${agentRight ? "receipt-summary-earned" : "receipt-summary-refund"}`}>
+          <div className="summary-copy">
+            <div className="dot-label">Outcome</div>
+            <h1>{outcomeText}</h1>
+            <p>
+              {agent.handle} predicted {callText === "MNT price call" ? question : callText}.{" "}
+              {isSettled
+                ? agentRight
+                  ? "The call settled right, so the agent kept the earned payment."
+                  : "The call settled wrong, so the slashed bond paid users back."
+                : "The call is still live and will settle after expiry."}
+            </p>
           </div>
-          <div>
-            <dt>Actual result</dt>
-            <dd>{isSettled ? (agentRight ? "Right" : "Wrong") : "Pending"}</dd>
-          </div>
-          <div>
-            <dt>Paid to</dt>
-            <dd>{beneficiaryLabel}</dd>
-          </div>
-          <div>
-            <dt>Amount</dt>
-            <dd>{receiptValueLabel}</dd>
-          </div>
-        </dl>
-      </section>
+          <dl className="summary-metrics">
+            <div>
+              <dt>Prediction</dt>
+              <dd>{callText}</dd>
+            </div>
+            <div>
+              <dt>Actual result</dt>
+              <dd>{isSettled ? (agentRight ? "Right" : "Wrong") : "Pending"}</dd>
+            </div>
+            <div>
+              <dt>Paid to</dt>
+              <dd>{beneficiaryLabel}</dd>
+            </div>
+            <div>
+              <dt>Amount</dt>
+              <dd>{receiptValueLabel}</dd>
+            </div>
+          </dl>
+        </section>
+        <ReceiptPricePanel
+          threshold={
+            proofRefund?.thresholdPriceUsd ??
+            proofPayout?.thresholdPriceUsd ??
+            matchingReceipt?.thresholdPriceUsd
+          }
+          resultPrice={formatOraclePrice(settlementProof?.mntPrice)}
+          agentRight={agentRight}
+        />
+      </div>
+
+      <ReceiptStepStrip
+        commitTx={replayCommitTx}
+        settleTx={replaySettleTx}
+        finalTx={replayFinalTx}
+        agentRight={agentRight}
+      />
 
       <ClaimLiveStatus settled={isSettled} expirySec={Number(claim.expiry)} />
 
