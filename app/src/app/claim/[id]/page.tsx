@@ -170,24 +170,31 @@ function ReceiptStepStrip({
   settleTx,
   finalTx,
   agentRight,
+  settled,
 }: {
   commitTx?: `0x${string}`;
   settleTx?: `0x${string}`;
   finalTx?: `0x${string}`;
   agentRight: boolean;
+  settled: boolean;
 }) {
   const steps = [
-    { n: 1, label: "Committed", tx: commitTx },
-    { n: 2, label: "Settled by Pyth", tx: settleTx },
-    { n: 3, label: agentRight ? "Agent paid" : "Refund paid", tx: finalTx },
+    { n: 1, label: "Committed", tx: commitTx, pending: false },
+    { n: 2, label: settled ? "Settled by Pyth" : "Awaiting Pyth", tx: settleTx, pending: !settled },
+    {
+      n: 3,
+      label: !settled ? "Final payment" : finalTx ? (agentRight ? "Agent paid" : "Refund paid") : agentRight ? "Agent claim pending" : "Refund pending",
+      tx: finalTx,
+      pending: !finalTx,
+    },
   ];
   return (
     <section className="receipt-step-strip" aria-label="Receipt settlement steps">
       {steps.map((step) => (
-        <div key={step.label}>
+        <div key={step.label} className={step.pending ? "receipt-step-pending" : undefined}>
           <span>{step.n}</span>
           <strong>{step.label}</strong>
-          {step.tx ? txLink(step.tx, shortHex(step.tx, 5, 4), `Open ${step.label} transaction`) : <em>recorded</em>}
+          {step.tx ? txLink(step.tx, shortHex(step.tx, 5, 4), `Open ${step.label} transaction`) : <em>{step.pending ? "pending" : "recorded"}</em>}
         </div>
       ))}
     </section>
@@ -436,6 +443,7 @@ function SnapshotClaimFallback({
         settleTx={receipt.settleTx}
         finalTx={agentRight ? receipt.payoutTx : receipt.refundTx}
         agentRight={agentRight}
+        settled={isSettled}
       />
 
       <section className="decision-dossier" aria-label="Snapshot decision dossier">
@@ -716,6 +724,7 @@ export default async function ClaimDetailPage({ params }: { params: Promise<{ id
         settleTx={replaySettleTx}
         finalTx={replayFinalTx}
         agentRight={agentRight}
+        settled={isSettled}
       />
 
       <ClaimLiveStatus settled={isSettled} expirySec={Number(claim.expiry)} />

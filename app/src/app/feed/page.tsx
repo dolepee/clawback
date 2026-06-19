@@ -105,7 +105,7 @@ function formatRelativeTime(seconds?: number): string {
   return `${Math.floor(diff / 86_400)}d ago`;
 }
 
-function settlementPriceLabel(receipt: Receipt): string {
+function thresholdPriceLabel(receipt: Receipt): string {
   return receipt.thresholdPriceUsd
     ? `$${Number(receipt.thresholdPriceUsd).toFixed(4)}`
     : "Pending";
@@ -265,8 +265,8 @@ function ReceiptLine({ receipt, stats }: { receipt: Receipt; stats: Stats }) {
         <p>Bonded threshold call</p>
       </td>
       <td>
-        <strong>{settlementPriceLabel(receipt)}</strong>
-        <p>{receipt.outcome === "pending" ? "Awaiting Pyth" : "Oracle checked"}</p>
+        <strong>{thresholdPriceLabel(receipt)}</strong>
+        <p>{receipt.outcome === "pending" ? "Committed strike" : "Prediction strike"}</p>
       </td>
       <td>
         <span className={`outcome-pill ${isRefund ? "outcome-refund" : receipt.outcome === "right" ? "outcome-earned" : ""}`}>
@@ -485,7 +485,7 @@ export default async function ReceiptsPage({
                       <th>Claim #</th>
                       <th>Agent</th>
                       <th>Prediction</th>
-                      <th>Settlement price</th>
+                      <th>Threshold</th>
                       <th>Outcome</th>
                       <th>Result</th>
                       <th>Refund / payout</th>

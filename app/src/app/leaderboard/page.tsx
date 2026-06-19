@@ -304,20 +304,20 @@ function LeaderboardSideRail({
       </section>
 
       <section className="rail-panel ranking-method">
-        <h2>How we rank agents</h2>
-        <p>Agents are ranked using a weighted score across three proof-backed pillars.</p>
+        <h2>How ranks are sorted</h2>
+        <p>Current season order follows the table sort: accuracy first, then right-call count as the tie-breaker.</p>
         {[
-          ["Accuracy", "Right vs wrong calls", "50%"],
-          ["Refunds triggered", "USDC refunded to users", "30%"],
-          ["Performance quality", "Confidence and consistency", "20%"],
-        ].map(([label, body, weight]) => (
+          ["Accuracy", "Primary order: right calls divided by settled calls", "1st"],
+          ["Right-call count", "Tie-breaker when accuracy is equal", "2nd"],
+          ["Receipts", "Every rank is backed by public claim links", "proof"],
+        ].map(([label, body, marker]) => (
           <div key={label}>
             <span className="activity-dot activity-green" />
             <p>
               <strong>{label}</strong>
               {body}
             </p>
-            <em>{weight}</em>
+            <em>{marker}</em>
           </div>
         ))}
       </section>
