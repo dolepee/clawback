@@ -80,6 +80,153 @@ function modelRouteLabel(provider?: string): string {
   return provider;
 }
 
+function StrategyPanel({ handle, profile }: { handle: string; profile: AgentProfile }) {
+  const rows =
+    handle === "LlmScout"
+      ? [
+          ["Momentum", "Reads directional pressure before committing capital."],
+          ["Threshold hunter", "Focuses on decisive moves past priced levels."],
+          ["Risk aware", "Small stake first; wrong calls are slashable."],
+        ]
+      : handle === "CatScout"
+        ? [
+            ["Baseline", "A deterministic control strategy for judging the AI route."],
+            ["Patient", "Waits for clearer threshold windows."],
+            ["Capital-aware", "Same bonded settlement path as model agents."],
+          ]
+        : [
+            ["Adversarial", "Pushes low-quality calls to prove refunds work."],
+            ["Slashing demo", "Turns wrong calls into visible clawback receipts."],
+            ["Control group", "Keeps the benchmark honest."],
+          ];
+
+  return (
+    <section className="agent-profile-panel agent-strategy-panel">
+      <div className="rail-panel-head">
+        <h2>AI reasoning profile</h2>
+        <span>{profile.modelRoute}</span>
+      </div>
+      <p>{profile.strategy}</p>
+      <div className="strategy-mix-list">
+        {rows.map(([label, body], index) => (
+          <article key={label}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{label}</strong>
+            <p>{body}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AgentPerformancePanel({
+  row,
+  total,
+}: {
+  row: { wins: number; losses: number; accuracy: number };
+  total: number;
+}) {
+  const worstCase = total === 0 ? "0.0%" : `${((row.losses / total) * 100).toFixed(1)}%`;
+  return (
+    <section className="agent-profile-panel agent-performance-panel">
+      <div className="rail-panel-head">
+        <h2>Performance over time</h2>
+        <span>30D</span>
+      </div>
+      <svg viewBox="0 0 560 220" role="img" aria-label="Agent performance sketch">
+        <path d="M28 162 H532 M28 112 H532 M28 62 H532" stroke="rgba(255,255,255,.1)" strokeDasharray="5 8" />
+        <path
+          d="M32 74 C82 86 110 60 150 76 S226 116 272 104 344 122 386 96 468 78 528 116"
+          fill="none"
+          stroke="rgb(110 231 183)"
+          strokeLinecap="round"
+          strokeWidth="4"
+        />
+        <path
+          d="M32 178 C86 146 120 160 166 132 S264 142 310 112 390 88 432 68 486 58 528 40"
+          fill="none"
+          stroke="rgb(196 181 253)"
+          strokeLinecap="round"
+          strokeWidth="4"
+        />
+      </svg>
+      <dl>
+        <div>
+          <dt>Best accuracy</dt>
+          <dd>{total === 0 ? "0.0%" : `${(row.accuracy * 100).toFixed(1)}%`}</dd>
+        </div>
+        <div>
+          <dt>Loss rate</dt>
+          <dd>{worstCase}</dd>
+        </div>
+        <div>
+          <dt>Total calls</dt>
+          <dd>{total}</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
+function BondRiskPanel({
+  agent,
+  score,
+}: {
+  agent: Awaited<ReturnType<typeof loadAgentDetail>> extends infer T
+    ? T extends { agent: infer A }
+      ? A
+      : never
+    : never;
+  score: Awaited<ReturnType<typeof loadAgentDetail>> extends infer T
+    ? T extends { score: infer S }
+      ? S
+      : never
+    : never;
+}) {
+  return (
+    <section className="agent-profile-panel agent-risk-panel">
+      <div className="rail-panel-head">
+        <h2>Bond & risk</h2>
+        <span>skin in game</span>
+      </div>
+      <div className="risk-ring">
+        <strong>{formatUsdc(agent.bondedTotal)}</strong>
+        <span>USDC active bond</span>
+      </div>
+      <dl>
+        <div>
+          <dt>Total bonded</dt>
+          <dd>{formatUsdc(score.totalBonded)} USDC</dd>
+        </div>
+        <div>
+          <dt>Total slashed</dt>
+          <dd>{formatUsdc(score.totalSlashed)} USDC</dd>
+        </div>
+        <div>
+          <dt>Currently slashable</dt>
+          <dd>{formatUsdc(agent.slashableBonded)} USDC</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
+function HowToReadAgentProfile() {
+  return (
+    <aside className="agent-profile-panel agent-read-panel">
+      <h2>How to read this profile</h2>
+      <ul>
+        <li>Accuracy shows how often the agent is right.</li>
+        <li>Wrong calls trigger refunds from the agent bond.</li>
+        <li>Earned means the agent was right and got paid.</li>
+        <li>Every row links back to public Mantle proof.</li>
+      </ul>
+      <Link href="/how-it-works">Learn more about Clawback →</Link>
+    </aside>
+  );
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   try {
@@ -168,6 +315,17 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
         <div>
           <span>Refunded</span>
           <strong className="text-emerald-200">{formatDollar(refunded)}</strong>
+        </div>
+      </section>
+
+      <section className="agent-profile-console" aria-label="Agent profile analysis">
+        <div className="agent-profile-main">
+          <StrategyPanel handle={agent.handle} profile={profile} />
+          <AgentPerformancePanel row={row} total={total} />
+        </div>
+        <div className="agent-profile-side">
+          <HowToReadAgentProfile />
+          <BondRiskPanel agent={agent} score={score} />
         </div>
       </section>
 

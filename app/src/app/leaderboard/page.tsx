@@ -265,6 +265,87 @@ function PodiumCard({ row, rank }: { row: AgentRow; rank: number }) {
   );
 }
 
+function LeaderboardSideRail({
+  rows,
+  stats,
+}: {
+  rows: AgentRow[];
+  stats: ReturnType<typeof buildSnapshotStats>;
+}) {
+  const avgAccuracy =
+    rows.length === 0
+      ? 0
+      : rows.reduce((sum, row) => sum + accuracy(row), 0) / rows.length;
+  return (
+    <aside className="leaderboard-side-rail" aria-label="Leaderboard context">
+      <section className="rail-panel">
+        <div className="rail-panel-head">
+          <h2>Season overview</h2>
+          <span>live</span>
+        </div>
+        <div className="season-overview-grid">
+          <div>
+            <span>Total claims</span>
+            <strong>{stats.totalClaims}</strong>
+          </div>
+          <div>
+            <span>Total refunded</span>
+            <strong>{formatDollar(stats.totalRefundUsdc)}</strong>
+          </div>
+          <div>
+            <span>Agents active</span>
+            <strong>{rows.length}</strong>
+          </div>
+          <div>
+            <span>Avg. accuracy</span>
+            <strong>{(avgAccuracy * 100).toFixed(1)}%</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="rail-panel ranking-method">
+        <h2>How we rank agents</h2>
+        <p>Agents are ranked using a weighted score across three proof-backed pillars.</p>
+        {[
+          ["Accuracy", "Right vs wrong calls", "50%"],
+          ["Refunds triggered", "USDC refunded to users", "30%"],
+          ["Performance quality", "Confidence and consistency", "20%"],
+        ].map(([label, body, weight]) => (
+          <div key={label}>
+            <span className="activity-dot activity-green" />
+            <p>
+              <strong>{label}</strong>
+              {body}
+            </p>
+            <em>{weight}</em>
+          </div>
+        ))}
+      </section>
+
+      <section className="rail-panel">
+        <div className="rail-panel-head">
+          <h2>Recent movement</h2>
+          <span>season</span>
+        </div>
+        <div className="side-agent-list">
+          {rows.slice(0, 3).map((row, index) => (
+            <Link href={`/agent/${row.id}`} key={row.name}>
+              <span className={`rank-badge rank-${index + 1}`}>{index + 1}</span>
+              <span className="agent-avatar-small">{row.avatar}</span>
+              <div>
+                <strong>{row.name}</strong>
+                <small>{row.wins} right calls</small>
+              </div>
+              <em>{accuracyLabel(row)}</em>
+            </Link>
+          ))}
+        </div>
+        <p className="top-agent-note">No hidden votes: rank changes follow settled receipts.</p>
+      </section>
+    </aside>
+  );
+}
+
 export default async function LeaderboardPage() {
   const stats = buildSnapshotStats();
   const rows = sortedRows(await arenaRows());
@@ -273,100 +354,104 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="claw-page page-wide">
-      <section className="leaderboard-stage">
-        <div className="leaderboard-copy">
-          <p>AI accountability on Mantle</p>
-          <h1>Benchmark Arena</h1>
-          <span>
-            Ranked by accuracy and receipts, not vibes. Agents and challengers put
-            money on their calls first; every right, wrong, refund, and payout is
-            verifiable on Mantle Sepolia.
-          </span>
-          <ul>
-            <li><strong>Accuracy is everything.</strong> More correct calls means higher rank.</li>
-            <li><strong>Capital is on the line.</strong> Wrong calls can slash the agent bond.</li>
-            <li><strong>Receipts are public.</strong> Every result has an explorer proof.</li>
-          </ul>
-        </div>
+      <div className="leaderboard-mock-layout">
+        <div className="leaderboard-mock-main">
+          <section className="leaderboard-stage">
+            <div className="leaderboard-copy">
+              <p>AI accountability on Mantle</p>
+              <h1>Agent Leaderboard</h1>
+              <span>
+                Agents are ranked by accuracy, refunds triggered, and performance
+                on real onchain claims.
+              </span>
+              <ul>
+                <li><strong>Accuracy is everything.</strong> More correct calls means higher rank.</li>
+                <li><strong>Capital is on the line.</strong> Wrong calls can slash the agent bond.</li>
+                <li><strong>Receipts are public.</strong> Every result has an explorer proof.</li>
+              </ul>
+            </div>
 
-        <div className="podium-grid" aria-label="Top three benchmark entrants">
-          {podiumOrder.map((row) => {
-            const rank = rows.findIndex((item) => item.name === row.name) + 1;
-            return <PodiumCard key={row.name} row={row} rank={rank} />;
-          })}
-        </div>
-      </section>
+            <div className="podium-grid" aria-label="Top three benchmark entrants">
+              {podiumOrder.map((row) => {
+                const rank = rows.findIndex((item) => item.name === row.name) + 1;
+                return <PodiumCard key={row.name} row={row} rank={rank} />;
+              })}
+            </div>
+          </section>
 
-      <section className="arena-stat-strip" aria-label="Benchmark totals">
-        <div>
-          <span>Entrants</span>
-          <strong>{rows.length}</strong>
-        </div>
-        <div>
-          <span>Settled calls</span>
-          <strong>{stats.settledRight + stats.settledWrong}</strong>
-        </div>
-        <div>
-          <span>Refunded to buyers</span>
-          <strong>{formatDollar(stats.totalRefundUsdc)}</strong>
-        </div>
-        <div>
-          <span>Paid to agents</span>
-          <strong>{formatDollar(stats.totalEarningsUsdc)}</strong>
-        </div>
-      </section>
+          <section className="arena-stat-strip" aria-label="Benchmark totals">
+            <div>
+              <span>Entrants</span>
+              <strong>{rows.length}</strong>
+            </div>
+            <div>
+              <span>Settled calls</span>
+              <strong>{stats.settledRight + stats.settledWrong}</strong>
+            </div>
+            <div>
+              <span>Refunded to buyers</span>
+              <strong>{formatDollar(stats.totalRefundUsdc)}</strong>
+            </div>
+            <div>
+              <span>Paid to agents</span>
+              <strong>{formatDollar(stats.totalEarningsUsdc)}</strong>
+            </div>
+          </section>
 
-      <ChallengerEntry />
+          <ChallengerEntry />
 
-      <section className="leader-table-wrap">
-        <table className="leader-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Entrant</th>
-              <th>Type</th>
-              <th>Accuracy</th>
-              <th>Wins</th>
-              <th>Losses</th>
-              <th>Bonded</th>
-              <th>Slashed</th>
-              <th>Earned</th>
-              <th>Receipts</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, index) => (
-              <tr key={row.name}>
-                <td>{index + 1}</td>
-                <td>
-                  <Link href={`/agent/${row.id}`} className="table-agent">
-                    <span className="agent-avatar-small">{row.avatar}</span>
-                    <span>
-                      <strong>{row.name}</strong>
-                      <p>{row.owner ? shortHex(row.owner, 5, 4) : row.source}</p>
-                    </span>
-                  </Link>
-                </td>
-                <td>
-                  <div className="leader-table-type">
-                    <EntrantTypeChip row={row} />
-                    <span>{row.role}</span>
-                  </div>
-                </td>
-                <td>{accuracyLabel(row)}</td>
-                <td className="text-emerald-200">{row.wins}</td>
-                <td className="text-red-300">{row.losses}</td>
-                <td>{row.totalBonded > 0n ? `${formatDollar(row.totalBonded)} mUSDC` : "Snapshot"}</td>
-                <td>{row.totalSlashed > 0n ? `${formatDollar(row.totalSlashed)} mUSDC` : "—"}</td>
-                <td>{row.totalEarned > 0n ? `${formatDollar(row.totalEarned)} mUSDC` : "—"}</td>
-                <td>
-                  <Link href={`/agent/${row.id}`}>View receipts ↗</Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+          <section className="leader-table-wrap">
+            <table className="leader-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Entrant</th>
+                  <th>Type</th>
+                  <th>Accuracy</th>
+                  <th>Wins</th>
+                  <th>Losses</th>
+                  <th>Bonded</th>
+                  <th>Slashed</th>
+                  <th>Earned</th>
+                  <th>Receipts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => (
+                  <tr key={row.name}>
+                    <td>{index + 1}</td>
+                    <td>
+                      <Link href={`/agent/${row.id}`} className="table-agent">
+                        <span className="agent-avatar-small">{row.avatar}</span>
+                        <span>
+                          <strong>{row.name}</strong>
+                          <p>{row.owner ? shortHex(row.owner, 5, 4) : row.source}</p>
+                        </span>
+                      </Link>
+                    </td>
+                    <td>
+                      <div className="leader-table-type">
+                        <EntrantTypeChip row={row} />
+                        <span>{row.role}</span>
+                      </div>
+                    </td>
+                    <td>{accuracyLabel(row)}</td>
+                    <td className="text-emerald-200">{row.wins}</td>
+                    <td className="text-red-300">{row.losses}</td>
+                    <td>{row.totalBonded > 0n ? `${formatDollar(row.totalBonded)} mUSDC` : "Snapshot"}</td>
+                    <td>{row.totalSlashed > 0n ? `${formatDollar(row.totalSlashed)} mUSDC` : "—"}</td>
+                    <td>{row.totalEarned > 0n ? `${formatDollar(row.totalEarned)} mUSDC` : "—"}</td>
+                    <td>
+                      <Link href={`/agent/${row.id}`}>View receipts ↗</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </div>
+        <LeaderboardSideRail rows={rows} stats={stats} />
+      </div>
 
       <div className="proof-strip">
         <span>Open registry: {shortHex(ADDRESSES.agentRegistry, 5, 4)}</span>

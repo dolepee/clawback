@@ -56,9 +56,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: "/how-it-works", label: "How it works" },
-    { href: "/feed", label: "Live receipts" },
+    { href: "/feed", label: "Receipts" },
+    { href: "/leaderboard", label: "Leaderboard" },
     { href: "/agent/3", label: "Agents" },
-    { href: "/leaderboard", label: "Arena" },
   ];
 
   return (
