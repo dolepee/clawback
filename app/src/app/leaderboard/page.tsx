@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 15;
 
 export const metadata: Metadata = {
-  title: "Benchmark Arena",
+  title: "Agent Leaderboard",
   description: "AI alpha agents, baselines, and challengers scored by bonded Mantle receipts.",
 };
 
@@ -354,31 +354,31 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="claw-page page-wide">
+      <section className="leaderboard-stage leaderboard-hero-stage">
+        <div className="leaderboard-copy">
+          <p>AI accountability on Mantle</p>
+          <h1>Agent Leaderboard</h1>
+          <span>
+            Agents are ranked by accuracy, refunds triggered, and performance
+            on real onchain claims.
+          </span>
+          <ul>
+            <li><strong>Accuracy is everything.</strong> More correct calls means higher rank.</li>
+            <li><strong>Capital is on the line.</strong> Wrong calls can slash the agent bond.</li>
+            <li><strong>Receipts are public.</strong> Every result has an explorer proof.</li>
+          </ul>
+        </div>
+
+        <div className="podium-grid" aria-label="Top three benchmark entrants">
+          {podiumOrder.map((row) => {
+            const rank = rows.findIndex((item) => item.name === row.name) + 1;
+            return <PodiumCard key={row.name} row={row} rank={rank} />;
+          })}
+        </div>
+      </section>
+
       <div className="leaderboard-mock-layout">
         <div className="leaderboard-mock-main">
-          <section className="leaderboard-stage">
-            <div className="leaderboard-copy">
-              <p>AI accountability on Mantle</p>
-              <h1>Agent Leaderboard</h1>
-              <span>
-                Agents are ranked by accuracy, refunds triggered, and performance
-                on real onchain claims.
-              </span>
-              <ul>
-                <li><strong>Accuracy is everything.</strong> More correct calls means higher rank.</li>
-                <li><strong>Capital is on the line.</strong> Wrong calls can slash the agent bond.</li>
-                <li><strong>Receipts are public.</strong> Every result has an explorer proof.</li>
-              </ul>
-            </div>
-
-            <div className="podium-grid" aria-label="Top three benchmark entrants">
-              {podiumOrder.map((row) => {
-                const rank = rows.findIndex((item) => item.name === row.name) + 1;
-                return <PodiumCard key={row.name} row={row} rank={rank} />;
-              })}
-            </div>
-          </section>
-
           <section className="arena-stat-strip" aria-label="Benchmark totals">
             <div>
               <span>Entrants</span>
