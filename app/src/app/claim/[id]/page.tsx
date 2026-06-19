@@ -178,9 +178,11 @@ function ReceiptStepStrip({
   agentRight: boolean;
   settled: boolean;
 }) {
+  const settleProofPending = !settled || !settleTx;
+  const settleLabel = !settled ? "Awaiting Pyth" : settleTx ? "Settled by Pyth" : "Settle proof pending";
   const steps = [
     { n: 1, label: "Committed", tx: commitTx, pending: false },
-    { n: 2, label: settled ? "Settled by Pyth" : "Awaiting Pyth", tx: settleTx, pending: !settled },
+    { n: 2, label: settleLabel, tx: settleTx, pending: settleProofPending },
     {
       n: 3,
       label: !settled ? "Final payment" : finalTx ? (agentRight ? "Agent paid" : "Refund paid") : agentRight ? "Agent claim pending" : "Refund pending",
