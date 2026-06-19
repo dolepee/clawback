@@ -4435,8 +4435,17 @@ button:focus-visible {
   font-weight: 950;
 }
 
+.receipt-step-strip .receipt-step-pending span {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgb(160 160 160);
+}
+
 .receipt-step-strip strong {
   color: rgb(var(--fg));
+}
+
+.receipt-step-strip .receipt-step-pending strong {
+  color: rgb(185 185 185);
 }
 
 .receipt-step-strip em {
@@ -4740,6 +4749,15 @@ button:focus-visible {
   .season-overview-grid,
   .agent-risk-panel dl {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .leaderboard-hero-stage .podium-1,
+  .leaderboard-hero-stage .podium-2,
+  .leaderboard-hero-stage .podium-3 {
+    min-height: auto;
+    margin-bottom: 0;
   }
 }
 
