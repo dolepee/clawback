@@ -4584,27 +4584,82 @@ button:focus-visible {
   font-weight: 850;
 }
 
-.leaderboard-mock-layout {
-  margin-top: 0;
+.leaderboard-hero-stage {
+  grid-template-columns: minmax(380px, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+  padding: clamp(1.9rem, 4vw, 4.15rem) 0 1.1rem;
 }
 
-.leaderboard-mock-main .leaderboard-stage {
-  grid-template-columns: minmax(280px, 0.52fr) minmax(0, 1.48fr);
-  gap: 1.15rem;
-}
-
-.leaderboard-mock-main .leaderboard-copy h1 {
-  max-width: 430px;
-  font-size: clamp(3.5rem, 4.7vw, 5.25rem);
+.leaderboard-hero-stage .leaderboard-copy h1 {
+  max-width: 500px;
+  font-size: clamp(3.55rem, 4.35vw, 5.15rem);
   line-height: 0.95;
 }
 
-.leaderboard-mock-main .leaderboard-copy span {
-  max-width: 430px;
+.leaderboard-hero-stage .leaderboard-copy > span {
+  max-width: 460px;
 }
 
-.leaderboard-mock-main .podium-grid {
+.leaderboard-hero-stage .leaderboard-copy ul {
+  gap: 0.85rem;
+  margin-top: 1.35rem;
+}
+
+.leaderboard-hero-stage .podium-grid {
   min-width: 0;
+  min-height: clamp(330px, 36vw, 390px);
+}
+
+.leaderboard-hero-stage .podium-card {
+  min-width: 0;
+  padding: 2.05rem 1rem 1.05rem;
+}
+
+.leaderboard-hero-stage .podium-1 {
+  min-height: 315px;
+}
+
+.leaderboard-hero-stage .podium-2,
+.leaderboard-hero-stage .podium-3 {
+  min-height: 270px;
+}
+
+.podium-name {
+  width: 100%;
+  min-width: 0;
+}
+
+.leaderboard-hero-stage .podium-name h2 {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: clamp(1.35rem, 1.55vw, 1.78rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-hero-stage .podium-3 .podium-name h2 {
+  font-size: clamp(1.25rem, 1.42vw, 1.62rem);
+}
+
+.leaderboard-hero-stage .podium-name p {
+  min-height: 1.1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-hero-stage .podium-avatar {
+  width: 4.75rem;
+  height: 4.75rem;
+  font-size: 2.55rem;
+}
+
+.leaderboard-hero-stage .podium-card > strong {
+  font-size: clamp(2rem, 2.65vw, 2.85rem);
+}
+
+.leaderboard-mock-layout {
+  margin-top: 1rem;
 }
 
 .leaderboard-side-rail {
@@ -4650,6 +4705,22 @@ button:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .leaderboard-hero-stage {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 1.5rem;
+    padding: clamp(1.25rem, 5vw, 2rem) 0 1rem;
+  }
+
+  .leaderboard-hero-stage .leaderboard-copy h1,
+  .leaderboard-hero-stage .leaderboard-copy > span {
+    max-width: 100%;
+  }
+
+  .leaderboard-hero-stage .podium-grid {
+    min-height: auto;
+  }
+
   .leaderboard-side-rail {
     position: static;
   }
@@ -4673,6 +4744,16 @@ button:focus-visible {
 }
 
 @media (max-width: 620px) {
+  .leaderboard-hero-stage .leaderboard-copy h1 {
+    max-width: 22rem;
+    font-size: clamp(2.9rem, 14.5vw, 3.45rem);
+    letter-spacing: -0.035em;
+  }
+
+  .leaderboard-hero-stage .leaderboard-copy > span {
+    font-size: 0.95rem;
+  }
+
   .feed-metric-grid {
     grid-template-columns: 1fr;
   }
