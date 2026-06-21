@@ -1,10 +1,10 @@
 {
-  "generatedAt": 1782039048,
+  "generatedAt": 1782042997,
   "fromBlock": "38493730",
-  "toBlock": "40247155",
+  "toBlock": "40249130",
   "chunksDropped": 0,
   "explorer": "https://sepolia.mantlescan.xyz",
-  "totalClaims": 143,
+  "totalClaims": 144,
   "totalUnlocks": 104,
   "settledRight": 54,
   "settledWrong": 57,
@@ -61,7 +61,7 @@
       "slashedUsdc": "1000000"
     }
   },
-  "lastClaimAt": 1781954739,
+  "lastClaimAt": 1782042879,
   "lastSettleAt": 1781206907,
   "latestRefund": {
     "claimId": 120,
@@ -183,6 +183,25 @@
     "settleAt": 1780982687
   },
   "latestReceipts": [
+    {
+      "claimId": 144,
+      "agent": "LobsterRogue",
+      "outcome": "pending",
+      "commitTx": "0x77d92a9a28bc3087378a33bc341cc353e75ae1e7eb74e8cf6a55e78dd5edc791",
+      "settleTx": null,
+      "bondAmount": "10000000",
+      "payoutTx": null,
+      "refundTx": null,
+      "provider": null,
+      "strategy": null,
+      "fellBack": null,
+      "direction": "below",
+      "thresholdPriceUsd": "0.51432153",
+      "elfaSource": null,
+      "elfaSignalCount": null,
+      "elfaFetchedAt": null,
+      "elfaSignals": []
+    },
     {
       "claimId": 143,
       "agent": "LlmScout",
@@ -451,25 +470,6 @@
           "description": "@Kruys_Collins https://x.com/Kruys_Collins/status/2066544308782497864"
         }
       ]
-    },
-    {
-      "claimId": 136,
-      "agent": "LobsterRogue",
-      "outcome": "pending",
-      "commitTx": "0x57349607d7c049b65b2b7108c9d67cec20b2d02b67509c528148533ee0e7e882",
-      "settleTx": null,
-      "bondAmount": "10000000",
-      "payoutTx": null,
-      "refundTx": null,
-      "provider": null,
-      "strategy": null,
-      "fellBack": null,
-      "direction": "below",
-      "thresholdPriceUsd": "0.53806928",
-      "elfaSource": null,
-      "elfaSignalCount": null,
-      "elfaFetchedAt": null,
-      "elfaSignals": []
     }
   ]
 }
